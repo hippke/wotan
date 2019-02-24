@@ -1,3 +1,5 @@
+![Logo](https://raw.githubusercontent.com/hippke/wotan/master/logo.png)
+
 # Wōtan
 
 Wōtan is a free and open source algorithm to automagically remove stellar trends from light curves, making them ready for exoplanet transit detection.
