@@ -18,6 +18,8 @@ Define data for a search
 :threshold: *(float, default=0.05)* Allowed maximum power in a Lomb-Scargle periodogram. Will be used to reduce the window until either ``min_window`` or ``threshold`` are reached
 :min_fraction: *(float, default=None)* Minimum fractional number of observations in window required to have a value (otherwise result is ``NaN``)
 :estimator: *(str, default='biweight')* Choice of robust estimator. Choices: ``biweight`` (Tukey Bisquared Weight), ``huber``, ``theil_sen``
+:sigma_clip_upper: *(float, default=3)* Threshold for values to be clipped. Values which are this number of standard deviations above the mean (within the current window) will be replaced with ``NaN``
+:sigma_clip_lower: *(float, default=20)* Threshold for values to be clipped. Values which are this number of standard deviations below the mean (within the current window) will be replaced with ``NaN``
 
 
 Returns
