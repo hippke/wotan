@@ -20,7 +20,7 @@ Define data for a search
 :estimator: *(str, default='biweight')* Choice of robust estimator. Choices: ``biweight`` (Tukey Bisquared Weight), ``huber``, ``theil_sen``
 :sigma_clip_upper: *(float, default=3)* Threshold for values to be clipped. Values which are this number of standard deviations above the mean (within the current window) will be replaced with ``NaN``
 :sigma_clip_lower: *(float, default=20)* Threshold for values to be clipped. Values which are this number of standard deviations below the mean (within the current window) will be replaced with ``NaN``
-
+:gap_threshold: *(float, default=max_window)* Gaps in time larger than this value will be taken to separate the time series into segments which will be detrended separately.
 
 Returns
 
