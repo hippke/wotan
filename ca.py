@@ -9,6 +9,7 @@ def detrend_curve(t, fact, D_max, k_max):
     ph = 2 * pi * t / D_max
     detr = numpy.ones(len(t)) * fact[0]
     for k in range(1, k_max + 1):
+        #if fact[2 * k - 1] != 0:  # slower
         detr += fact[2 * k - 1] * sin(ph * k) + fact[2 * k] * cos(ph * k)
     return detr
 
@@ -47,48 +48,3 @@ def detrend_light_curve_cofiam(t, y, ferr, window):
             auto_corr_min = auto_c_temp
             detrend_func = detrend_func_temp
     return detrend_func(t)
-
-
-
-import numpy
-import batman
-import matplotlib.pyplot as plt
-from cofiam import detrend_light_curve_cofiam
-from astropy.stats import sigma_clip, LombScargle
-from astropy.io import fits
-from transitleastsquares import (
-    transitleastsquares,
-    cleaned_array,
-    catalog_info,
-    transit_mask
-    )
-
-def load_file(filename):
-    """Loads a TESS *spoc* FITS file and returns cleaned arrays TIME, PDCSAP_FLUX"""
-    print(filename)
-    hdu = fits.open(filename)
-    t = hdu[1].data['TIME']
-    y = hdu[1].data['PDCSAP_FLUX']  # values with non-zero quality are nan or zero'ed 
-    t, y = cleaned_array(t, y)  # remove invalid values such as nan, inf, non, negative
-    print(
-        'Time series from', format(min(t), '.1f'), 
-        'to', format(max(t), '.1f'), 
-        'with a duration of', format(max(t)-min(t), '.1f'), 'days')
-    return t, y, hdu[0].header['TICID']  # filename[36:45]  "trappist"
-
-
-path = 'P:/P/Dok/tess_alarm/'
-#file = 'hlsp_tess-data-alerts_tess_phot_00009006668-s02_tess_v1_lc.fits'
-#file = 'hlsp_tess-data-alerts_tess_phot_00002760710-s02_tess_v1_lc.fits'
-file = 'hlsp_tess-data-alerts_tess_phot_00009725627-s02_tess_v1_lc.fits'
-t, y, TIC_ID = load_file(path + file)
-y = y / numpy.median(y)
-y = sigma_clip(y, sigma_lower=20, sigma_upper=3)
-t, y = cleaned_array(t, y)
-
-trend=detrend_light_curve_cofiam(t,y,numpy.ones(len(t)), window=2)
-
-plt.scatter(t, y, s=1, color='black')
-plt.plot(t, trend, color='red')
-plt.show()
-
