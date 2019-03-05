@@ -1,4 +1,4 @@
-![Logo](https://raw.githubusercontent.com/hippke/wotan/master/logo.png)
+![Logo](https://raw.githubusercontent.com/hippke/wotan/master/logo_v2.png)
 
 # Wōtan
 
