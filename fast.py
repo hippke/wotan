@@ -1,5 +1,5 @@
 import numpy
-from numba import prange, jit
+from numba import jit  # prange
 
 
 @jit(fastmath=True, parallel=False, nopython=True, cache=True)
@@ -32,17 +32,8 @@ def biweight_location_iter(data, c=6.0, ftol=1e-6, maxiter=15):
 
 
 @jit(fastmath=True, parallel=False, nopython=True, cache=True)
-def roll(array, shift):
-    """Replacement of 1D numpy roll in numba for (much) faster speed"""
-    n = array.size
-    shift %= n
-    indexes = numpy.concatenate((numpy.arange(n - shift, n), numpy.arange(n - shift)))
-    res = array.take(indexes)
-    return res
-
-
-@jit(fastmath=True, parallel=False, nopython=True, cache=True)
 def running_segment(t, y, window, c=6, ftol=1e-6, maxiter=15):
+    #pbar = tqdm(total=len(t))
     mean_all = numpy.full(len(t), numpy.nan)
 
     # Move border checks out of loop (reason: large speed gain)
@@ -56,23 +47,21 @@ def running_segment(t, y, window, c=6, ftol=1e-6, maxiter=15):
     for i in range(len(t)-1):
         if t[i] > lo and t[i] < hi:
             # Nice style would be:
-            # idx_start = numpy.argmax(t > t[i] - window/2)
-            # idx_end = numpy.argmax(t > t[i] + window/2)
+            #   idx_start = numpy.argmax(t > t[i] - window/2)
+            #   idx_end = numpy.argmax(t > t[i] + window/2)
             # But that's too slow (factor 10). Instead, we write:
             while t[idx_start] < t[i] - half_window:
                 idx_start +=1
             while t[idx_end] < t[i] + half_window:
                 idx_end +=1
 
-            mean_segment = biweight_location_iter(
+            # Get the Tukey-mean for the segment in question
+            mean_all[i] = biweight_location_iter(
                 y[idx_start:idx_end],
                 c=c,
                 ftol=ftol,
                 maxiter=maxiter
                 )
-
-            mean_all[i+int(half_window)] = mean_segment
-    mean_all = roll(mean_all, int(half_window))
     return mean_all
 
 
@@ -81,26 +70,20 @@ def get_gaps_indexes(time, gap_threshold):
     gaps = numpy.diff(time)
     gaps_indexes = numpy.where(gaps > gap_threshold)
     gaps_indexes = numpy.add(gaps_indexes, 1) # Off by one :-)
-    gaps_indexes = numpy.concatenate(gaps_indexes).ravel()
+    gaps_indexes = numpy.concatenate(gaps_indexes).ravel()  # Flatten
     gaps_indexes = numpy.append(numpy.array([0]), gaps_indexes)  # Start
     gaps_indexes = numpy.append(gaps_indexes, numpy.array([len(time)+1]))  # End point
     return gaps_indexes
 
 
 def running_biweight(t, y, window, c=6, ftol=1e-6, maxiter=15):
+
     gaps_indexes = get_gaps_indexes(t, gap_threshold=window)
     trend = numpy.array([])
     trend_segment = numpy.array([])
     for i in range(len(gaps_indexes)-1):
-        start_segment = gaps_indexes[i]
-        end_segment = gaps_indexes[i+1]
-        trend_segment = running_segment(
-            t[start_segment:end_segment],
-            y[start_segment:end_segment],
-            window,
-            c=c,
-            ftol=ftol,
-            maxiter=maxiter
-            )
+        lo = gaps_indexes[i]
+        hi = gaps_indexes[i+1]
+        trend_segment = running_segment(t[lo:hi], y[lo:hi], window, c, ftol, maxiter)
         trend = numpy.append(trend, trend_segment)
     return trend
