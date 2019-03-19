@@ -41,7 +41,7 @@ def roll(array, shift):
     return res
 
 
-@jit(fastmath=True, parallel=True, nopython=True, cache=True)
+@jit(fastmath=True, parallel=False, nopython=True, cache=True)
 def running_segment(t, y, window, c=6, ftol=1e-6, maxiter=15):
     mean_all = numpy.full(len(t), numpy.nan)
 
@@ -52,7 +52,8 @@ def running_segment(t, y, window, c=6, ftol=1e-6, maxiter=15):
     idx_start = 0
     idx_end = 0
 
-    for i in prange(len(t)-1):  # Parallel numba. Speedup for large data is near linear
+    #for i in prange(len(t)-1):  # Parallel numba. Speedup for large data is near linear
+    for i in range(len(t)-1):
         if t[i] > lo and t[i] < hi:
             # Nice style would be:
             # idx_start = numpy.argmax(t > t[i] - window/2)
