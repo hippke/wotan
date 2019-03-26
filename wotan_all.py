@@ -191,9 +191,13 @@ def spline_segment(t, y, knot_distance):
     duration = max(t)-min(t)
     no_knots = int(duration / knot_distance)
     knots = numpy.linspace(numpy.min(t), numpy.max(t), no_knots)
-    model = make_pipeline(
-        BSplineFeatures(knots), HuberRegressor()).fit(t[:, numpy.newaxis], y)
-    trend = model.predict(t[:, None])
+    try:
+        model = make_pipeline(
+            BSplineFeatures(knots), HuberRegressor()).fit(t[:, numpy.newaxis], y)
+        trend = model.predict(t[:, None])
+    except:
+        trend = numpy.full(len(t), numpy.nan)
+
     return trend
 
 
