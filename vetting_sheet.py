@@ -280,7 +280,7 @@ def vetting_figure(TIC_ID, planet_number, results, t, y, y_filt, trend, rawtime,
     axes_8 = plt.subplot(G[0:2, 2])
     plt.xticks(())
     plt.yticks(())
-    plt.text(0, 0, 'EPIC ' + str(TIC_ID) + '.0' + str(planet_number-1), fontweight='bold')
+    plt.text(0, 0, 'TIC ' + str(TIC_ID) + '.0' + str(planet_number), fontweight='bold')
 
 
     from astroquery.mast import Catalogs
