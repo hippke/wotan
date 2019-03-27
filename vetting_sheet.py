@@ -22,9 +22,9 @@ def vetting_figure(TIC_ID, planet_number, results, t, y, y_filt, trend, rawtime,
     # Raw flux
     axes_1a = plt.subplot(G[0:1, :2])
     plt.plot(rawtime, rawflux/numpy.mean(rawflux), "k", linewidth=0.5)
-    plt.plot(rawtime, trend/numpy.mean(y), color='red', linewidth=0.5)
+    plt.plot(rawtime, trend/numpy.mean(rawflux), color='red', linewidth=0.5)
     plt.xlim(min(t), max(t))
-    plt.ylim(numpy.percentile(rawflux, 1), numpy.percentile(rawflux, 99))
+    #plt.ylim(numpy.percentile(rawflux, 1), numpy.percentile(rawflux, 99))
     plt.xticks(())
     plt.ylabel(r'Raw Flux')
 
@@ -360,8 +360,8 @@ def vetting_figure(TIC_ID, planet_number, results, t, y, y_filt, trend, rawtime,
 
     valid = True  # for now to check them all
     if valid:
-        figure_out_path = str(TIC_ID) + '_0' + str(planet_number-1)
-        plt.savefig(figure_out_path + '.pdf', bbox_inches='tight')
+        figure_out_path = str(TIC_ID) + '_0' + str(planet_number)
+        plt.savefig(figure_out_path + '.png', bbox_inches='tight', dpi=200)
         #plt.savefig(figure_out_path + '.pdf', bbox_inches='tight')
         print('Figure made:', figure_out_path)
         """
@@ -376,8 +376,7 @@ def vetting_figure(TIC_ID, planet_number, results, t, y, y_filt, trend, rawtime,
         """
     else:
         print('Vetting criteria failed! No figure made.')
-    #plt.close()
+    plt.close()
     print('T0', results.T0)
 
     return valid
-
