@@ -231,13 +231,18 @@ def trend_supersmoother(t, y, window):
     return model.predict(t)
 
 
-def trend_lowess(t, y, window, max_iter=5):
+def trend_lowess(t, y, window, max_iter=5, delta=None):
+    frac = window / (max(t) - min(t))
+    if delta is None:
+        delta = frac
     trend_lo = sm.nonparametric.lowess(
-        y,
-        t,
-        return_sorted=False,
+        endog=y,
+        exog=t,
         it=max_iter,
-        frac=window / (max(t) - min(t)))
+        frac=frac,
+        delta=delta,
+        missing='none',
+        return_sorted=False)
     return trend_lo
 
 
