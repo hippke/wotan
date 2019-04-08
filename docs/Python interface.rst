@@ -4,29 +4,50 @@ Python Interface
 This describes the Python interface to Wotan.
 
 
-Define data for a search
-------------------------
 
-.. function:: detrend(t, y, dy)
+.. function:: flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval=6, ftol=1e-6, return_trend=False)
 
-:t: *(array)* Time series of the data (**in units of days**)
-:y: *(array)* Flux series of the data, so that ``1`` is nominal flux (out of transit) and ``0`` is darkness. A transit may be represented by a flux of e.g., ``0.99``
-:dy: *(array, optional)* Measurement errors of the data
-
-:max_window: *(float, default=0.75)* Maximum size of the moving window (in units of time)
-:min_window: *(float, default=0.25)* Minimum size of the moving window (in units of time)
-:threshold: *(float, default=0.05)* Allowed maximum power in a Lomb-Scargle periodogram. Will be used to reduce the window until either ``min_window`` or ``threshold`` are reached
-:min_fraction: *(float, default=None)* Minimum fractional number of observations in window required to have a value (otherwise result is ``NaN``)
-:method: *(str, default='spline')* Choice between robust sliding mean and spline fit (default) 
-:estimator: *(str, default='biweight')* Choice of robust estimator. Choices: ``biweight`` (Tukey Bisquared Weight), ``huber``, ``theil_sen``
-:sigma_clip_upper: *(float, default=3)* Threshold for values to be clipped. Values which are this number of standard deviations above the mean (within the current window) will be replaced with ``NaN``
-:sigma_clip_lower: *(float, default=20)* Threshold for values to be clipped. Values which are this number of standard deviations below the mean (within the current window) will be replaced with ``NaN``
-:gap_threshold: *(float, default=max_window)* Gaps in time larger than this value will be taken to separate the time series into segments which will be detrended separately.
+Parameters
+----------
+time : array-like
+    Time values
+flux : array-like
+    Flux values for every time point
+window_length : float
+    The length of the filter window in units of `t` (usually days).
+    ``window_length`` must be a positive floating point value.
+return_trend : bool (default: False)
+    If `True`, the method will return a tuple of two elements
+    (flattened_flux, trend_flux) where trend_flux is the removed trend.
+break_tolerance : float
+    If there are large gaps in time (larger than ``window_length/2``), flatten will 
+    split the flux into several sub-lightcurves and apply the filter to each
+    individually. `break_tolerance` must be in the same unit as ``t`` (usually days).
+    To disable this feature, set `break_tolerance` to 0.
+edge_cutoff : float
+    Trends near edges are less robust. Depending on the data, it may be beneficial 
+    to remove edges. The edge_cutoff length (in units of time) to be cut off each 
+    edge. Default: Zero. Cut off is maximally `window_length/2`, as this fills the 
+    window completely.
+cval : float
+    Tuning parameter for the Tukey biweight loss function. Default: cval=6 which 
+    includes data up to 4 standard deviations from the central location and
+    has an efficiency of 98%. Another typical values is c=4.685 with 95%
+    efficiency. Larger values for cval make the estimate more efficient but less 
+    robust.
+ftol : float
+    Desired precision of the final location estimate using Tukey's biweight.
+    The iterative algorithms based on Newton-Raphson stops when the change in
+    location becomes smaller than ``ftol``. Default: 1e-6, or 1ppm.
+    Higher precision comes as greater computational expense.
 
 Returns
-
-:trend: *(numpy array)* XYZ
-
+-------
+flatten_flux : array-like
+    Flattened flux.
+If ``return_trend`` is `True`, the method will also return:
+trend_flux : array-like
+    Trend in the flux
 
 Example usage:
 
