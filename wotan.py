@@ -1,7 +1,6 @@
 import numpy
 import math
 from numba import jit
-import numpy.ma as ma
 
 
 @jit(fastmath=True, nopython=True, cache=True)
