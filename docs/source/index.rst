@@ -1,6 +1,5 @@
-The documentation for:
+The documentation for: Wotan
 =========================================
-.. image:: logo.png
 
 .. toctree::
    :maxdepth: 2
