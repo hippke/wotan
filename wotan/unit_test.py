@@ -1,7 +1,10 @@
+from __future__ import print_function
 from wotan import flatten
 import numpy
 import time as ttime
 from astropy.io import fits
+
+
 #import matplotlib.pyplot as plt
 
 
@@ -26,16 +29,16 @@ def main():
     data = numpy.random.normal(0, stdev, int(samples))
 
     # compile JIT numba
-    print("Numba compilation...", end="")
-    t1 = ttime.perf_counter()
+    print("Numba compilation...")
+    t1 = ttime.time()
     trend_lc = flatten(t, data, window, cval=6, ftol=1e-6)
-    t2 = ttime.perf_counter()
+    t2 = ttime.time()
     print("{0:.3f}".format(t2-t1), 'seconds')
 
-    print('Detrending 1...', end="")
-    t1 = ttime.perf_counter()
+    print("Detrending 1...")
+    t1 = ttime.time()
     flatten_lc, trend_lc = flatten(t, data, window, cval=6, ftol=1e-6, return_trend=True)
-    t2 = ttime.perf_counter()
+    t2 = ttime.time()
     print("{0:.3f}".format(t2-t1), 'seconds')
 
     numpy.testing.assert_equal(len(trend_lc), 1000)
@@ -48,8 +51,8 @@ def main():
     filename = "https://archive.stsci.edu/hlsps/tess-data-alerts/" \
     "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
     time, flux = load_file(filename)
-    print('Detrending 2...', end="")
-    t1 = ttime.perf_counter()
+    print("Detrending 2...")
+    t1 = ttime.time()
     flatten_lc, trend_lc = flatten(
         time,
         flux,
@@ -58,7 +61,7 @@ def main():
         break_tolerance=0.1,
         return_trend=True,
         cval=5.0)
-    t2 = ttime.perf_counter()
+    t2 = ttime.time()
     print("{0:.3f}".format(t2-t1), 'seconds')
 
     numpy.testing.assert_equal(len(trend_lc), 20076)
