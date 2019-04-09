@@ -1,4 +1,4 @@
-![Logo](https://raw.githubusercontent.com/hippke/wotan/master/logo_v2.png)
+![Logo](https://raw.githubusercontent.com/hippke/wotan/master/logo_.png)
 
 [![Image](https://img.shields.io/badge/documentation-%E2%9C%93-blue.svg)](https://wotan.readthedocs.io/en/latest/index.html)
 
