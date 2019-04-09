@@ -1,9 +1,10 @@
 """Wotan: is a free and open source algorithm to automagically remove stellar trends
 from light curves for exoplanet transit detection.
 """
-
+from __future__ import division
 import numpy
 from numba import jit
+
 
 
 @jit(fastmath=True, nopython=True, cache=True)
