@@ -44,9 +44,12 @@ def main():
     numpy.testing.assert_almost_equal(trend_lc[500], -0.0006178575452455013)
 
     # TESS test
+    print('Loading TESS data from archive.stsci.edu...')
     filename = "https://archive.stsci.edu/hlsps/tess-data-alerts/" \
     "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
     time, flux = load_file(filename)
+    print('Detrending 2...', end="")
+    t1 = ttime.perf_counter()
     flatten_lc, trend_lc = flatten(
         time,
         flux,
@@ -55,6 +58,8 @@ def main():
         break_tolerance=0.1,
         return_trend=True,
         cval=5.0)
+    t2 = ttime.perf_counter()
+    print("{0:.3f}".format(t2-t1), 'seconds')
 
     numpy.testing.assert_equal(len(trend_lc), 20076)
     numpy.testing.assert_almost_equal(numpy.nanmax(trend_lc), 28754.985299070882)
