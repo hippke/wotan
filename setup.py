@@ -13,7 +13,7 @@ except:
     
 setup(name='wotan',
     version=1,
-    description='Wōtan is a free and open source algorithm to automagically remove stellar trends from light curves for exoplanet transit detection',
+    description='Wotan is a free and open source algorithm to automagically remove stellar trends from light curves for exoplanet transit detection',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/hippke/wotan',
