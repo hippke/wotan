@@ -1,4 +1,5 @@
 ![Logo](https://raw.githubusercontent.com/hippke/wotan/master/logo.png)
+[![Build Status](https://travis-ci.com/hippke/wotan.svg?branch=master)](https://travis-ci.com/hippke/wotan)
 
 [![Image](https://img.shields.io/badge/documentation-%E2%9C%93-blue.svg)](https://wotan.readthedocs.io/en/latest/index.html)
 
