@@ -5,6 +5,14 @@ This describes the Python interface to Wotan.
 
 TEST
 
+.. automodule:: wotan
+
+.. automodule:: wotan.flatten
+
+.. automodule:: wotan.flatten
+   :members:
+
+
 Documentation for the Code
 **************************
 
