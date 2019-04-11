@@ -92,15 +92,21 @@ def get_gaps_indexes(time, break_tolerance):
 
 def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval=6,
             ftol=1e-6, return_trend=False):
-    """
-    Args:
-        path (str): The path of the file to wrap
-        field_storage (FileStorage): The :class:`FileStorage` instance to wrap
-        temporary (bool): Whether or not to delete the file when the File
-           instance is destructed
+    """Summary line.
 
-    Returns:
-        BufferedFileStorage: A buffered writable file descriptor
+    Extended description of function.
+
+    Parameters
+    ----------
+    arg1 : int
+        Description of arg1
+    arg2 : str
+        Description of arg2
+
+    Returns
+    -------
+    bool
+        Description of return value
     """
 
     # Maximum gap in time should be half a window size.
