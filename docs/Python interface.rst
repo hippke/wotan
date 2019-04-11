@@ -5,18 +5,7 @@ This describes the Python interface to Wotan.
 
 TEST
 
-.. autoclass:: DatabaseManager
-    :members:
-
 .. automodule:: wotan
-    :members:
-
-.. autofunction:: wotan.flatten
-
-.. autofunction:: flatten
-
-.. automodule:: wotan.flatten
-    :members:
 
 
 TEST
