@@ -5,7 +5,6 @@
 """
 
 import useful_1
-import useful_2
 
 
 def start():
