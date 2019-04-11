@@ -6,7 +6,6 @@ import numpy
 from numba import jit
 
 
-
 @jit(fastmath=True, nopython=True, cache=True)
 def biweight_location_iter(data, cval, ftol):
     """Robust location estimate using iterative Tukey's biweight"""
