@@ -1,4 +1,4 @@
-Python Interface
+Wotan Interface
 ================
 
 .. automodule:: wotan.flatten
