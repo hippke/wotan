@@ -92,21 +92,14 @@ def get_gaps_indexes(time, break_tolerance):
 
 def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval=6,
             ftol=1e-6, return_trend=False):
-    """Summary line.
-
-    Extended description of function.
+    """Removes low frequency trends with a robust time-windowed slider.
 
     Parameters
     ----------
-    arg1 : int
-        Description of arg1
-    arg2 : str
-        Description of arg2
-
-    Returns
-    -------
-    bool
-        Description of return value
+    time : array-like
+	       Time values
+    flux : array-like
+           Flux values for every time point
     """
 
     # Maximum gap in time should be half a window size.
