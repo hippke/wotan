@@ -7,8 +7,6 @@ TEST
 
 .. automodule:: wotan
 
-.. automodule:: eleanor
-    :members:
 
 TEST
 
