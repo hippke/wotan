@@ -14,10 +14,10 @@
 #
 import os
 import sys
-#sys.path.insert(0, os.path.abspath('.'))
-#sys.path.insert(0, os.path.abspath('../'))
-#sys.path.insert(0, os.path.abspath('./wotan/'))
-#sys.path.insert(0, os.path.abspath('../wotan/'))
+sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath('./wotan/'))
+sys.path.insert(0, os.path.abspath('../wotan/'))
 
 
 html_show_sourcelink = False
