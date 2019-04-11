@@ -14,6 +14,7 @@
 #
 import os
 import sys
+import wotan
 #sys.path.insert(0, os.path.abspath('.'))
 #sys.path.insert(0, os.path.abspath('../'))
 #sys.path.insert(0, os.path.abspath('./wotan/'))
