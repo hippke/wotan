@@ -131,10 +131,13 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
     -------
     flatten_flux : array-like
         Flattened flux.
-    .. If ``return_trend`` is `True`, the method will also return:
+
+    .. note:: 
+       If ``return_trend`` is `True`, the method will also return: 
+	   
     trend_flux : array-like
         Trend in the flux
-    """
+   """
 
     # Maximum gap in time should be half a window size.
     # Any larger is nonsense,  because then the array has a full window of data
