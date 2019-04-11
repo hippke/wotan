@@ -3,7 +3,13 @@ Python Interface
 
 This describes the Python interface to Wotan.
 
+TEST
 
+.. automodule:: wotan
+    :members:
+
+
+TEST
 
 .. function:: flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval=6, ftol=1e-6, return_trend=False)
 
