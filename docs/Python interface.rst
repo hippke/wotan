@@ -5,6 +5,9 @@ This describes the Python interface to Wotan.
 
 TEST
 
+.. autoclass:: DatabaseManager
+    :members:
+
 .. automodule:: wotan
     :members:
 
