@@ -7,6 +7,11 @@ TEST
 
 .. automodule:: wotan
 
+.. automodule:: wotan.flatten
+
+.. automodule:: wotan.flatten
+   :members:
+
 
 
 TEST
