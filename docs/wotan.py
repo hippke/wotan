@@ -3,11 +3,9 @@ from light curves for exoplanet transit detection.
 """
 from __future__ import division
 import numpy
-from numba import jit
 
 
 
-@jit(fastmath=True, nopython=True, cache=True)
 def biweight_location_iter(data, cval, ftol):
     """Robust location estimate using iterative Tukey's biweight"""
 
@@ -42,7 +40,6 @@ def biweight_location_iter(data, cval, ftol):
     return center
 
 
-@jit(fastmath=True, nopython=True, cache=True)
 def running_segment(time, flux, window_length, edge_cutoff, cval, ftol):
     """Iterator for a single time-series segment"""
 
