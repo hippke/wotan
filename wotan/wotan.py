@@ -105,22 +105,22 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
     return_trend : bool, default: False
         If `True`, the method will return a tuple of two elements
         (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend.
-    break_tolerance : float
+    break_tolerance : float, default: window_length/2
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
         individually. ``break_tolerance`` must be in the same unit as ``time`` 
         (usually days). To disable this feature, set ``break_tolerance`` to 0.
-    edge_cutoff : float
+    edge_cutoff : float, default: None
         Trends near edges are less robust. Depending on the data, it may be beneficial
         to remove edges. The ``edge_cutoff`` defines the length (in units of time) to
         be cut off each edge. Default: Zero. Cut off is maximally ``window_length``/2,
         as this fills the window completely.
-    cval : float
+    cval : float, default: 6
         Tuning parameter for the Tukey biweight loss function. Default: ``cval`` =6 which
         includes data up to 4 standard deviations from the central location and
         has an efficiency of 98%. Another typical values is ``cval`` =4.685 with 95%
         efficiency. Larger values for make the estimate more efficient but less robust.
-    ftol : float
+    ftol : float, default: 1e-6
         Desired precision of the final location estimate using Tukey's biweight.
         The iterative algorithms based on Newton-Raphson stops when the change in
         location becomes smaller than ``ftol``. Default: `1e-6`, or 1ppm.
