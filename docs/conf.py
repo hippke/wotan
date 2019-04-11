@@ -38,7 +38,6 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
     'sphinx.ext.autosectionlabel',
-    'nbsphinx'
 ]
 source_suffix = '.rst'
 
