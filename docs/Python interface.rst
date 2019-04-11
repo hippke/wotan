@@ -8,6 +8,13 @@ TEST
 .. automodule:: wotan
     :members:
 
+.. autofunction:: wotan.flatten
+
+.. autofunction:: flatten
+
+.. automodule:: wotan.flatten
+    :members:
+
 
 TEST
 
@@ -52,6 +59,7 @@ Returns
 flatten_flux : array-like
     Flattened flux.
 If ``return_trend`` is `True`, the method will also return:
+
 trend_flux : array-like
     Trend in the flux
 
