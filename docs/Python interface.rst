@@ -7,6 +7,10 @@ TEST
 
 .. automodule:: wotan
 
+.. automodule:: wotan.flatten
+
+.. automodule:: flatten
+
 
 TEST
 
