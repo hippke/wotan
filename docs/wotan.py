@@ -5,6 +5,11 @@ from __future__ import division
 import numpy
 
 
+class DatabaseManager(object):
+    """
+    Create and manage a new sqlite database.
+    """
+
 
 def biweight_location_iter(data, cval, ftol):
     """Robust location estimate using iterative Tukey's biweight"""
