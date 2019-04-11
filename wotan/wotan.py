@@ -92,6 +92,7 @@ def get_gaps_indexes(time, break_tolerance):
 def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval=6,
             ftol=1e-6, return_trend=False):
     """Removes low frequency trends with a robust time-windowed slider.
+
     Parameters
     ----------
     time : array-like
