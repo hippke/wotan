@@ -92,53 +92,51 @@ def get_gaps_indexes(time, break_tolerance):
 
 def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval=6,
             ftol=1e-6, return_trend=False):
-    """This is an example of a module level function.
+    """Removes low frequency trends with a robust time-windowed slider.
 
-    Function parameters should be documented in the ``Args`` section. The name
-    of each parameter is required. The type and description of each parameter
-    is optional, but should be included if not obvious.
+    Parameters
+    ----------
+    time : array-like
+	       Time values
+    flux : array-like
+           Flux values for every time point
+    window_length : float
+           The length of the filter window in units of `t` (usually days).
+           ``window_length`` must be a positive floating point value.
+    return_trend : bool (default: False)
+           If `True`, the method will return a tuple of two elements
+           (flattened_flux, trend_flux) where trend_flux is the removed trend.
+    break_tolerance : float
+        If there are large gaps in time (larger than ``window_length/2``), flatten will
+        split the flux into several sub-lightcurves and apply the filter to each
+        individually. `break_tolerance` must be in the same unit as ``t`` (usually days).
+        To disable this feature, set `break_tolerance` to 0.
+    edge_cutoff : float
+        Trends near edges are less robust. Depending on the data, it may be beneficial
+        to remove edges. The edge_cutoff length (in units of time) to be cut off each
+        edge. Default: Zero. Cut off is maximally `window_length/2`, as this fills the
+        window completely.
+    cval : float
+        Tuning parameter for the Tukey biweight loss function. Default: cval=6 which
+        includes data up to 4 standard deviations from the central location and
+        has an efficiency of 98%. Another typical values is c=4.685 with 95%
+        efficiency. Larger values for cval make the estimate more efficient but less
+        robust.
+    ftol : float
+        Desired precision of the final location estimate using Tukey's biweight.
+        The iterative algorithms based on Newton-Raphson stops when the change in
+        location becomes smaller than ``ftol``. Default: 1e-6, or 1ppm.
+        Higher precision comes as greater computational expense.
 
-    If \*args or \*\*kwargs are accepted,
-    they should be listed as ``*args`` and ``**kwargs``.
+    Returns
+    -------
+    flatten_flux : array-like
+        Flattened flux.
 
-    The format for a parameter is::
+    If ``return_trend`` is `True`, the method will also return:
 
-        name (type): description
-            The description may span multiple lines. Following
-            lines should be indented. The "(type)" is optional.
-
-            Multiple paragraphs are supported in parameter
-            descriptions.
-
-    Args:
-        param1 (int): The first parameter.
-        param2 (:obj:`str`, optional): The second parameter. Defaults to None.
-            Second line of description should be indented.
-        *args: Variable length argument list.
-        **kwargs: Arbitrary keyword arguments.
-
-    Returns:
-        bool: True if successful, False otherwise.
-
-        The return type is optional and may be specified at the beginning of
-        the ``Returns`` section followed by a colon.
-
-        The ``Returns`` section may span multiple lines and paragraphs.
-        Following lines should be indented to match the first line.
-
-        The ``Returns`` section supports any reStructuredText formatting,
-        including literal blocks::
-
-            {
-                'param1': param1,
-                'param2': param2
-            }
-
-    Raises:
-        AttributeError: The ``Raises`` section is a list of all exceptions
-            that are relevant to the interface.
-        ValueError: If `param2` is equal to `param1`.
-
+    trend_flux : array-like
+        Trend in the flux
     """
 
     # Maximum gap in time should be half a window size.
