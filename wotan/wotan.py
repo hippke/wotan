@@ -116,9 +116,9 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
         be cut off each edge. Default: Zero. Cut off is maximally ``window_length``/2,
         as this fills the window completely.
     cval : float
-        Tuning parameter for the Tukey biweight loss function. Default: ``cval``=6 which
+        Tuning parameter for the Tukey biweight loss function. Default: ``cval`` =6 which
         includes data up to 4 standard deviations from the central location and
-        has an efficiency of 98%. Another typical values is ``cval``=4.685 with 95%
+        has an efficiency of 98%. Another typical values is ``cval`` =4.685 with 95%
         efficiency. Larger values for cval make the estimate more efficient but less
         robust.
     ftol : float
@@ -126,6 +126,7 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
         The iterative algorithms based on Newton-Raphson stops when the change in
         location becomes smaller than ``ftol``. Default: `1e-6`, or 1ppm.
         Higher precision comes as greater computational expense.
+
     Returns
     -------
     flatten_flux : array-like
