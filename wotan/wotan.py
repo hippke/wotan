@@ -96,15 +96,15 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
     Parameters
     ----------
     time : array-like
-           Time values
+        Time values
     flux : array-like
-           Flux values for every time point
+        Flux values for every time point
     window_length : float
-           The length of the filter window in units of ``time`` (usually days).
-           ``window_length`` must be a positive floating point value.
+        The length of the filter window in units of ``time`` (usually days).
+        ``window_length`` must be a positive floating point value.
     return_trend : bool, default: False
-           If `True`, the method will return a tuple of two elements
-           (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend.
+        If `True`, the method will return a tuple of two elements
+        (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend.
     break_tolerance : float
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
@@ -119,8 +119,7 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
         Tuning parameter for the Tukey biweight loss function. Default: ``cval`` =6 which
         includes data up to 4 standard deviations from the central location and
         has an efficiency of 98%. Another typical values is ``cval`` =4.685 with 95%
-        efficiency. Larger values for cval make the estimate more efficient but less
-        robust.
+        efficiency. Larger values for make the estimate more efficient but less robust.
     ftol : float
         Desired precision of the final location estimate using Tukey's biweight.
         The iterative algorithms based on Newton-Raphson stops when the change in
