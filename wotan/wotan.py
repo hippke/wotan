@@ -132,9 +132,7 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
     -------
     flatten_flux : array-like
         Flattened flux.
-
     If ``return_trend`` is `True`, the method will also return:
-
     trend_flux : array-like
         Trend in the flux
     """
