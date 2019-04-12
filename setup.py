@@ -25,7 +25,7 @@ setup(name='wotan',
         'numpy',
         'numba',
         'scipy',
-        'statsmodel',
+        'statsmodels',
         'scikit-learn',
         'supersmoother'
         ]
