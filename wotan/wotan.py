@@ -243,7 +243,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         split the flux into several sub-lightcurves and apply the filter to each
         individually. ``break_tolerance`` must be in the same unit as ``time`` (usually 
         days). To disable this feature, set ``break_tolerance`` to 0. If the method is
-        ``supersmoother`` and no ``break_tolerance```is provided, it will be taken as 
+        ``supersmoother`` and no ``break_tolerance`` is provided, it will be taken as 
         `1` in units of ``time``.
     edge_cutoff : float, default: None
         Trends near edges are less robust. Depending on the data, it may be beneficial
