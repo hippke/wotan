@@ -6,7 +6,7 @@ import scipy.interpolate
 import numpy
 import statsmodels.api
 from numpy import mean, median, array, abs, sort, inf, sin, exp, sum, pi, min, max, \
-    full, append, concatenate, diff, where, add, float32, nan, isnan
+    full, append, concatenate, diff, where, add, float32, nan, isnan, linspace
 from numba import jit
 from sklearn.base import TransformerMixin
 from sklearn.pipeline import make_pipeline
@@ -43,7 +43,7 @@ def location_hodges(data):
 def location_iter(data, cval, ftol, method_code):
     """Robust location estimators"""
 
-    # Numba can't handle string, so we're passing the location estimator as an int:
+    # Numba can't handle strings, so we're passing the location estimator as an int:
     # 1 : biweight
     # 2 : andrewsinewave
     # 3 : welsch
@@ -101,7 +101,7 @@ def location_iter(data, cval, ftol, method_code):
 def running_segment(time, flux, window_length, edge_cutoff, cval, ftol, method_code):
     """Iterator for a single time-series segment using time-series window sliders"""
 
-    # Numba can't handle string, so we're passing the location estimator as an int:
+    # Numba can't handle strings, so we're passing the location estimator as an int:
     # 1 : biweight
     # 2 : andrewsinewave
     # 3 : welsch
@@ -194,7 +194,7 @@ class BSplineFeatures(TransformerMixin):
 def huber_spline_segment(time, flux, knot_distance):
     duration = max(time) - min(time)
     no_knots = int(duration / knot_distance)
-    knots = numpy.linspace(numpy.min(time), numpy.max(time), no_knots)
+    knots = linspace(min(time), max(time), no_knots)
     try:
         model = make_pipeline(
             BSplineFeatures(knots),
@@ -203,7 +203,7 @@ def huber_spline_segment(time, flux, knot_distance):
             )
         trend = model.predict(time[:, None])
     except:
-        trend = numpy.full(len(time), numpy.nan)
+        trend = full(len(time), nan)
     return trend
 
 
@@ -243,7 +243,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         split the flux into several sub-lightcurves and apply the filter to each
         individually. ``break_tolerance`` must be in the same unit as ``time`` (usually 
         days). To disable this feature, set ``break_tolerance`` to 0. If the method is
-        ``supersmoother`` and no ``break_tolerance`` is provided, it will be taken as 
+        ``supersmoother`` and no ``break_tolerance```is provided, it will be taken as 
         `1` in units of ``time``.
     edge_cutoff : float, default: None
         Trends near edges are less robust. Depending on the data, it may be beneficial
@@ -276,7 +276,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
 
-    # Numba can't handle string, so we're passing the location estimator as an int:
+    # Numba can't handle strings, so we're passing the location estimator as an int:
     if method == 'biweight':
         method_code = 1
     elif method == 'andrewsinewave':
