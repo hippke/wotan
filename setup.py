@@ -23,6 +23,10 @@ setup(name='wotan',
     packages=['wotan'],
     install_requires=[
         'numpy',
-        'numba'
+        'numba',
+        'scipy',
+        'statsmodel',
+        'scikit-learn',
+        'supersmoother'
         ]
 )
