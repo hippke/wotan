@@ -2,10 +2,16 @@
 from light curves for exoplanet transit detection.
 """
 from __future__ import division
+import scipy.interpolate
 import numpy
+import statsmodels.api
 from numpy import mean, median, array, abs, sort, inf, sin, exp, sum, pi, min, max, \
     full, append, concatenate, diff, where, add, float32, nan, isnan
 from numba import jit
+from sklearn.base import TransformerMixin
+from sklearn.pipeline import make_pipeline
+from sklearn.linear_model import HuberRegressor
+
 
 
 @jit(fastmath=True, nopython=True, cache=True)
@@ -54,7 +60,6 @@ def location_iter(data, cval, ftol, method_code):
         return center
 
     # one expensive division here, instead of two per loop later
-    blub = cval * mad
     cmad = 1 / (cval * mad)
 
     # Newton-Raphson iteration, where each result is taken as the initial value of the
@@ -94,7 +99,7 @@ def location_iter(data, cval, ftol, method_code):
 
 @jit(fastmath=True, nopython=True, cache=True)
 def running_segment(time, flux, window_length, edge_cutoff, cval, ftol, method_code):
-    """Iterator for a single time-series segment"""
+    """Iterator for a single time-series segment using time-series window sliders"""
 
     # Numba can't handle string, so we're passing the location estimator as an int:
     # 1 : biweight
@@ -152,8 +157,54 @@ def running_segment(time, flux, window_length, edge_cutoff, cval, ftol, method_c
                 mean_all[i] = location_trim_mean(
                     flux[idx_start:idx_end],
                     proportiontocut=cval)
-            
     return mean_all
+
+
+class BSplineFeatures(TransformerMixin):
+    """Robust B-Spline regression with scikit-learn"""
+
+    def __init__(self, knots, degree=3, periodic=False):
+        self.bsplines = self.get_bspline_basis(knots, degree, periodic=periodic)
+        self.nsplines = len(self.bsplines)
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        nsamples, nfeatures = X.shape
+        features = numpy.zeros((nsamples, nfeatures * self.nsplines))
+        for ispline, spline in enumerate(self.bsplines):
+            istart = ispline * nfeatures
+            iend = (ispline + 1) * nfeatures
+            features[:, istart:iend] = scipy.interpolate.splev(X, spline)
+        return features
+
+    def get_bspline_basis(self, knots, degree=3, periodic=False):
+        """Get spline coefficients for each basis spline"""
+        knots, coeffs, degree = scipy.interpolate.splrep(
+            knots, numpy.zeros(len(knots)), k=degree, per=periodic)
+        ncoeffs = len(coeffs)
+        bsplines = []
+        for ispline in range(len(knots)):
+            coeffs = [1.0 if ispl == ispline else 0.0 for ispl in range(ncoeffs)]
+            bsplines.append((knots, coeffs, degree))
+        return bsplines
+
+
+def huber_spline_segment(time, flux, knot_distance):
+    duration = max(time) - min(time)
+    no_knots = int(duration / knot_distance)
+    knots = numpy.linspace(numpy.min(time), numpy.max(time), no_knots)
+    try:
+        model = make_pipeline(
+            BSplineFeatures(knots),
+            HuberRegressor()).fit(time[:, numpy.newaxis],
+            flux
+            )
+        trend = model.predict(time[:, None])
+    except:
+        trend = numpy.full(len(time), numpy.nan)
+    return trend
 
 
 def get_gaps_indexes(time, break_tolerance):
@@ -169,7 +220,7 @@ def get_gaps_indexes(time, break_tolerance):
 
 def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval=None,
             ftol=1e-6, return_trend=False, method='biweight'):
-    """``flatten`` removes low frequency trends with a robust time-windowed slider.
+    """``flatten`` removes low frequency trends in time-series data.
 
     Parameters
     ----------
@@ -186,7 +237,7 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
         invoked for location estimators `median`, `biweight`, `hodges`, `welsch`, 
         `andrewsinewave`, `mean`, or `trim_mean`. Spline-based detrending is performed
         for `huberspline` and `untrendy`. A locally weighted scatterplot smoothing is
-        performed for `lowess`
+        performed for `lowess`.
     break_tolerance : float, default: window_length/2
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
@@ -196,7 +247,7 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
         Trends near edges are less robust. Depending on the data, it may be beneficial
         to remove edges. The ``edge_cutoff`` defines the length (in units of time) to be 
         cut off each edge. Default: Zero. Cut off is maximally ``window_length``/2, as 
-        this fills the window completely. Applies only to time-windowed sliders.
+        this fills the window completely. Applied only to time-windowed sliders.
     cval : float
         Tuning parameter for the robust estimators. Default values are 5 (`biweight` and 
         `lowess`), 1.339 (`andrewsinewave`), 2.11 (`welsch`), 0.1 (`trim_mean`). A 
@@ -272,14 +323,28 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
 
     # Iterate over all segments
     for i in range(len(gaps_indexes)-1):
-        trend_segment = running_segment(
-            time_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
-            flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
-            window_length,
-            edge_cutoff,
-            cval,
-            ftol,
-            method_code)
+        if method in "biweight andrewsinewave welsch hodges median mean trim_mean":
+            trend_segment = running_segment(
+                time_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
+                flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
+                window_length,
+                edge_cutoff,
+                cval,
+                ftol,
+                method_code)
+        elif method == 'lowess':
+            trend_segment = statsmodels.api.nonparametric.lowess(
+                endog=flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
+                exog=time_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
+                frac=window_length / (max(time_compressed) - min(time_compressed)),
+                missing='none',
+                return_sorted=False
+                )
+        elif method == 'huberspline':
+            trend_segment = huber_spline_segment(
+                time_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
+                flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
+                knot_distance=window_length)
         trend_flux = append(trend_flux, trend_segment)
 
     # Insert results of non-NaNs into original data stream
