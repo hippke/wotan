@@ -19,7 +19,7 @@ def location_trim_mean(data, proportiontocut):
 
 @jit(fastmath=True, nopython=True, cache=True)
 def location_hodges(data):
-    """Hodges–Lehmann–Sen robust location estimator"""
+    """Hodges-Lehmann-Sen robust location estimator"""
     i = 0
     j = 0
     len_data = len(data)
@@ -170,8 +170,10 @@ def get_gaps_indexes(time, break_tolerance):
 def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval=None,
             ftol=1e-6, return_trend=False, method='biweight'):
     """``flatten`` removes low frequency trends with a robust time-windowed slider.
+
     Parameters
     ----------
+
     time : array-like
         Time values
     flux : array-like
@@ -211,6 +213,7 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
     return_trend : bool, default: False
         If `True`, the method will return a tuple of two elements
         (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend.
+
     Returns
     -------
     flatten_flux : array-like
@@ -218,6 +221,7 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
     trend_flux : array-like
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
+
     # Numba can't handle string, so we're passing the location estimator as an int:
     if method == 'biweight':
         method_code = 1
