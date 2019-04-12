@@ -1,13 +1,13 @@
-"""Wotan: is a free and open source algorithm to automagically remove stellar trends
+"""Wotan is a free and open source algorithm to automagically remove stellar trends
 from light curves for exoplanet transit detection.
 """
 from __future__ import division
 import scipy.interpolate
 import numpy
-import statsmodels.api
 from numpy import mean, median, array, abs, sort, inf, sin, exp, sum, pi, min, max, \
     full, append, concatenate, diff, where, add, float32, nan, isnan, linspace
 from numba import jit
+import statsmodels.api
 from sklearn.base import TransformerMixin
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import HuberRegressor
@@ -29,7 +29,7 @@ def location_hodges(data):
     i = 0
     j = 0
     len_data = len(data)
-    hodges = []    
+    hodges = []
     while i < len_data:
         while j < len_data:
             hodges.append((data[i] + data[j]) / 2)
@@ -70,23 +70,23 @@ def location_iter(data, cval, ftol, method_code):
 
         # Inlier weights
         # biweight
-        if method_code == 1:  
+        if method_code == 1:
             weight = (1 - dmad ** 2) ** 2
         # andrewsinewave
         if method_code == 2:
-            # avoid division by zero  
-            dmad[dmad==0] = 1e-10  
+            # avoid division by zero
+            dmad[dmad == 0] = 1e-10
             weight = sin(dmad) / dmad
         # welsch
-        if method_code == 3:  
+        if method_code == 3:
             weight = exp(-(dmad**2) / 2)
 
         # Outliers with weight zero
         # biweight or welsch
-        if method_code == 1 or method_code == 3:  
+        if method_code == 1 or method_code == 3:
             weight[(abs(dmad) >= 1)] = 0
         # andrewsinewave
-        else:  
+        else:
             weight[(abs(dmad) >= pi)] = 0
 
         center += sum(distance * weight) / sum(weight)
@@ -135,7 +135,7 @@ def running_segment(time, flux, window_length, edge_cutoff, cval, ftol, method_c
                 idx_end += 1
 
             # Get the location estimate for the segment in question
-            # iterative method for: biweight, andrewsinewave, welsch            
+            # iterative method for: biweight, andrewsinewave, welsch
             if method_code == 1 or method_code == 2 or method_code == 3:
                 mean_all[i] = location_iter(
                     flux[idx_start:idx_end],
@@ -199,8 +199,8 @@ def huber_spline_segment(time, flux, knot_distance):
         model = make_pipeline(
             BSplineFeatures(knots),
             HuberRegressor()).fit(time[:, numpy.newaxis],
-            flux
-            )
+                                  flux
+                                 )
         trend = model.predict(time[:, None])
     except:
         trend = full(len(time), nan)
@@ -218,13 +218,11 @@ def get_gaps_indexes(time, break_tolerance):
     return gaps_indexes
 
 
-def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None, cval=None,
-            ftol=1e-6, return_trend=False, method='biweight'):
+def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None, 
+            cval=None, ftol=1e-6, return_trend=False, method='biweight'):
     """``flatten`` removes low frequency trends in time-series data.
-
     Parameters
     ----------
-
     time : array-like
         Time values
     flux : array-like
@@ -234,40 +232,39 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         ``window_length`` must be a positive floating point value.
     method : string, default: `biweight`
         Determines detrending method and location estimator. A time-windowed slider is
-        invoked for location estimators `median`, `biweight`, `hodges`, `welsch`, 
+        invoked for location estimators `median`, `biweight`, `hodges`, `welsch`,
         `andrewsinewave`, `mean`, or `trim_mean`. Spline-based detrending is performed
         for `huberspline` and `untrendy`. A locally weighted scatterplot smoothing is
         performed for `lowess`.
     break_tolerance : float, default: window_length/2
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
-        individually. ``break_tolerance`` must be in the same unit as ``time`` (usually 
+        individually. ``break_tolerance`` must be in the same unit as ``time`` (usually
         days). To disable this feature, set ``break_tolerance`` to 0. If the method is
-        ``supersmoother`` and no ``break_tolerance```is provided, it will be taken as 
+        ``supersmoother`` and no ``break_tolerance`` is provided, it will be taken as
         `1` in units of ``time``.
     edge_cutoff : float, default: None
         Trends near edges are less robust. Depending on the data, it may be beneficial
-        to remove edges. The ``edge_cutoff`` defines the length (in units of time) to be 
-        cut off each edge. Default: Zero. Cut off is maximally ``window_length``/2, as 
+        to remove edges. The ``edge_cutoff`` defines the length (in units of time) to be
+        cut off each edge. Default: Zero. Cut off is maximally ``window_length``/2, as
         this fills the window completely. Applied only to time-windowed sliders.
     cval : float
-        Tuning parameter for the robust estimators. Default values are 5 (`biweight` and 
-        `lowess`), 1.339 (`andrewsinewave`), 2.11 (`welsch`), 0.1 (`trim_mean`). A 
-        ``cval`` of 6 for the biweight includes data up to 4 standard deviations from 
+        Tuning parameter for the robust estimators. Default values are 5 (`biweight` and
+        `lowess`), 1.339 (`andrewsinewave`), 2.11 (`welsch`), 0.1 (`trim_mean`). A
+        ``cval`` of 6 for the biweight includes data up to 4 standard deviations from
         the central location and has an efficiency of 98%. Another typical value for the
-        biweight is 4.685 with 95% efficiency. Larger values for make the estimate more 
+        biweight is 4.685 with 95% efficiency. Larger values for make the estimate more
         efficient but less robust. For the super-smoother, cval determines the bass
         enhancement (smoothness) and can be `None` or in the range 0-10.
     ftol : float, default: 1e-6
         Desired precision of the final location estimate of the `biweight`, `welsch`,
-        and `andrewsinewave`. All other methods use one-step estimates. The iterative 
-        algorithm based on Newton-Raphson stops when the change in location becomes 
-        smaller than ``ftol``. Default: `1e-6`, or 1ppm. Higher precision comes at 
+        and `andrewsinewave`. All other methods use one-step estimates. The iterative
+        algorithm based on Newton-Raphson stops when the change in location becomes
+        smaller than ``ftol``. Default: `1e-6`, or 1ppm. Higher precision comes at
         greater computational expense.
     return_trend : bool, default: False
         If `True`, the method will return a tuple of two elements
         (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend.
-
     Returns
     -------
     flatten_flux : array-like
@@ -302,12 +299,12 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval = 2.11
         elif method == 'trim_mean':
             cval = 0.1  # 10 % on each side
-        else: 
+        else:
             cval = 0  # avoid numba type inference error: None type multi with float
 
     if cval is not None and method == 'supersmoother':
         if cval > 0 and cval < 10:
-            supersmoother_alpha = cval 
+            supersmoother_alpha = cval
         else:
             supersmoother_alpha = None
 
