@@ -11,7 +11,7 @@ from numba import jit
 from sklearn.base import TransformerMixin
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import HuberRegressor
-
+from supersmoother import SuperSmoother as supersmoother
 
 
 @jit(fastmath=True, nopython=True, cache=True)
@@ -218,7 +218,7 @@ def get_gaps_indexes(time, break_tolerance):
     return gaps_indexes
 
 
-def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval=None,
+def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None, cval=None,
             ftol=1e-6, return_trend=False, method='biweight'):
     """``flatten`` removes low frequency trends in time-series data.
 
@@ -242,7 +242,9 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
         individually. ``break_tolerance`` must be in the same unit as ``time`` (usually 
-        days). To disable this feature, set ``break_tolerance`` to 0.
+        days). To disable this feature, set ``break_tolerance`` to 0. If the method is
+        ``supersmoother`` and no ``break_tolerance```is provided, it will be taken as 
+        `1` in units of ``time``.
     edge_cutoff : float, default: None
         Trends near edges are less robust. Depending on the data, it may be beneficial
         to remove edges. The ``edge_cutoff`` defines the length (in units of time) to be 
@@ -254,7 +256,8 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
         ``cval`` of 6 for the biweight includes data up to 4 standard deviations from 
         the central location and has an efficiency of 98%. Another typical value for the
         biweight is 4.685 with 95% efficiency. Larger values for make the estimate more 
-        efficient but less robust.
+        efficient but less robust. For the super-smoother, cval determines the bass
+        enhancement (smoothness) and can be `None` or in the range 0-10.
     ftol : float, default: 1e-6
         Desired precision of the final location estimate of the `biweight`, `welsch`,
         and `andrewsinewave`. All other methods use one-step estimates. The iterative 
@@ -299,10 +302,22 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
             cval = 2.11
         elif method == 'trim_mean':
             cval = 0.1  # 10 % on each side
-        else: cval = 0  # avoid numba type inference error: None type multi with float
+        else: 
+            cval = 0  # avoid numba type inference error: None type multi with float
+
+    if cval is not None and method == 'supersmoother':
+        if cval > 0 and cval < 10:
+            supersmoother_alpha = cval 
+        else:
+            supersmoother_alpha = None
+
+    if window_length is None and method != 'supersmoother':
+        raise ValueError('Parameter window_length (float) is required')
 
     # Maximum gap in time should be half a window size.
     # Any larger is nonsense,  because then the array has a full window of data
+    if window_length is None:
+        window_length = 2  # so that break_tolerance = 1 in the supersmoother case
     if break_tolerance is None:
         break_tolerance = window_length / 2
 
@@ -323,10 +338,12 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
 
     # Iterate over all segments
     for i in range(len(gaps_indexes)-1):
+        time_view = time_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
+        flux_view = flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         if method in "biweight andrewsinewave welsch hodges median mean trim_mean":
             trend_segment = running_segment(
-                time_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
-                flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
+                time_view,
+                flux_view,
                 window_length,
                 edge_cutoff,
                 cval,
@@ -334,17 +351,20 @@ def flatten(time, flux, window_length, edge_cutoff=0, break_tolerance=None, cval
                 method_code)
         elif method == 'lowess':
             trend_segment = statsmodels.api.nonparametric.lowess(
-                endog=flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
-                exog=time_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
+                endog=flux_view,
+                exog=time_view,
                 frac=window_length / (max(time_compressed) - min(time_compressed)),
                 missing='none',
                 return_sorted=False
                 )
         elif method == 'huberspline':
             trend_segment = huber_spline_segment(
-                time_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
-                flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]],
+                time_view,
+                flux_view,
                 knot_distance=window_length)
+        elif method == 'supersmoother':
+            trend_segment = supersmoother(alpha=supersmoother_alpha).fit(
+                time_view, flux_view,).predict(time_view)
         trend_flux = append(trend_flux, trend_segment)
 
     # Insert results of non-NaNs into original data stream
