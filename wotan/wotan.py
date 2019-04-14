@@ -4,10 +4,10 @@ from light curves for exoplanet transit detection.
 from __future__ import division
 import scipy.interpolate
 import numpy
+import statsmodels.api
 from numpy import mean, median, array, abs, sort, inf, sin, exp, sum, pi, min, max, \
     full, append, concatenate, diff, where, add, float32, nan, isnan, linspace
 from numba import jit
-import statsmodels.api
 from sklearn.base import TransformerMixin
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import HuberRegressor
@@ -218,7 +218,7 @@ def get_gaps_indexes(time, break_tolerance):
     return gaps_indexes
 
 
-def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None, 
+def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval=None, ftol=1e-6, return_trend=False, method='biweight'):
     """``flatten`` removes low frequency trends in time-series data.
 
@@ -256,7 +256,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         the central location and has an efficiency of 98%. Another typical value for the
         biweight is 4.685 with 95% efficiency. Larger values for make the estimate more
         efficient but less robust. For the super-smoother, cval determines the bass
-        enhancement (smoothness) and can be `None` or in the range 0-10.
+        enhancement (smoothness) and can be `None` or in the range 0 < alpha < 10.
     ftol : float, default: 1e-6
         Desired precision of the final location estimate of the `biweight`, `welsch`,
         and `andrewsinewave`. All other methods use one-step estimates. The iterative
