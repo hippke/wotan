@@ -256,7 +256,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         the central location and has an efficiency of 98%. Another typical value for the
         biweight is 4.685 with 95% efficiency. Larger values for make the estimate more
         efficient but less robust. For the super-smoother, cval determines the bass
-        enhancement (smoothness) and can be `None` or in the range 0 < alpha < 10.
+        enhancement (smoothness) and can be `None` or in the range 0 < ``cval`` < 10.
     ftol : float, default: 1e-6
         Desired precision of the final location estimate of the `biweight`, `welsch`,
         and `andrewsinewave`. All other methods use one-step estimates. The iterative
