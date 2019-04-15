@@ -24,7 +24,7 @@ def cofiam_detrend_curve(t, fact, D_max, k_max):
     return detr
 
 
-def detrend_light_curve_cofiam(t, y, ferr, window, ftol):
+def detrend_cofiam(t, y, ferr, window, ftol):
 
     def find_detrending_for_region(t, y, ferr, k_max, D_max):
 
