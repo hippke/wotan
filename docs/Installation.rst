@@ -21,8 +21,7 @@ Wotan requires numpy, scipy and numba to run. Optional:
 
 - `statsmodels` for `lowess`
 - `sklearn for `huberspline` and the GPs
-- `supersmoother`
-- `untrendy`
+- `supersmoother` for `supersmoother`
 
 To install all dependencies, try ``pip install numpy numba scipy statsmodels sklearn supersmoother untrendy``
 
