@@ -6,12 +6,59 @@ import scipy.interpolate
 import numpy
 import statsmodels.api
 from numpy import mean, median, array, abs, sort, inf, sin, exp, sum, pi, min, max, \
-    full, append, concatenate, diff, where, add, float32, nan, isnan, linspace
+    full, append, concatenate, diff, where, add, float32, nan, isnan, linspace, cos
 from numba import jit
 from sklearn.base import TransformerMixin
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import HuberRegressor
 from supersmoother import SuperSmoother as supersmoother
+from scipy.optimize import leastsq
+
+
+@jit(fastmath=True, nopython=True, cache=True)
+def cofiam_detrend_curve(t, fact, D_max, k_max):
+    ph = 2 * pi * t / D_max
+    detr = numpy.ones(len(t)) * fact[0]
+    for k in range(1, k_max + 1):
+        detr += fact[2 * k - 1] * sin(ph * k) + fact[2 * k] * cos(ph * k)
+    return detr
+
+
+def detrend_light_curve_cofiam(t, y, ferr, window, ftol):
+
+    def find_detrending_for_region(t, y, ferr, k_max, D_max):
+
+        def fit_func(fact):
+            return (y - cofiam_detrend_curve(t, fact, D_max, k_max)) / ferr
+
+        def out_func(blub):
+            return cofiam_detrend_curve(t, best_param, D_max, k_max)
+
+        x0 = numpy.zeros(2 * k_max + 1)
+        x0[0] = mean(y)
+        best_param, param_fit_status = leastsq(fit_func, x0, ftol=ftol)
+        result = cofiam_detrend_curve(t, best_param, D_max, k_max)
+        return out_func
+
+    D_max = 2 * (max(t) - min(t))
+    k_max = max(1, min(100, int(D_max / window)))
+    dw_previous = inf
+    dw_mask = array([True] * len(t))
+    for k_m in range(1, k_max + 1):
+        detrend_func_temp = find_detrending_for_region(t, y, ferr, k_m, D_max)
+        trend = detrend_func_temp(t)
+
+        # Durbin-Watson autocorrelation statistics
+        dw_y = (y[dw_mask] / trend[dw_mask] - 1)
+        dw = abs(sum((dw_y[1:] - dw_y[:-1]) ** 2) / (sum(dw_y ** 2)) - 2)
+
+        # If Durbin-Watson *increased* this round: Previous was the best
+        if dw > dw_previous:   
+            return trend
+        # print(k_m, k_max, dw)
+        detrend_func = detrend_func_temp
+        dw_previous = dw
+    return detrend_func(t)
 
 
 @jit(fastmath=True, nopython=True, cache=True)
@@ -221,7 +268,6 @@ def get_gaps_indexes(time, break_tolerance):
 def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval=None, ftol=1e-6, return_trend=False, method='biweight'):
     """``flatten`` removes low frequency trends in time-series data.
-
     Parameters
     ----------
     time : array-like
@@ -273,6 +319,9 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     trend_flux : array-like
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
+    if method not in "biweight andrewsinewave welsch hodges median mean trim_mean" + 
+        "supersmoother huberspline cofiam untrendy":
+        raise ValueError('Unknown detrending method')
 
     # Numba can't handle strings, so we're passing the location estimator as an int:
     if method == 'biweight':
@@ -318,6 +367,8 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         window_length = 2  # so that break_tolerance = 1 in the supersmoother case
     if break_tolerance is None:
         break_tolerance = window_length / 2
+    if break_tolerance == 0:
+        break_tolerance = inf
 
     # Numba is very fast, but doesn't play nicely with NaN values
     # Therefore, we make new time-flux arrays with only the floating point values
@@ -363,6 +414,9 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         elif method == 'supersmoother':
             trend_segment = supersmoother(alpha=supersmoother_alpha).fit(
                 time_view, flux_view,).predict(time_view)
+        elif method == 'cofiam':
+            trend_segment = detrend_cofiam(
+                time_view, flux_view, numpy.ones(len(time_view)), window_length, ftol)
         trend_flux = append(trend_flux, trend_segment)
 
     # Insert results of non-NaNs into original data stream
