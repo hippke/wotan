@@ -18,6 +18,7 @@ Dependencies
 ------------------------
 
 Wotan requires numpy, scipy and numba to run. Optional:
+
 - `statsmodels` for `lowess`
 - `sklearn for `huberspline` and the GPs
 - `supersmoother`
