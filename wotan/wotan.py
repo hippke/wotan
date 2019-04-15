@@ -319,8 +319,10 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     trend_flux : array-like
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
-    if method not in "biweight andrewsinewave welsch hodges median mean trim_mean" + 
-        "supersmoother huberspline cofiam untrendy":
+    if (
+    method
+    not in "biweight andrewsinewave welsch hodges median mean trim_mean huberspline cofiam untrendy"
+    ):
         raise ValueError('Unknown detrending method')
 
     # Numba can't handle strings, so we're passing the location estimator as an int:
