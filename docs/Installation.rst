@@ -14,6 +14,18 @@ The latest version can be pulled from github::
 If you don't have ``git`` on your machine, you can find installation instructions `here <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_.
 
 
+Dependencies
+------------------------
+
+Wotan requires numpy, scipy and numba to run. Optional:
+- `statsmodels` for `lowess`
+- `sklearn for `huberspline` and the GPs
+- `supersmoother`
+- `untrendy`
+
+To install all dependencies, try ``pip install numpy numba scipy statsmodels sklearn supersmoother untrendy``
+
+
 Compatibility
 ------------------------
 
