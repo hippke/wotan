@@ -41,7 +41,7 @@ Available detrending algorithms
    - ``savgol`` [Savitzky & Golay (1964)](https://ui.adsabs.harvard.edu/#abs/1964AnaCh..36.1627S)
 - ``supersmoother`` [Friedman's (1984)](https://www.slac.stanford.edu/pubs/slacpubs/3250/slac-pub-3477.pdf) `Super-Smoother`, a local linear regression with adaptive bandwidth
 - Gaussian Processes
-   - ``gp_sqaredexp`` Squares-exponential kernel
+   - ``gp_sqaredexp`` Squared-exponential kernel
    - ``gp_matern`` Matern 3/2 kernel
    - ``gp_periodic`` Periodic kernel informed by a Lomb-Scargle periodogram pre-search
 
@@ -53,7 +53,7 @@ Available features
 - ``break_tolerance`` If there are large gaps in time, especially with corresponding flux level offsets, the detrending is much improved when splitting the data into several sub-lightcurves and applying the filter to each individually. Comes with an empirical default and is fully adjustable.
 - ``edge_cutoff`` Trends near edges are less robust. Depending on the data, it may be beneficial to remove edges.
 - ``cval`` Tuning parameter for the robust estimators (see [documentation](https://wotan.readthedocs.io/en/latest/index.html))
-- ``ftol`` Desired precision of the final location estimate of the `biweight`, `welsch`, and `andrewsinewave` robust estimators. All other methods use one-step estimates. The iterative algorithm based on Newton-Raphson stops when the change in location becomes smaller than ``ftol``. Default: `1e-6`, or 1ppm. Higher precision comes at greater computational expense.
+- ``ftol`` Desired precision of the final location estimate, using Newton-Raphson iteration. Default: `1e-6` (1 ppm).
 
 
 Installation
