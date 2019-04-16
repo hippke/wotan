@@ -17,7 +17,7 @@ from wotan import flatten
 flatten_lc, trend_lc = flatten(time, flux, window_length=0.5, method='biweight')
 ```
 
-For more details, have a look at the [documentation](https://wotan.readthedocs.io) and [tutorials](https://github.com/hippke/wotan/tree/master/tutorials).
+For more details, have a look at the [interactive playground](www), the [documentation](https://wotan.readthedocs.io) and [tutorials](https://github.com/hippke/wotan/tree/master/tutorials).
 
 Available detrending algorithms
 ---------------------------------
