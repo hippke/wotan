@@ -9,8 +9,6 @@ from numpy import mean, median, array, sort, inf, sin, exp, pi, full, append, \
 from numba import jit
 
 
-
-
 @jit(fastmath=True, nopython=True, cache=True)
 def location_iter(data, cval, ftol, method_code):
     """Robust location estimators"""
@@ -292,6 +290,7 @@ def get_gaps_indexes(time, break_tolerance):
 def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval=None, ftol=1e-6, return_trend=False, method='biweight'):
     """``flatten`` removes low frequency trends in time-series data.
+
     Parameters
     ----------
     time : array-like
