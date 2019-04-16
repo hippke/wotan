@@ -38,10 +38,11 @@ Available detrending algorithms
    - ``cofiam`` Cosine Filtering with Autocorrelation Minimization ([Kipping et al. 2013](http://adsabs.harvard.edu/abs/2013ApJ...770..101K))
    - ``savgol`` Sliding segments are fit with polynomials ([Savitzky & Golay 1964](https://ui.adsabs.harvard.edu/#abs/1964AnaCh..36.1627S)), cadence-based
    - ``supersmoother`` [Friedman's (1984)](https://www.slac.stanford.edu/pubs/slacpubs/3250/slac-pub-3477.pdf) Super-Smoother, a local linear regression with adaptive bandwidth
-- Gaussian Processes:
-   - ``gp_squared_exp`` Squared-exponential kernel
-   - ``gp_matern`` Matern 3/2 kernel
-   - ``gp_periodic`` Periodic kernel informed by a Lomb-Scargle periodogram pre-search
+- ``gp`` Gaussian Processes offering:
+   - ``squared_exp`` Squared-exponential kernel
+   - ``matern`` Matern 3/2 kernel
+   - ``periodic`` Periodic kernel informed by a user-specified period
+   - ``periodic_auto`` Periodic kernel informed by a Lomb-Scargle periodogram pre-search
 
 
 Available features
@@ -64,7 +65,7 @@ To install the released version, type
 Wotan requires numpy and numba to run. Additional dependencies:
 
 - `lowess` requires `statsmodels`
-- `huberspline` requires `sklearn` and `scipy`
+- `huberspline` and `gp` require `sklearn` and `scipy`
 - `supersmoother` requires `supersmoother`
 - `CoFiAM` and `medfilt` require `scipy`
 
