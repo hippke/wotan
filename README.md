@@ -23,27 +23,27 @@ Available detrending algorithms
 ---------------------------------
 
 - Time-windowed sliders with robust location estimates:
-   - ``biweight``: [Tukey's biweight](https://books.google.de/books?id=pGlHAAAAMAAJ)
-   - ``andrewsinewave``: [Andrew's sine wave](http://www.jstor.org/stable/j.ctt13x12sw.3)
-   - ``hodges`` Hodges-Lehmann-Sen
-   - ``welsch`` Welsch-Leclerc
-   - ``median`` (the most robust)
-   - ``mean`` (not robust)
-   - ``trim_mean``
+   - ``biweight`` [Tukey's biweight](https://books.google.de/books?id=pGlHAAAAMAAJ)
+   - ``andrewsinewave`` [Andrew's sine wave](http://www.jstor.org/stable/j.ctt13x12sw.3)
+   - ``hodges`` [Hodges-Lehmann](https://doi.org/10.1214/aoms/1177704172)-[Sen](https://doi.org/10.2307/2527532)
+   - ``welsch`` [Welsch](https://doi.org/10.1080/03610917808812083)-[Leclerc](https://doi.org/10.1007/BF00054839)
+   - ``median`` the most robust (but least efficient)
+   - ``mean`` the least robust (but most efficient for white noise)
+   - ``trim_mean`` A trimmed mean with adjustable caps
 - Splines, polynomials, and others:
    - ``lowess`` Locally weighted/estimated scatterplot smoothing ([Cleveland 1979](https://doi.org/10.1080/01621459.1979.10481038))
-   - Untrendy
-   - Cosine Filtering with Autocorrelation Minimization (``cofiam``), 
-   - Univariate B-splines with a robust Huber estimator (``huberspline``)
+   - ``untrendy`` spline with least-squares iteratively sigma-clipping re-weighting ([based on this package](https://github.com/dfm/untrendy))
+   - ``cofiam`` Cosine Filtering with Autocorrelation Minimization ([Kipping et al. 2013](http://adsabs.harvard.edu/abs/2013ApJ...770..101K))
+   - ``huberspline`` Univariate B-splines with a robust Huber estimator
 - Cadence-based sliders:
-   - Median
-   - Mean
-   - Savitzky-Golay
+   - ``median_cadence`` Median
+   - ``mean_cadence`` Mean
+   - ``savgol`` [Savitzky & Golay (1964)](https://ui.adsabs.harvard.edu/#abs/1964AnaCh..36.1627S)
 - Friedman's `Supersmoother` (``supersmoother``)
 - Gaussian Processes
-   - Squares-exponential kernel
-   - Matern 3/2 kernel
-   - Periodic kernel
+   - ``gp_sqaredexp`` Squares-exponential kernel
+   - ``gp_matern`` Matern 3/2 kernel
+   - ``gp_periodic`` Periodic kernel informed by a Lomb-Scargle periodogram pre-search
 
 
 Available features
