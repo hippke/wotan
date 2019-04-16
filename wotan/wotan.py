@@ -290,7 +290,6 @@ def get_gaps_indexes(time, break_tolerance):
 def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval=None, ftol=1e-6, return_trend=False, method='biweight'):
     """``flatten`` removes low frequency trends in time-series data.
-
     Parameters
     ----------
     time : array-like
@@ -299,13 +298,14 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         Flux values for every time point
     window_length : float
         The length of the filter window in units of ``time`` (usually days), or in 
-        cadences (for cadence-based sliders)
+        cadences (for cadence-based sliders ``savgol`` and ``medfilt``).
     method : string, default: `biweight`
         Determines detrending method and location estimator. A time-windowed slider is
         invoked for location estimators `median`, `biweight`, `hodges`, `welsch`,
         `andrewsinewave`, `mean`, or `trim_mean`. Spline-based detrending is performed
         for `huberspline`. A locally weighted scatterplot smoothing is performed for 
-        `lowess`. The Savitzky-Golay filter is run for ``savgol``.
+        `lowess`. The Savitzky-Golay filter is run for ``savgol``. A cadence-based
+        sliding median is performed for ``medfilt``.
     break_tolerance : float, default: window_length/2
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
@@ -345,7 +345,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
     methods = "biweight lowess andrewsinewave welsch hodges median mean trim_mean \
-        huberspline cofiam supersmoother savgol"
+        huberspline cofiam supersmoother savgol medfilt"
     if method not in methods:
         raise ValueError('Unknown detrending method')
 
@@ -462,6 +462,12 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             if window_length%2 == 0:
                 window_length += 1
             trend_segment = savgol_filter(flux_view, window_length, polyorder=int(cval))
+        elif method == 'medfilt':
+            try:
+                from scipy.signal import medfilt
+            except:
+                raise ImportError('Could not import scipy')
+            trend_segment = medfilt(flux_view, window_length)
 
         trend_flux = append(trend_flux, trend_segment)
 
