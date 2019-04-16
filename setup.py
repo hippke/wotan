@@ -3,9 +3,9 @@ from os import path
 
 # Pull TLS version from single source of truth file
 try:  # Python 2
-    execfile(path.join("transitleastsquares", 'version.py'))
+    execfile(path.join("wotan", 'version.py'))
 except:  # Python 3
-    exec(open(path.join("transitleastsquares", 'version.py')).read())
+    exec(open(path.join("wotan", 'version.py')).read())
 
 # If Python3: Add "README.md" to setup. 
 # Useful for PyPI (pip install wotan). Irrelevant for users using Python2
