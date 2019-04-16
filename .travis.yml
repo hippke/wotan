@@ -11,7 +11,9 @@ matrix:
       sudo: true
 install:
   - pip install astropy  # only needed for tests
+  - pip install statsmodels  # lowess requires statsmodels
+  - pip install sklearn scipy  # huberspline requires sklearn and scipy, CoFiAM requires scipy
+  - pip install supersmoother
 script:
   - python setup.py install  # includes its dependencies
-  - cd wotan
-  - python unit_test.py
+  - python wotan/unit_test.py
