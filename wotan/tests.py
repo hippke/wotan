@@ -76,11 +76,11 @@ def main():
 
     print("Detrending 9 (huberspline)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='huberspline', return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.07625225313)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.07625225313, decimal=2)
     
     print("Detrending 10 (cofiam)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='cofiam', return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.999983007176)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.999983007176, decimal=2)
     
     """
     import matplotlib.pyplot as plt
