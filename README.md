@@ -54,6 +54,7 @@ Available features
 - ``edge_cutoff`` Trends near edges are less robust. Depending on the data, it may be beneficial to remove edges.
 - ``cval`` Tuning parameter for the robust estimators (see [documentation](https://wotan.readthedocs.io/en/latest/index.html))
 - ``ftol`` Desired precision of the final location estimate, using Newton-Raphson iteration. Default: `1e-6` (1 ppm).
+- ``return_trend`` If `True`, the method will return a tuple of two elements (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend. Otherwise, it will only return ``flattened_flux``.
 
 
 Installation
