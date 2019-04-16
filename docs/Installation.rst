@@ -17,13 +17,14 @@ If you don't have ``git`` on your machine, you can find installation instruction
 Dependencies
 ------------------------
 
-Wotan requires numpy, scipy and numba to run. Optional:
+Wotan requires numpy and numba to run. Additional dependencies:
 
-- `statsmodels` for `lowess`
-- `sklearn for `huberspline` and the GPs
-- `supersmoother` for `supersmoother`
+- `lowess` requires `statsmodels` (``pip install statsmodels``)
+- `huberspline` requires `sklearn` and `scipy` (``pip install sklearn scipy``)
+- `supersmoother` requires `supersmoother` (``pip install supersmoother``)
+- `CoFiAM` requires `scipy` (``pip install scipy``)
 
-To install all dependencies, try ``pip install numpy numba scipy statsmodels sklearn supersmoother untrendy``
+To install all dependencies, use ``pip install numpy numba scipy statsmodels sklearn supersmoother``
 
 
 Compatibility
