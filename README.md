@@ -66,7 +66,7 @@ Wotan requires numpy and numba to run. Additional dependencies:
 - `lowess` requires `statsmodels`
 - `huberspline` requires `sklearn` and `scipy`
 - `supersmoother` requires `supersmoother`
-- `CoFiAM` requires `scipy`
+- `CoFiAM` and `medfilt` require `scipy`
 
 To install all dependencies, type ``$ pip install numpy numba scipy statsmodels sklearn supersmoother``
 
