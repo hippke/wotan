@@ -34,7 +34,7 @@ Available detrending algorithms
    - ``lowess`` Locally weighted/estimated scatterplot smoothing ([Cleveland 1979](https://doi.org/10.1080/01621459.1979.10481038))
    - ``untrendy`` spline with least-squares iteratively sigma-clipping re-weighting ([based on this package](https://github.com/dfm/untrendy))
    - ``cofiam`` Cosine Filtering with Autocorrelation Minimization ([Kipping et al. 2013](http://adsabs.harvard.edu/abs/2013ApJ...770..101K))
-   - ``huberspline`` Univariate B-splines with a robust Huber estimator
+   - ``huberspline`` Univariate B-splines with a robust Huber estimator ([Huber 1981](https://books.google.de/books?id=hVbhlwEACAAJ))
 - Cadence-based sliders:
    - ``median_cadence`` Median
    - ``mean_cadence`` Mean
