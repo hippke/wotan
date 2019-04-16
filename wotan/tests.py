@@ -22,7 +22,7 @@ def main():
     filename = "https://archive.stsci.edu/hlsps/tess-data-alerts/" \
     "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
 
-    filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
+    #filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
     time, flux = load_file(filename)
 
     window_length = 0.5
