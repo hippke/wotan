@@ -86,11 +86,16 @@ def main():
     flatten_lc, trend_lc = flatten(time, flux, window_length=301, method='savgol', return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.003465539354, decimal=2)
 
+    print("Detrending 12 (medfilt)...")
+    flatten_lc, trend_lc = flatten(time, flux, window_length=301, method='medfilt', return_trend=True)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.22609806557, decimal=2)
+
 
     """
     import matplotlib.pyplot as plt
     plt.scatter(time, flux, s=1, color='black')
     plt.plot(time, trend_lc, color='red')
+    plt.plot(time, trend_lc1, color='blue')
     plt.show()
     plt.close()
     plt.scatter(time, flatten_lc, s=1, color='black')
