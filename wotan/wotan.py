@@ -297,14 +297,14 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     flux : array-like
         Flux values for every time point
     window_length : float
-        The length of the filter window in units of ``time`` (usually days).
-        ``window_length`` must be a positive floating point value.
+        The length of the filter window in units of ``time`` (usually days), or in 
+        cadences (for cadence-based sliders)
     method : string, default: `biweight`
         Determines detrending method and location estimator. A time-windowed slider is
         invoked for location estimators `median`, `biweight`, `hodges`, `welsch`,
         `andrewsinewave`, `mean`, or `trim_mean`. Spline-based detrending is performed
         for `huberspline`. A locally weighted scatterplot smoothing is performed for 
-        `lowess`.
+        `lowess`. The Savitzky-Golay filter is run for ``savgol``.
     break_tolerance : float, default: window_length/2
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
@@ -325,6 +325,8 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         biweight is 4.685 with 95% efficiency. Larger values for make the estimate more
         efficient but less robust. For the super-smoother, cval determines the bass
         enhancement (smoothness) and can be `None` or in the range 0 < ``cval`` < 10.
+        For the ``savgol``, ``cval`` determines the (integer) polynomial order 
+        (default: 2).
     ftol : float, default: 1e-6
         Desired precision of the final location estimate of the `biweight`, `welsch`,
         and `andrewsinewave`. All other methods use one-step estimates. The iterative
@@ -342,7 +344,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
     methods = "biweight lowess andrewsinewave welsch hodges median mean trim_mean \
-        huberspline cofiam supersmoother"
+        huberspline cofiam supersmoother savgol"
     if method not in methods:
         raise ValueError('Unknown detrending method')
 
@@ -372,6 +374,8 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval = 2.11
         elif method == 'trim_mean':
             cval = 0.1  # 10 % on each side
+        elif method == 'savgol':  # polyorder
+            cval = 2  # int
         else:
             cval = 0  # avoid numba type inference error: None type multi with float
 
@@ -449,6 +453,14 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         elif method == 'cofiam':
             trend_segment = detrend_cofiam(
                 time_view, flux_view, ones(len(time_view)), window_length, ftol)
+        elif method == 'savgol':
+            try:
+                from scipy.signal import savgol_filter
+            except:
+                raise ImportError('Could not import scipy')
+            if window_length%2 == 0:
+                window_length += 1
+            trend_segment = savgol_filter(flux_view, window_length, polyorder=int(cval))
 
         trend_flux = append(trend_flux, trend_segment)
 
