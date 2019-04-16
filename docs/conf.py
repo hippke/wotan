@@ -1,15 +1,14 @@
 import os
 import sys
-#sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(0, os.path.abspath('../wotan/'))
 
 html_show_sourcelink = False
 project = 'wotan'
-copyright = '2019, Michael Hippke'
+copyright = '2019 Michael Hippke'
 author = 'Michael Hippke'
 
-version = '1'
-release = '1'
+#version = '1.0'
+#release = '1.0'
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -21,7 +20,7 @@ extensions = [
 source_suffix = '.rst'
 
 # Napoleon settings
-napoleon_use_ivar = False
+#napoleon_use_ivar = False
 napoleon_use_param = False
 napoleon_use_rtype = False
 
@@ -31,6 +30,7 @@ language = None
 exclude_patterns = []
 pygments_style = None
 html_theme = "sphinx_rtd_theme"
+"""
 html_static_path = ['_static']
 htmlhelp_basename = 'wotan_doc'
 man_pages = [
@@ -42,3 +42,4 @@ texinfo_documents = [
      author, 'wotan', 'One line description of project.',
      'Miscellaneous'),
 ]
+"""
