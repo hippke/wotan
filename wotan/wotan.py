@@ -290,7 +290,6 @@ def get_gaps_indexes(time, break_tolerance):
 def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval=None, ftol=1e-6, return_trend=False, method='biweight'):
     """``flatten`` removes low frequency trends in time-series data.
-
     Parameters
     ----------
     time : array-like
@@ -343,7 +342,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
     methods = "biweight lowess andrewsinewave welsch hodges median mean trim_mean \
-        huberspline cofiam"
+        huberspline cofiam supersmoother"
     if method not in methods:
         raise ValueError('Unknown detrending method')
 
@@ -427,10 +426,11 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
                 import statsmodels.api
             except:
                 raise ImportError('Could not import statsmodels')
+            duration = numpy.max(time_compressed) - numpy.min(time_compressed)
             trend_segment = statsmodels.api.nonparametric.lowess(
                 endog=flux_view,
                 exog=time_view,
-                frac=window_length / (numpy.max(time_compressed) - numpy.min(time_compressed)),
+                frac=window_length / duration,
                 missing='none',
                 return_sorted=False
                 )
