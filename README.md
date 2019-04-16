@@ -28,6 +28,7 @@ Available detrending algorithms
    - ``hodges`` [Hodges-Lehmann](https://doi.org/10.1214/aoms/1177704172)-[Sen](https://doi.org/10.2307/2527532)
    - ``welsch`` [Welsch](https://doi.org/10.1080/03610917808812083)-[Leclerc](https://doi.org/10.1007/BF00054839)
    - ``median`` the most robust (but least efficient)
+   - ``medfilt`` is a cadence-based median filter (*not* time-windowed)
    - ``mean`` the least robust (but most efficient for white noise)
    - ``trim_mean`` A trimmed mean with adjustable caps
 - Splines, polynomials, and others:
