@@ -15,5 +15,5 @@ install:
   - pip install sklearn scipy  # huberspline requires sklearn and scipy, CoFiAM requires scipy
   - pip install supersmoother
 script:
-  - python setup.py install  # includes its dependencies
-  - python wotan/unit_test.py
+  - python setup.py install
+  - python wotan/tests.py
