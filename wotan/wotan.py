@@ -2,6 +2,12 @@
 from light curves for exoplanet transit detection.
 """
 
+# TODO:
+# - refactor parameters into params tailored for each method (doc, tests)
+# - Integrate untrendy (incl. tests, doc)
+# - GPs: tests, doc
+
+
 from __future__ import division
 import numpy
 from numpy import mean, median, array, sort, inf, sin, exp, pi, full, append, \
@@ -276,6 +282,46 @@ def huber_spline_segment(time, flux, knot_distance):
     return trend
 
 
+def make_gp(time, flux, kernel, kernel_size, kernel_period):
+    try:
+        from sklearn.gaussian_process import GaussianProcessRegressor
+        from sklearn.gaussian_process.kernels import RBF, Matern, ExpSineSquared
+    except:
+        raise ImportError('Could not import sklearn')
+
+    if kernel_size is None:
+        raise ValueError('kernel_size must be specified')
+    if not isinstance(kernel_size, float) and not isinstance(kernel_size, int):
+        raise ValueError('kernel_size must be a floating point value')
+    if kernel_size <= 0 or kernel_size >= float("inf"):
+        raise ValueError('kernel_size must be finite and positive')
+
+    if kernel == 'periodic':
+        if kernel_period is None:
+            raise ValueError('kernel_period must be specified')
+        if not isinstance(kernel_period, float) and not isinstance(kernel_period, int):
+            raise ValueError('kernel_period must be a floating point value')
+        if kernel_period <= 0 or kernel_period >= float("inf"):
+            raise ValueError('kernel_period must be finite and positive')
+
+    kernel_size_bounds=(0.5 * kernel_size, 2 * kernel_size)
+    kernel_period_bounds=(0.5 * kernel_period, 2 * kernel_period)
+
+    if kernel is None or kernel == 'squared_exp':
+        use_kernel = RBF(kernel_size, kernel_size_bounds)
+    elif kernel == 'matern':
+        use_kernel = Matern(kernel_size, kernel_size_bounds, nu=3/2)
+    elif kernel == 'periodic':
+        use_kernel = ExpSineSquared(
+            kernel_size,
+            kernel_period,
+            kernel_size_bounds,
+            kernel_period_bounds)
+    grid = time.reshape(-1, 1)
+    trend_segment = GaussianProcessRegressor(use_kernel).fit(grid, flux).predict(grid)
+    return trend_segment
+
+
 def get_gaps_indexes(time, break_tolerance):
     """Array indexes where ``time`` has gaps longer than ``break_tolerance``"""
     gaps = diff(time)
@@ -288,9 +334,9 @@ def get_gaps_indexes(time, break_tolerance):
 
 
 def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
-            cval=None, ftol=1e-6, return_trend=False, method='biweight'):
+            cval=None, ftol=1e-6, return_trend=False, method='biweight', kernel=None,
+            kernel_size=None, kernel_period=None):
     """``flatten`` removes low frequency trends in time-series data.
-
     Parameters
     ----------
     time : array-like
@@ -346,7 +392,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
     methods = "biweight lowess andrewsinewave welsch hodges median mean trim_mean \
-        huberspline cofiam supersmoother savgol medfilt"
+        huberspline cofiam supersmoother savgol medfilt gp"
     if method not in methods:
         raise ValueError('Unknown detrending method')
 
@@ -469,7 +515,15 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             except:
                 raise ImportError('Could not import scipy')
             trend_segment = medfilt(flux_view, window_length)
-
+        elif method == 'gp':
+            trend_segment = make_gp(
+                time_view,
+                flux_view,
+                kernel,
+                kernel_size,
+                kernel_period
+                )
+ 
         trend_flux = append(trend_flux, trend_segment)
 
     # Insert results of non-NaNs into original data stream
