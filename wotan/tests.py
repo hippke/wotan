@@ -22,7 +22,7 @@ def main():
     filename = "https://archive.stsci.edu/hlsps/tess-data-alerts/" \
     "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
 
-    # filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
+    filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
     time, flux = load_file(filename)
 
     window_length = 0.5
@@ -72,7 +72,7 @@ def main():
 
     print("Detrending 8 (supersmoother)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='supersmoother', return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.933205071175)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.933205071175, decimal=5)
 
     print("Detrending 9 (huberspline)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='huberspline', return_trend=True)
