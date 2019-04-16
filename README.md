@@ -27,16 +27,16 @@ Available detrending algorithms
    - ``andrewsinewave`` [Andrew's sine wave](http://www.jstor.org/stable/j.ctt13x12sw.3)
    - ``hodges`` [Hodges-Lehmann](https://doi.org/10.1214/aoms/1177704172)-[Sen](https://doi.org/10.2307/2527532)
    - ``welsch`` [Welsch](https://doi.org/10.1080/03610917808812083)-[Leclerc](https://doi.org/10.1007/BF00054839)
-   - ``median`` The most robust (but least efficient)
-   - ``medfilt`` Is a cadence-based median filter (*not* time-windowed)
-   - ``mean`` The least robust (but most efficient for white noise)
-   - ``trim_mean`` A trimmed mean with adjustable caps
+   - ``median`` the most robust (but least efficient)
+   - ``medfilt`` a cadence-based median filter (*not* time-windowed) for comparison
+   - ``mean`` the least robust (but most efficient for white noise)
+   - ``trim_mean`` trimmed mean with adjustable caps
 - Splines, polynomials, and others:
    - ``lowess`` Locally weighted scatterplot smoothing ([Cleveland 1979](https://doi.org/10.1080/01621459.1979.10481038))
    - ``huberspline`` Univariate B-splines with a robust Huber estimator ([Huber 1981](https://books.google.de/books?id=hVbhlwEACAAJ))
    - ``untrendy`` Spline with least-squares iteratively sigma-clipping re-weighting ([based on this package](https://github.com/dfm/untrendy))
    - ``cofiam`` Cosine Filtering with Autocorrelation Minimization ([Kipping et al. 2013](http://adsabs.harvard.edu/abs/2013ApJ...770..101K))
-   - ``savgol`` Sliding segments are fit with polynomials ([Savitzky & Golay 1964](https://ui.adsabs.harvard.edu/#abs/1964AnaCh..36.1627S)), cadence-based
+   - ``savgol`` sliding segments are fit with polynomials ([Savitzky & Golay 1964](https://ui.adsabs.harvard.edu/#abs/1964AnaCh..36.1627S)), cadence-based
    - ``supersmoother`` [Friedman's (1984)](https://www.slac.stanford.edu/pubs/slacpubs/3250/slac-pub-3477.pdf) Super-Smoother, a local linear regression with adaptive bandwidth
 - ``gp`` Gaussian Processes offering:
    - ``squared_exp`` Squared-exponential kernel
@@ -62,7 +62,7 @@ To install the released version, type
 
     $ pip install wotan
 
-Wotan requires numpy and numba to run. Additional dependencies:
+Wotan requires `numpy` and `numba` to run. These are installed automatically through `pip`. Optional dependencies:
 
 - `lowess` requires `statsmodels`
 - `huberspline` and `gp` require `sklearn` and `scipy`
@@ -70,10 +70,6 @@ Wotan requires numpy and numba to run. Additional dependencies:
 - `CoFiAM` and `medfilt` require `scipy`
 
 To install all dependencies, type ``$ pip install numpy numba scipy statsmodels sklearn supersmoother``
-
-Authors
--------
-``wotan`` was created by [Michael Hippke](www.hippke.org)
 
 Attribution
 ----------------
