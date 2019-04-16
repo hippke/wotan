@@ -36,7 +36,7 @@ Available detrending algorithms
    - ``untrendy`` Spline with least-squares iteratively sigma-clipping re-weighting ([based on this package](https://github.com/dfm/untrendy))
    - ``cofiam`` Cosine Filtering with Autocorrelation Minimization ([Kipping et al. 2013](http://adsabs.harvard.edu/abs/2013ApJ...770..101K))
    - ``huberspline`` Univariate B-splines with a robust Huber estimator ([Huber 1981](https://books.google.de/books?id=hVbhlwEACAAJ))
-   - ``savgol`` Sliding segments are fit with polynomials ([Savitzky & Golay (1964)](https://ui.adsabs.harvard.edu/#abs/1964AnaCh..36.1627S)), cadence-based
+   - ``savgol`` Sliding segments are fit with polynomials ([Savitzky & Golay 1964](https://ui.adsabs.harvard.edu/#abs/1964AnaCh..36.1627S)), cadence-based
 - ``supersmoother`` [Friedman's (1984)](https://www.slac.stanford.edu/pubs/slacpubs/3250/slac-pub-3477.pdf) Super-Smoother, a local linear regression with adaptive bandwidth
 - Gaussian Processes
    - ``gp_sqaredexp`` Squared-exponential kernel
