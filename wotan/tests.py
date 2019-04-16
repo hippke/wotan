@@ -22,7 +22,7 @@ def main():
     filename = "https://archive.stsci.edu/hlsps/tess-data-alerts/" \
     "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
 
-    #filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
+    filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
     time, flux = load_file(filename)
 
     window_length = 0.5
@@ -82,6 +82,11 @@ def main():
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='cofiam', return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.999983007176, decimal=2)
     
+    print("Detrending 11 (savgol)...")
+    flatten_lc, trend_lc = flatten(time, flux, window_length=301, method='savgol', return_trend=True)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.003465539354, decimal=2)
+
+
     """
     import matplotlib.pyplot as plt
     plt.scatter(time, flux, s=1, color='black')
