@@ -26,6 +26,7 @@ def main():
     time, flux = load_file(filename)
 
     window_length = 0.5
+    
     print("Detrending 1 (biweight)...")
     flatten_lc, trend_lc = flatten(
         time,
@@ -55,8 +56,8 @@ def main():
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.16764691235, decimal=2)
 
     print("Detrending 4 (hodges)...")
-    flatten_lc, trend_lc = flatten(time[:2000], flux[:2000], window_length, method='hodges', return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1947.0182174079318, decimal=2)
+    flatten_lc, trend_lc = flatten(time[:1000], flux[:1000], window_length, method='hodges', return_trend=True)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 994.0110525909206, decimal=2)
 
     print("Detrending 5 (median)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='median', return_trend=True)
@@ -79,8 +80,8 @@ def main():
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.07625225313, decimal=2)
     
     print("Detrending 10 (cofiam)...")
-    flatten_lc, trend_lc = flatten(time, flux, window_length, method='cofiam', return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.999983007176, decimal=2)
+    flatten_lc, trend_lc = flatten(time[:2000], flux[:2000], window_length, method='cofiam', return_trend=True)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.9999999987976, decimal=2)
     
     print("Detrending 11 (savgol)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length=301, method='savgol', return_trend=True)
@@ -120,19 +121,28 @@ def main():
         kernel_period=10,
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.9999708985608, decimal=2)
-
-    time = numpy.linspace(0, 30, 1000)
-    flux = numpy.sin(time) + numpy.random.normal(0, 0.1, 1000)
-    time *= 1.5
+    
+    time_synth = numpy.linspace(0, 30, 200)
+    flux_synth = numpy.sin(time_synth) + numpy.random.normal(0, 0.1, 200)
+    time_synth *= 1.5
     print("Detrending 15 (gp periodic_auto)...")
     flatten_lc, trend_lc2 = flatten(
-        time,
-        flux,
+        time_synth,
+        flux_synth,
         method='gp',
         kernel='periodic_auto',
         kernel_size=5,
         return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1074.3810067945801, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 124.20804289649092, decimal=2)
+    
+    print("Detrending 15 (untrendy)...")
+    flatten_lc, trend_lc2 = flatten(
+        time,
+        flux,
+        method='untrendy',
+        window_length=1,
+        return_trend=True)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.997281790234, decimal=2)
     
     """
     import matplotlib.pyplot as plt
