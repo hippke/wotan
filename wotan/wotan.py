@@ -288,6 +288,10 @@ def make_gp(time, flux, kernel, kernel_size, kernel_period):
         from sklearn.gaussian_process.kernels import RBF, Matern, ExpSineSquared
     except:
         raise ImportError('Could not import sklearn')
+    try:
+        import scipy.signal as signal
+    except:
+        raise ImportError('Could not import scipy')
 
     if kernel_size is None:
         raise ValueError('kernel_size must be specified')
@@ -304,14 +308,32 @@ def make_gp(time, flux, kernel, kernel_size, kernel_period):
         if kernel_period <= 0 or kernel_period >= float("inf"):
             raise ValueError('kernel_period must be finite and positive')
 
+    # Determine most significant period
+    if kernel == 'periodic_auto':
+        time_span = numpy.max(time) - numpy.min(time)
+        cadence = numpy.nanmedian(numpy.diff(time))
+        freqs = numpy.geomspace(1/time_span, 1/cadence, 10000)
+        pgram = signal.lombscargle(time, flux, freqs)
+        kernel_period = 1 / freqs[numpy.argmax(pgram)] * 2 * numpy.pi
+
+        # Debug:
+        # print('kernel_period', kernel_period)
+        # import matplotlib.pyplot as plt
+        # plt.plot(freqs, pgram)
+        # plt.show()
+
+    # RBF and matern kernels are very similar when matern's (kernel_size * 1000)
+    if kernel == 'matern':
+        kernel_size *= 1000
+
     kernel_size_bounds=(0.5 * kernel_size, 2 * kernel_size)
-    kernel_period_bounds=(0.5 * kernel_period, 2 * kernel_period)
 
     if kernel is None or kernel == 'squared_exp':
         use_kernel = RBF(kernel_size, kernel_size_bounds)
     elif kernel == 'matern':
         use_kernel = Matern(kernel_size, kernel_size_bounds, nu=3/2)
-    elif kernel == 'periodic':
+    elif 'periodic' in kernel:
+        kernel_period_bounds=(0.5 * kernel_period, 2 * kernel_period)
         use_kernel = ExpSineSquared(
             kernel_size,
             kernel_period,
@@ -337,6 +359,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval=None, ftol=1e-6, return_trend=False, method='biweight', kernel=None,
             kernel_size=None, kernel_period=None):
     """``flatten`` removes low frequency trends in time-series data.
+    
     Parameters
     ----------
     time : array-like
@@ -433,8 +456,8 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         else:
             supersmoother_alpha = None
 
-    if window_length is None and method != 'supersmoother':
-        raise ValueError('Parameter window_length (float) is required')
+    #if window_length is None and method != 'supersmoother':
+    #    raise ValueError('Parameter window_length (float) is required')
 
     # Maximum gap in time should be half a window size.
     # Any larger is nonsense,  because then the array has a full window of data
