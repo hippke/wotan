@@ -64,14 +64,14 @@ To install the released version, type
 
 Wotan requires `numpy` and `numba` to run. These are installed automatically through `pip`. Optional dependencies:
 
-| Method          | `scipy` | `sklearn` | `statsmodels` | `supersmoother` |
-| ------------- --|:-------:| ---------:|--------------:|----------------:|
-| `medfilt`       | [x]     |           |               |                 |
-| `CoFiAM`        | [x]     |           |               |                 |
-| `huberspline`   | [x]     | [x]       |               |                 |
-| `gp`            | [x]     | [x]       |               |                 |
-| `lowess`        |         |           | [x]           |                 |
-| `supersmoother` |         |           |               | [x]             |
+| Method          |`scipy`   |`sklearn`   |`statsmodels`   |`supersmoother`   |
+| ----------------|:--------:|:----------:|:--------------:|:----------------:|
+| `medfilt`       | [x]      |            |                |                  |
+| `CoFiAM`        | [x]      |            |                |                  |
+| `huberspline`   | [x]      | [x]        |                |                  |
+| `gp`            | [x]      | [x]        |                |                  |
+| `lowess`        |          |            | [x]            |                  |
+| `supersmoother` |          |            |                | [x]              |
 
 To install all dependencies, type ``$ pip install numpy numba scipy statsmodels sklearn supersmoother``
 
