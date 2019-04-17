@@ -64,14 +64,15 @@ To install the released version, type
 
 which automatically installs `numpy` and `numba` if not present. Depending on the algorithm, additional dependencies exist:
 
-| Method          |`scipy`   |`sklearn`   |`statsmodels`   |`supersmoother`   |
-| ----------------|:--------:|:----------:|:--------------:|:----------------:|
-| `medfilt`       | ✓        |            |                |                  |
-| `CoFiAM`        | ✓        |            |                |                  |
-| `huberspline`   | ✓        | ✓        |                |                  |
-| `gp`            | ✓        | ✓        |                |                  |
-| `lowess`        |          |            | ✓            |                  |
-| `supersmoother` |          |            |                | ✓              |
+| Method          |`scipy`   |`sklearn`   |`statsmodels`   |`supersmoother`   | `untrendy`       |
+| ----------------|:--------:|:----------:|:--------------:|:----------------:|:----------------:|
+| `medfilt`       | ✓        |            |                |                  |                  |
+| `CoFiAM`        | ✓        |            |                |                  |                  |
+| `huberspline`   | ✓        | ✓          |                |                  |                  |
+| `gp`            | ✓        | ✓          |                |                  |                  |
+| `lowess`        |          |            | ✓              |                  |                  |
+| `supersmoother` |          |            |                | ✓                |                  |
+| `untrendy`      |          |            |                |                  | ✓                |
 
 To install all dependencies, type ``$ pip install numpy numba scipy statsmodels sklearn supersmoother``.
 
