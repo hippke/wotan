@@ -429,7 +429,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
     methods = "biweight lowess andrewsinewave welsch hodges median mean trim_mean \
-        huberspline cofiam supersmoother savgol medfilt gp"
+        huberspline cofiam supersmoother savgol medfilt gp untrendy"
     if method not in methods:
         raise ValueError('Unknown detrending method')
 
@@ -468,6 +468,12 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval = 2  # int
         else:
             cval = 0  # avoid numba type inference error: None type multi with float
+
+    # untrendy doesn't like short segments (crashes in scipy/interpolate)
+    # It also has its own routine to fill gaps by adding knots
+    # So we give it just one large segment to deal with
+    # if method == 'untrendy':
+    #    break_tolerance = 0
 
     if cval is not None and method == 'supersmoother':
         if cval > 0 and cval < 10:
@@ -564,7 +570,17 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
                 kernel_size,
                 kernel_period
                 )
- 
+        elif method == 'untrendy':
+            try:
+                from untrendy import fit_trend
+            except:
+                raise ImportError('Could not import untrendy')
+            # untrendy needs flux near unity, otherwise it crashes in scipy/interpolate
+            # So, we normalize by some constant (the median) and later transform back
+            scale_factor = median(flux_view)
+            call_trend = fit_trend(time_view, flux_view / scale_factor, dt=window_length)
+            trend_segment = call_trend(time_view) * scale_factor
+
         trend_flux = append(trend_flux, trend_segment)
 
     # Insert results of non-NaNs into original data stream
@@ -577,3 +593,4 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     if return_trend:
         return flatten_lc, trend_lc
     return flatten_lc
+
