@@ -74,7 +74,7 @@ which automatically installs `numpy` and `numba` if not present. Depending on th
 | `supersmoother` |          |            |                | ✓                |                  |
 | `untrendy`      |          |            |                |                  | ✓                |
 
-To install all dependencies, type ``$ pip install numpy numba scipy statsmodels sklearn supersmoother``.
+To install all dependencies, type ``$ pip install numpy numba scipy statsmodels sklearn supersmoother untrendy``.
 
 Attribution
 ----------------
