@@ -396,7 +396,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         to remove edges. The ``edge_cutoff`` defines the length (in units of time) to be
         cut off each edge. Default: Zero. Cut off is maximally ``window_length``/2, as
         this fills the window completely. Applied only to time-windowed sliders.
-    cval : float
+    cval : float or int
         Tuning parameter for the robust estimators. Default values are 5 (`biweight` and
         `lowess`), 1.339 (`andrewsinewave`), 2.11 (`welsch`). A
         ``cval`` of 6 for the biweight includes data up to 4 standard deviations from
@@ -407,7 +407,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         For the ``savgol``, ``cval`` determines the (integer) polynomial order
         (default: 2).
     proportiontocut : float, default: 0.1
-        Fraction to cut off of both tails of the distribution
+        Fraction to cut off of both tails of the distribution using method ``trim_mean``
     kernel : str, default: `squared_exp`
         Choice of `squared_exp` (squared exponential), `matern`, `periodic`,
         `periodic_auto`.
