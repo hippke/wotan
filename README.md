@@ -80,3 +80,12 @@ Please cite [Hippke et al. (2019, XXX)](https://XXX) if you find this code usefu
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 ```
+
+Originality
+----------------
+
+As all scientific work, wōtan is [*standing on the shoulders of giants*](https://en.wikiquote.org/wiki/Isaac_Newton). Particularly, many detrending methods are wrapped from existing packages. Original contributions include:
+- Original implementation of a time-windowed detrending master module with edge treatments and segmentation options
+- Original implementation of robust location estimates using Newton-Raphson iteration to a precision threshold for Tukey's biweight, Andrew's sine wave, and the Welsch-Leclerc. This is probably a "first", which reduces jitter in the location estimate by ~10 ppm
+- Bringing together many methods in one place in a common interface, with sensible defaults
+- Providing documentation, tutorials, and a [paper](www) which compares and benchmarks the methods 
