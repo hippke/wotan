@@ -52,7 +52,6 @@ Available features
 - ``break_tolerance`` If there are large gaps in time, especially with corresponding flux level offsets, the detrending is much improved when splitting the data into several sub-lightcurves and applying the filter to each individually. Comes with an empirical default and is fully adjustable.
 - ``edge_cutoff`` Trends near edges are less robust. Depending on the data, it may be beneficial to remove edges.
 - ``cval`` Tuning parameter for the robust estimators (see [documentation](https://wotan.readthedocs.io/en/latest/index.html))
-- ``ftol`` Desired precision of the final location estimate, using Newton-Raphson iteration. Default: `1e-6` (1 ppm).
 - ``return_trend`` If `True`, the method will return a tuple of two elements (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend. Otherwise, it will only return ``flattened_flux``.
 
 
