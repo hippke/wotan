@@ -62,7 +62,7 @@ To install the released version, type
 
     $ pip install wotan
 
-Wotan requires `numpy` and `numba` to run. These are installed automatically through `pip`. Optional dependencies:
+which automatically installs `numpy` and `numba` if not present. Depending on the algorithm, additional dependencies exist:
 
 | Method          |`scipy`   |`sklearn`   |`statsmodels`   |`supersmoother`   |
 | ----------------|:--------:|:----------:|:--------------:|:----------------:|
@@ -73,7 +73,7 @@ Wotan requires `numpy` and `numba` to run. These are installed automatically thr
 | `lowess`        |          |            | [x]            |                  |
 | `supersmoother` |          |            |                | [x]              |
 
-To install all dependencies, type ``$ pip install numpy numba scipy statsmodels sklearn supersmoother``
+To install all dependencies, type ``$ pip install numpy numba scipy statsmodels sklearn supersmoother``.
 
 Attribution
 ----------------
