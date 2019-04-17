@@ -66,12 +66,12 @@ which automatically installs `numpy` and `numba` if not present. Depending on th
 
 | Method          |`scipy`   |`sklearn`   |`statsmodels`   |`supersmoother`   |
 | ----------------|:--------:|:----------:|:--------------:|:----------------:|
-| `medfilt`       | *        |            |                |                  |
-| `CoFiAM`        | ✓, ✔    |            |                |                  |
-| `huberspline`   | [x]      | [x]        |                |                  |
-| `gp`            | [x]      | [x]        |                |                  |
-| `lowess`        |          |            | [x]            |                  |
-| `supersmoother` |          |            |                | [x]              |
+| `medfilt`       | ✓        |            |                |                  |
+| `CoFiAM`        | ✓        |            |                |                  |
+| `huberspline`   | ✓        | ✓        |                |                  |
+| `gp`            | ✓        | ✓        |                |                  |
+| `lowess`        |          |            | ✓            |                  |
+| `supersmoother` |          |            |                | ✓              |
 
 To install all dependencies, type ``$ pip install numpy numba scipy statsmodels sklearn supersmoother``.
 
