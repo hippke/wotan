@@ -90,16 +90,59 @@ def main():
     flatten_lc, trend_lc = flatten(time, flux, window_length=301, method='medfilt', return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.22609806557, decimal=2)
 
+    print("Detrending 12 (gp squared_exp)...")
+    flatten_lc, trend_lc1 = flatten(
+        time[:2000],
+        flux[:2000],
+        method='gp',
+        kernel='squared_exp',
+        kernel_size=10,
+        return_trend=True)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.99958552324, decimal=2)
+    
+    print("Detrending 13 (gp matern)...")
+    flatten_lc, trend_lc2 = flatten(
+        time[:2000],
+        flux[:2000],
+        method='gp',
+        kernel='matern',
+        kernel_size=10,
+        return_trend=True)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1949.0001583058202, decimal=2)
+    
+    print("Detrending 14 (gp periodic)...")
+    flatten_lc, trend_lc2 = flatten(
+        time[:2000],
+        flux[:2000],
+        method='gp',
+        kernel='periodic',
+        kernel_size=1,
+        kernel_period=10,
+        return_trend=True)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.9999708985608, decimal=2)
 
+    time = numpy.linspace(0, 30, 1000)
+    flux = numpy.sin(time) + numpy.random.normal(0, 0.1, 1000)
+    time *= 1.5
+    print("Detrending 15 (gp periodic_auto)...")
+    flatten_lc, trend_lc2 = flatten(
+        time,
+        flux,
+        method='gp',
+        kernel='periodic_auto',
+        kernel_size=5,
+        return_trend=True)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1074.3810067945801, decimal=2)
+    
     """
     import matplotlib.pyplot as plt
     plt.scatter(time, flux, s=1, color='black')
-    plt.plot(time, trend_lc, color='red')
-    plt.plot(time, trend_lc1, color='blue')
+    #plt.plot(time[:2000], trend_lc1[:2000], color='red')
+    plt.plot(time, trend_lc2, color='blue')
     plt.show()
     plt.close()
-    plt.scatter(time, flatten_lc, s=1, color='black')
-    plt.show()
+    #plt.scatter(time, flatten_lc, s=1, color='black')
+    #plt.show()
     """
     
     print('All tests completed.')
