@@ -14,9 +14,18 @@ from numpy import mean, median, array, sort, inf, sin, exp, pi, full, append, \
     concatenate, diff, where, add, float32, nan, isnan, linspace, cos, ones, zeros
 from numba import jit
 
+# Hardcoded constants:
+
+# Desired precision of the final location estimate of the `biweight`, `welsch`,
+# and `andrewsinewave`. All other methods use one-step estimates. The iterative
+# algorithm based on Newton-Raphson stops when the change in location becomes
+# smaller than ``FTOL``. Default: `1e-6`, or 1ppm. Higher precision comes at
+# greater computational expense.
+FTOL = 1e-6  
+
 
 @jit(fastmath=True, nopython=True, cache=True)
-def location_iter(data, cval, ftol, method_code):
+def location_iter(data, cval, method_code):
     """Robust location estimators"""
 
     # Numba can't handle strings, so we're passing the location estimator as an int:
@@ -39,8 +48,8 @@ def location_iter(data, cval, ftol, method_code):
     cmad = 1 / (cval * mad)
 
     # Newton-Raphson iteration, where each result is taken as the initial value of the
-    # next iteration. Stops when the difference of a round is below ``ftol`` threshold
-    while numpy.abs(delta_center) > ftol:
+    # next iteration. Stops when the difference of a round is below ``FTOL`` threshold
+    while numpy.abs(delta_center) > FTOL:
         distance = data - center
         dmad = distance * cmad
 
@@ -82,7 +91,7 @@ def cofiam_detrend_curve(t, fact, D_max, k_max):
     return detr
 
 
-def detrend_cofiam(t, y, ferr, window_length, ftol):
+def detrend_cofiam(t, y, ferr, window_length):
 
     def find_detrending_for_region(t, y, ferr, k_max, D_max):
 
@@ -94,7 +103,7 @@ def detrend_cofiam(t, y, ferr, window_length, ftol):
 
         x0 = zeros(2 * k_max + 1)
         x0[0] = mean(y)
-        best_param, param_fit_status = leastsq(fit_func, x0, ftol=ftol)
+        best_param, param_fit_status = leastsq(fit_func, x0, ftol=FTOL)
         result = cofiam_detrend_curve(t, best_param, D_max, k_max)
         return out_func
 
@@ -148,7 +157,7 @@ def location_hodges(data):
 
 
 @jit(fastmath=True, nopython=True, cache=True)
-def running_segment(time, flux, window_length, edge_cutoff, cval, ftol, method_code):
+def running_segment(time, flux, window_length, edge_cutoff, cval, method_code):
     """Iterator for a single time-series segment using time-series window sliders"""
 
     # Numba can't handle strings, so we're passing the location estimator as an int:
@@ -190,7 +199,6 @@ def running_segment(time, flux, window_length, edge_cutoff, cval, ftol, method_c
                 mean_all[i] = location_iter(
                     flux[idx_start:idx_end],
                     cval,
-                    ftol,
                     method_code
                     )
             # hodges
@@ -356,8 +364,8 @@ def get_gaps_indexes(time, break_tolerance):
 
 
 def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
-            cval=None, ftol=1e-6, return_trend=False, method='biweight', kernel=None,
-            kernel_size=None, kernel_period=None):
+            cval=None, return_trend=False, method='biweight', kernel=None,
+            kernel_size=None, kernel_period=None, proportiontocut=0.1):
     """``flatten`` removes low frequency trends in time-series data.
     
     Parameters
@@ -367,15 +375,15 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     flux : array-like
         Flux values for every time point
     window_length : float
-        The length of the filter window in units of ``time`` (usually days), or in 
+        The length of the filter window in units of ``time`` (usually days), or in
         cadences (for cadence-based sliders ``savgol`` and ``medfilt``).
     method : string, default: `biweight`
         Determines detrending method and location estimator. A time-windowed slider is
         invoked for location estimators `median`, `biweight`, `hodges`, `welsch`,
         `andrewsinewave`, `mean`, or `trim_mean`. Spline-based detrending is performed
-        for `huberspline`. A locally weighted scatterplot smoothing is performed for 
-        `lowess`. The Savitzky-Golay filter is run for ``savgol``. A cadence-based
-        sliding median is performed for ``medfilt``.
+        for `huberspline` and `untrendy`. A locally weighted scatterplot smoothing is
+        performed for `lowess`. The Savitzky-Golay filter is run for ``savgol``. A
+        cadence-based sliding median is performed for ``medfilt``.
     break_tolerance : float, default: window_length/2
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
@@ -390,20 +398,26 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         this fills the window completely. Applied only to time-windowed sliders.
     cval : float
         Tuning parameter for the robust estimators. Default values are 5 (`biweight` and
-        `lowess`), 1.339 (`andrewsinewave`), 2.11 (`welsch`), 0.1 (`trim_mean`). A
+        `lowess`), 1.339 (`andrewsinewave`), 2.11 (`welsch`). A
         ``cval`` of 6 for the biweight includes data up to 4 standard deviations from
         the central location and has an efficiency of 98%. Another typical value for the
         biweight is 4.685 with 95% efficiency. Larger values for make the estimate more
         efficient but less robust. For the super-smoother, cval determines the bass
         enhancement (smoothness) and can be `None` or in the range 0 < ``cval`` < 10.
-        For the ``savgol``, ``cval`` determines the (integer) polynomial order 
+        For the ``savgol``, ``cval`` determines the (integer) polynomial order
         (default: 2).
-    ftol : float, default: 1e-6
-        Desired precision of the final location estimate of the `biweight`, `welsch`,
-        and `andrewsinewave`. All other methods use one-step estimates. The iterative
-        algorithm based on Newton-Raphson stops when the change in location becomes
-        smaller than ``ftol``. Default: `1e-6`, or 1ppm. Higher precision comes at
-        greater computational expense.
+    proportiontocut : float, default: 0.1
+        Fraction to cut off of both tails of the distribution
+    kernel : str, default: `squared_exp`
+        Choice of `squared_exp` (squared exponential), `matern`, `periodic`,
+        `periodic_auto`.
+    kernel_size : float, default: 1
+        The length scale of the Gaussian Process kernel.
+    kernel_period = float
+        The periodicity of the Gaussian Process kernel (in units of ``time``). Must be
+        provided for the kernel `periodic`. Can not be specified for the
+        `periodic_auto`, for which it is determined automatically using a Lomb-Scargle
+        periodogram pre-search.
     return_trend : bool, default: False
         If `True`, the method will return a tuple of two elements
         (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend.
@@ -435,6 +449,11 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     elif method == 'trim_mean':
         method_code = 7
 
+    if not isinstance(proportiontocut, float):
+        raise ValueError('proportiontocut must be a floating point value')
+    if proportiontocut >= 0.5 or proportiontocut <= 0:
+        raise ValueError('proportiontocut must be >0 and <0.5')
+
     # Default cval values for robust location estimators
     if cval is None:
         if method == 'biweight':
@@ -444,7 +463,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         elif method == 'welsch':
             cval = 2.11
         elif method == 'trim_mean':
-            cval = 0.1  # 10 % on each side
+            cval = proportiontocut
         elif method == 'savgol':  # polyorder
             cval = 2  # int
         else:
@@ -494,7 +513,6 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
                 window_length,
                 edge_cutoff,
                 cval,
-                ftol,
                 method_code)
         elif method == 'lowess':
             try:
@@ -523,7 +541,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
                 time_view, flux_view,).predict(time_view)
         elif method == 'cofiam':
             trend_segment = detrend_cofiam(
-                time_view, flux_view, ones(len(time_view)), window_length, ftol)
+                time_view, flux_view, ones(len(time_view)), window_length)
         elif method == 'savgol':
             try:
                 from scipy.signal import savgol_filter
