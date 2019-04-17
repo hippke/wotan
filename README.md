@@ -66,8 +66,8 @@ which automatically installs `numpy` and `numba` if not present. Depending on th
 
 | Method          |`scipy`   |`sklearn`   |`statsmodels`   |`supersmoother`   |
 | ----------------|:--------:|:----------:|:--------------:|:----------------:|
-| `medfilt`       | [x]      |            |                |                  |
-| `CoFiAM`        | [x]      |            |                |                  |
+| `medfilt`       | *        |            |                |                  |
+| `CoFiAM`        | ✓, ✔    |            |                |                  |
 | `huberspline`   | [x]      | [x]        |                |                  |
 | `gp`            | [x]      | [x]        |                |                  |
 | `lowess`        |          |            | [x]            |                  |
