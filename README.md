@@ -27,7 +27,7 @@ Available detrending algorithms
    - ``andrewsinewave`` [Andrew's sine wave](http://www.jstor.org/stable/j.ctt13x12sw.3)
    - ``hodges`` [Hodges-Lehmann](https://doi.org/10.1214/aoms/1177704172)-[Sen](https://doi.org/10.2307/2527532)
    - ``welsch`` [Welsch](https://doi.org/10.1080/03610917808812083)-[Leclerc](https://doi.org/10.1007/BF00054839)
-   - ``huber2`` Huber's Proposal 2 [(Huber 1981)](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y)
+   - ``huber`` [Huber's M-estimator (1981)](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y)
    - ``median`` the most robust (but least efficient)
    - ``medfilt`` a cadence-based median filter (*not* time-windowed) for comparison
    - ``mean`` the least robust (but most efficient for white noise)
