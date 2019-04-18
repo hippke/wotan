@@ -147,11 +147,11 @@ def main():
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.997281790234, decimal=2)
     
 
-    print("Detrending 16 (huber2)...")
+    print("Detrending 16 (huber)...")
     flatten_lc, trend_lc = flatten(
         time[:2000],
         flux[:2000],
-        method='huber2',
+        method='huber',
         window_length=0.5,
         edge_cutoff=0,
         break_tolerance=0.4,
