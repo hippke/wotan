@@ -23,8 +23,10 @@ def main():
     "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
 
     #filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
+    #filename = 'P:/P/Dok/tess_alarm/hlsp_tess-data-alerts_tess_phot_00077031414-s02_tess_v1_lc.fits'
+    #filename = 'tess2018206045859-s0001-0000000201248411-111-s_llc.fits'
     time, flux = load_file(filename)
-
+    
     window_length = 0.5
     
     print("Detrending 1 (biweight)...")
@@ -144,11 +146,24 @@ def main():
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.997281790234, decimal=2)
     
+
+    print("Detrending 16 (huber2)...")
+    flatten_lc, trend_lc = flatten(
+        time[:2000],
+        flux[:2000],
+        method='huber2',
+        window_length=0.5,
+        edge_cutoff=0,
+        break_tolerance=0.4,
+        return_trend=True)
+    print(numpy.nansum(flatten_lc))
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1946.824006445714, decimal=2)
+    
     """
     import matplotlib.pyplot as plt
     plt.scatter(time, flux, s=1, color='black')
     #plt.plot(time[:2000], trend_lc1[:2000], color='red')
-    plt.plot(time, trend_lc2, color='blue')
+    plt.plot(time[:2000], trend_lc[:2000], color='red', linewidth=2)
     plt.show()
     plt.close()
     #plt.scatter(time, flatten_lc, s=1, color='black')
