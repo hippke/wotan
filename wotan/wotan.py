@@ -23,7 +23,7 @@ from numba import jit
 # greater computational expense.
 FTOL = 1e-6  
 
-# Iterative Huber2 estimator sometimes fails to converge. Its default is 30 in:
+# Iterative Huber estimator sometimes fails to converge. Its default is 30 in:
 # https://www.statsmodels.org/dev/_modules/statsmodels/robust/scale.html#Huber
 # This is often not sufficient --> set MAXITER=1000 to avoid infinite loop
 MAXITER = 1000
@@ -438,7 +438,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
     methods = "biweight lowess andrewsinewave welsch hodges median mean trim_mean \
-        huberspline cofiam supersmoother savgol medfilt gp untrendy huber2"
+        huberspline cofiam supersmoother savgol medfilt gp untrendy huber"
     if method not in methods:
         raise ValueError('Unknown detrending method')
 
@@ -457,7 +457,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         method_code = 6
     elif method == 'trim_mean':
         method_code = 7
-    elif method == 'huber2':
+    elif method == 'huber':
         method_code = 8
 
 
@@ -524,7 +524,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     for i in range(len(gaps_indexes)-1):
         time_view = time_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         flux_view = flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
-        if method in "biweight andrewsinewave welsch hodges median mean trim_mean huber2":
+        if method in "biweight andrewsinewave welsch hodges median mean trim_mean huber":
             trend_segment = running_segment(
                 time_view,
                 flux_view,
