@@ -23,6 +23,11 @@ from numba import jit
 # greater computational expense.
 FTOL = 1e-6  
 
+# Iterative Huber2 estimator sometimes fails to converge. Its default is 30 in:
+# https://www.statsmodels.org/dev/_modules/statsmodels/robust/scale.html#Huber
+# This is often not sufficient --> set MAXITER=1000 to avoid infinite loop
+MAXITER = 1000
+
 
 @jit(fastmath=True, nopython=True, cache=True)
 def location_iter(data, cval, method_code):
@@ -156,7 +161,7 @@ def location_hodges(data):
     return median(array(hodges))
 
 
-@jit(fastmath=True, nopython=True, cache=True)
+#@jit(fastmath=True, nopython=True, cache=True)
 def running_segment(time, flux, window_length, edge_cutoff, cval, method_code):
     """Iterator for a single time-series segment using time-series window sliders"""
 
@@ -215,6 +220,10 @@ def running_segment(time, flux, window_length, edge_cutoff, cval, method_code):
                 mean_all[i] = location_trim_mean(
                     flux[idx_start:idx_end],
                     proportiontocut=cval)
+            elif method_code == 8:
+                import statsmodels.api as sm
+                huber = sm.robust.scale.Huber(maxiter=MAXITER, tol=FTOL)
+                mean_all[i], error = huber(flux[idx_start:idx_end])
     return mean_all
 
 
@@ -429,7 +438,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
     methods = "biweight lowess andrewsinewave welsch hodges median mean trim_mean \
-        huberspline cofiam supersmoother savgol medfilt gp untrendy"
+        huberspline cofiam supersmoother savgol medfilt gp untrendy huber2"
     if method not in methods:
         raise ValueError('Unknown detrending method')
 
@@ -448,6 +457,9 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         method_code = 6
     elif method == 'trim_mean':
         method_code = 7
+    elif method == 'huber2':
+        method_code = 8
+
 
     if not isinstance(proportiontocut, float):
         raise ValueError('proportiontocut must be a floating point value')
@@ -512,7 +524,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     for i in range(len(gaps_indexes)-1):
         time_view = time_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         flux_view = flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
-        if method in "biweight andrewsinewave welsch hodges median mean trim_mean":
+        if method in "biweight andrewsinewave welsch hodges median mean trim_mean huber2":
             trend_segment = running_segment(
                 time_view,
                 flux_view,
@@ -593,4 +605,3 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     if return_trend:
         return flatten_lc, trend_lc
     return flatten_lc
-
