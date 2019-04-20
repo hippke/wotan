@@ -153,13 +153,8 @@ def location_winsorize_mean(data, proportiontocut):
     idx = int(proportiontocut * len(data)) + 1
     if idx < 0:
         idx = 0
-    lo = sorted_data[idx]
-    hi = sorted_data[-idx]
-    for i in range(len(sorted_data)):
-        if sorted_data[i] > hi:
-            sorted_data[i] = hi
-        elif sorted_data[i] < lo:
-            sorted_data[i] = lo
+    sorted_data[:idx] = sorted_data[idx]
+    sorted_data[-idx:] = sorted_data[-idx]
     return mean(sorted_data)
 
 
