@@ -444,10 +444,10 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     method : string, default: `biweight`
         Determines detrending method and location estimator. A time-windowed slider is
         invoked for location estimators `median`, `biweight`, `hodges`, `welsch`,
-        `andrewsinewave`, `mean`, or `trim_mean`. Spline-based detrending is performed
-        for `huberspline` and `untrendy`. A locally weighted scatterplot smoothing is
-        performed for `lowess`. The Savitzky-Golay filter is run for ``savgol``. A
-        cadence-based sliding median is performed for ``medfilt``.
+        `huber`, `andrewsinewave`, `mean`, `trim_mean`, or `winsorize`. Spline-based
+        detrending is performed for `huberspline` and `untrendy`. A locally weighted
+        scatterplot smoothing is performed for `lowess`. The Savitzky-Golay filter is
+        run for ``savgol``. A cadence-based sliding median is performed for ``medfilt``.
     break_tolerance : float, default: window_length/2
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
@@ -462,7 +462,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         this fills the window completely. Applied only to time-windowed sliders.
     cval : float or int
         Tuning parameter for the robust estimators. Default values are 5 (`biweight` and
-        `lowess`), 1.339 (`andrewsinewave`), 2.11 (`welsch`). A
+        `lowess`), 1.339 (`andrewsinewave`), 2.11 (`welsch`), 1.5 (``huber``). A
         ``cval`` of 6 for the biweight includes data up to 4 standard deviations from
         the central location and has an efficiency of 98%. Another typical value for the
         biweight is 4.685 with 95% efficiency. Larger values for make the estimate more
@@ -471,7 +471,8 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         For the ``savgol``, ``cval`` determines the (integer) polynomial order
         (default: 2).
     proportiontocut : float, default: 0.1
-        Fraction to cut off of both tails of the distribution using method ``trim_mean``
+        Fraction to cut off (or filled) of both tails of the distribution using methods
+        ``trim_mean`` (or ``winsorize``)
     kernel : str, default: `squared_exp`
         Choice of `squared_exp` (squared exponential), `matern`, `periodic`,
         `periodic_auto`.
