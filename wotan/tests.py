@@ -26,9 +26,9 @@ def main():
     #filename = 'P:/P/Dok/tess_alarm/hlsp_tess-data-alerts_tess_phot_00077031414-s02_tess_v1_lc.fits'
     #filename = 'tess2018206045859-s0001-0000000201248411-111-s_llc.fits'
     time, flux = load_file(filename)
-    
+
     window_length = 0.5
-    
+
     print("Detrending 1 (biweight)...")
     flatten_lc, trend_lc = flatten(
         time,
@@ -80,11 +80,11 @@ def main():
     print("Detrending 9 (huberspline)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='huberspline', return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.07625225313, decimal=2)
-    
+
     print("Detrending 10 (cofiam)...")
     flatten_lc, trend_lc = flatten(time[:2000], flux[:2000], window_length, method='cofiam', return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.9999999987976, decimal=2)
-    
+
     print("Detrending 11 (savgol)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length=301, method='savgol', return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.003465539354, decimal=2)
@@ -102,7 +102,7 @@ def main():
         kernel_size=10,
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.99958552324, decimal=2)
-    
+
     print("Detrending 13 (gp matern)...")
     flatten_lc, trend_lc2 = flatten(
         time[:2000],
@@ -112,7 +112,7 @@ def main():
         kernel_size=10,
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1949.0001583058202, decimal=2)
-    
+
     print("Detrending 14 (gp periodic)...")
     flatten_lc, trend_lc2 = flatten(
         time[:2000],
@@ -123,7 +123,7 @@ def main():
         kernel_period=10,
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.9999708985608, decimal=2)
-    
+
     time_synth = numpy.linspace(0, 30, 200)
     flux_synth = numpy.sin(time_synth) + numpy.random.normal(0, 0.1, 200)
     time_synth *= 1.5
@@ -136,7 +136,7 @@ def main():
         kernel_size=5,
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 124.1, decimal=1)
-    
+
     print("Detrending 15 (untrendy)...")
     flatten_lc, trend_lc2 = flatten(
         time,
@@ -145,31 +145,44 @@ def main():
         window_length=1,
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.997281790234, decimal=2)
-    
+
 
     print("Detrending 16 (huber)...")
     flatten_lc, trend_lc = flatten(
-        time[:2000],
-        flux[:2000],
+        time[:1000],
+        flux[:1000],
         method='huber',
         window_length=0.5,
         edge_cutoff=0,
         break_tolerance=0.4,
         return_trend=True)
-    print(numpy.nansum(flatten_lc))
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1946.824006445714, decimal=2)
-    
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 994.01102, decimal=2)
+
+    print("Detrending 17 (winsorize)...")
+    flatten_lc, trend_lc2 = flatten(
+        time,
+        flux,
+        method='winsorize',
+        window_length=0.5,
+        edge_cutoff=0,
+        break_tolerance=0.4,
+        proportiontocut=0.1,
+        return_trend=True)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.064587196448, decimal=2)
+
     """
     import matplotlib.pyplot as plt
     plt.scatter(time, flux, s=1, color='black')
     #plt.plot(time[:2000], trend_lc1[:2000], color='red')
-    plt.plot(time[:2000], trend_lc[:2000], color='red', linewidth=2)
+    plt.plot(time, trend_lc, color='red', linewidth=2)
+    plt.plot(time, trend_lc2, color='blue', linewidth=2)
+
     plt.show()
     plt.close()
-    #plt.scatter(time, flatten_lc, s=1, color='black')
-    #plt.show()
+    plt.scatter(time, flatten_lc, s=1, color='black')
+    plt.show()
     """
-    
+
     print('All tests completed.')
 
 
