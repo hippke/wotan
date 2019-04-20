@@ -32,6 +32,7 @@ Available detrending algorithms
    - ``medfilt`` a cadence-based median filter (*not* time-windowed) for comparison
    - ``mean`` the least robust (but most efficient for white noise)
    - ``trim_mean`` trimmed mean with adjustable caps
+   - ``winsorize`` outliers are [*winsorized*](https://en.wikipedia.org/wiki/Winsorizing) to a specified percentile
 - Splines, polynomials, and others:
    - ``lowess`` Locally weighted scatterplot smoothing ([Cleveland 1979](https://doi.org/10.1080/01621459.1979.10481038))
    - ``huberspline`` Univariate B-splines with a robust Huber estimator ([Huber 1981](https://books.google.de/books?id=hVbhlwEACAAJ))
@@ -71,6 +72,7 @@ which automatically installs `numpy` and `numba` if not present. Depending on th
 | `huberspline`   | ✓        | ✓          |                |                  |                  |
 | `gp`            | ✓        | ✓          |                |                  |                  |
 | `lowess`        |          |            | ✓              |                  |                  |
+| `huber `        |          |            | ✓              |                  |                  |
 | `supersmoother` |          |            |                | ✓                |                  |
 | `untrendy`      |          |            |                |                  | ✓                |
 
