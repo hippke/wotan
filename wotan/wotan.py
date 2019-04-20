@@ -6,6 +6,7 @@ from light curves for exoplanet transit detection.
 # - refactor parameters into params tailored for each method (doc, tests)
 # - Integrate untrendy (incl. tests, doc)
 # - GPs: tests, doc
+# huber cval=1.5 fails to converge
 
 
 from __future__ import division
@@ -21,7 +22,7 @@ from numba import jit
 # algorithm based on Newton-Raphson stops when the change in location becomes
 # smaller than ``FTOL``. Default: `1e-6`, or 1ppm. Higher precision comes at
 # greater computational expense.
-FTOL = 1e-6  
+FTOL = 1e-6
 
 # Iterative Huber estimator sometimes fails to converge. Its default is 30 in:
 # https://www.statsmodels.org/dev/_modules/statsmodels/robust/scale.html#Huber
@@ -129,7 +130,7 @@ def detrend_cofiam(t, y, ferr, window_length):
         dw = numpy.abs(numpy.sum((dw_y[1:] - dw_y[:-1]) ** 2) / (numpy.sum(dw_y ** 2)) - 2)
 
         # If Durbin-Watson *increased* this round: Previous was the best
-        if dw > dw_previous:   
+        if dw > dw_previous:
             return trend
         detrend_func = detrend_func_temp
         dw_previous = dw
@@ -138,11 +139,28 @@ def detrend_cofiam(t, y, ferr, window_length):
 
 @jit(fastmath=True, nopython=True, cache=True)
 def location_trim_mean(data, proportiontocut):
-    """Return mean of array after trimming `proportiontocut` from both tails."""
+    """Mean of array after trimming `proportiontocut` from both tails."""
     len_data = len(data)
     sorted_data = sort(data)
     cut_idx = int(len_data * proportiontocut)
     return mean(sorted_data[cut_idx:len_data-cut_idx])
+
+
+@jit(fastmath=True, nopython=True, cache=True)
+def location_winsorize_mean(data, proportiontocut):
+    """Mean of array after winsorizing `proportiontocut` from both tails."""
+    sorted_data = sort(data)
+    idx = int(proportiontocut * len(data)) + 1
+    if idx < 0:
+        idx = 0
+    lo = sorted_data[idx]
+    hi = sorted_data[-idx]
+    for i in range(len(sorted_data)):
+        if sorted_data[i] > hi:
+            sorted_data[i] = hi
+        elif sorted_data[i] < lo:
+            sorted_data[i] = lo
+    return mean(sorted_data)
 
 
 @jit(fastmath=True, nopython=True, cache=True)
@@ -161,7 +179,48 @@ def location_hodges(data):
     return median(array(hodges))
 
 
-#@jit(fastmath=True, nopython=True, cache=True)
+def running_segment_huber(time, flux, window_length, edge_cutoff, proportiontocut=0.1, cval=1.5):
+
+    # DUPLICATE, REFACTOR. Due to statsmodel import required only for huber
+    # With the import, we can't use numba. thus this here is slower
+
+    size = len(time)
+    mean_all = full(size, nan)
+    half_window = window_length / 2
+    # 0 < Edge cutoff < half_window:
+    if edge_cutoff > half_window:
+        edge_cutoff = half_window
+
+    # Pre-calculate border checks before entering the loop (reason: large speed gain)
+    low_index = numpy.min(time) + edge_cutoff
+    hi_index = numpy.max(time) - edge_cutoff
+    idx_start = 0
+    idx_end = 0
+
+    for i in range(size-1):
+        if time[i] > low_index and time[i] < hi_index:
+            # Nice style would be:
+            #   idx_start = numpy.argmax(time > time[i] - window_length/2)
+            #   idx_end = numpy.argmax(time > time[i] + window_length/2)
+            # But that's too slow (factor 10). Instead, we write:
+            while time[idx_start] < time[i] - half_window:
+                idx_start += 1
+            while time[idx_end] < time[i] + half_window and idx_end < size-1:
+                idx_end += 1
+            try:
+                import statsmodels.api as sm
+            except:
+                raise ImportError('Could not import statsmodels')
+            huber = sm.robust.scale.Huber(
+                maxiter=MAXITER,
+                tol=FTOL#,
+                #c=cval
+                )
+            mean_all[i], error = huber(flux[idx_start:idx_end])
+    return mean_all
+
+
+@jit(fastmath=True, nopython=True, cache=True)
 def running_segment(time, flux, window_length, edge_cutoff, cval, method_code):
     """Iterator for a single time-series segment using time-series window sliders"""
 
@@ -220,10 +279,11 @@ def running_segment(time, flux, window_length, edge_cutoff, cval, method_code):
                 mean_all[i] = location_trim_mean(
                     flux[idx_start:idx_end],
                     proportiontocut=cval)
+            # winsorize
             elif method_code == 8:
-                import statsmodels.api as sm
-                huber = sm.robust.scale.Huber(maxiter=MAXITER, tol=FTOL)
-                mean_all[i], error = huber(flux[idx_start:idx_end])
+                mean_all[i] = location_winsorize_mean(
+                    flux[idx_start:idx_end],
+                    proportiontocut=cval)
     return mean_all
 
 
@@ -376,7 +436,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval=None, return_trend=False, method='biweight', kernel=None,
             kernel_size=None, kernel_period=None, proportiontocut=0.1):
     """``flatten`` removes low frequency trends in time-series data.
-    
+
     Parameters
     ----------
     time : array-like
@@ -438,7 +498,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
     methods = "biweight lowess andrewsinewave welsch hodges median mean trim_mean \
-        huberspline cofiam supersmoother savgol medfilt gp untrendy huber"
+        huberspline cofiam supersmoother savgol medfilt gp untrendy huber winsorize"
     if method not in methods:
         raise ValueError('Unknown detrending method')
 
@@ -457,14 +517,14 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         method_code = 6
     elif method == 'trim_mean':
         method_code = 7
-    elif method == 'huber':
+    elif method == 'winsorize':
         method_code = 8
 
-
+    error_text = 'proportiontocut must be >0 and <0.5'
     if not isinstance(proportiontocut, float):
-        raise ValueError('proportiontocut must be a floating point value')
+        raise ValueError(error_text)
     if proportiontocut >= 0.5 or proportiontocut <= 0:
-        raise ValueError('proportiontocut must be >0 and <0.5')
+        raise ValueError(error_text)
 
     # Default cval values for robust location estimators
     if cval is None:
@@ -474,7 +534,9 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval = 1.339
         elif method == 'welsch':
             cval = 2.11
-        elif method == 'trim_mean':
+        elif method == 'huber':
+            cval = 1.5
+        elif method == 'trim_mean' or method == 'winsorize':
             cval = proportiontocut
         elif method == 'savgol':  # polyorder
             cval = 2  # int
@@ -524,7 +586,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     for i in range(len(gaps_indexes)-1):
         time_view = time_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         flux_view = flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
-        if method in "biweight andrewsinewave welsch hodges median mean trim_mean huber":
+        if method in "biweight andrewsinewave welsch hodges median mean trim_mean winsorize":
             trend_segment = running_segment(
                 time_view,
                 flux_view,
@@ -532,6 +594,15 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
                 edge_cutoff,
                 cval,
                 method_code)
+        elif method == 'huber':
+            trend_segment = running_segment_huber(
+                time_view,
+                flux_view,
+                window_length,
+                edge_cutoff,
+                cval,
+                proportiontocut
+                )
         elif method == 'lowess':
             try:
                 import statsmodels.api
