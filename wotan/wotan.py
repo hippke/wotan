@@ -174,7 +174,7 @@ def location_hodges(data):
     return median(array(hodges))
 
 
-def running_segment_huber(time, flux, window_length, edge_cutoff, proportiontocut=0.1, cval=1.5):
+def running_segment_huber(time, flux, window_length, edge_cutoff, cval):
 
     # DUPLICATE, REFACTOR. Due to statsmodel import required only for huber
     # With the import, we can't use numba. thus this here is slower
@@ -208,8 +208,8 @@ def running_segment_huber(time, flux, window_length, edge_cutoff, proportiontocu
                 raise ImportError('Could not import statsmodels')
             huber = sm.robust.scale.Huber(
                 maxiter=MAXITER,
-                tol=FTOL#,
-                #c=cval
+                tol=FTOL,
+                c=cval
                 )
             mean_all[i], error = huber(flux[idx_start:idx_end])
     return mean_all
@@ -595,8 +595,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
                 flux_view,
                 window_length,
                 edge_cutoff,
-                cval,
-                proportiontocut
+                cval
                 )
         elif method == 'lowess':
             try:
