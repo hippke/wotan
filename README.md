@@ -65,22 +65,15 @@ To install the released version, type
 
     $ pip install wotan
 
-which automatically installs `numpy` and `numba` if not present. Depending on the algorithm, additional dependencies exist:
+which automatically installs `numpy`, `numba` and ``scipy`` if not present. Depending on the algorithm, additional dependencies exist:
 
-| Method          |`scipy`   |`sklearn`   |`statsmodels`   |`supersmoother`   | `untrendy`       | `pygam`       |
-| ----------------|:--------:|:----------:|:--------------:|:----------------:|:----------------:|:----------------:|
-| `medfilt`       | ✓        |            |                |                  |                  |     |
-| `CoFiAM`        | ✓        |            |                |                  |                  |     |
-| `hspline`       | ✓        | ✓          |                |                  |                  |     |
-| `gp`            | ✓        | ✓          |                |                  |                  |     |
-| `lowess`        |          |            | ✓              |                  |                  |     |
-| `huber `        |          |            | ✓              |                  |                  |     |
-| `supersmoother` |          |            |                | ✓                |                  |     |
-| `untrendy`      |          |            |                |                  | ✓                |     |
-| `pspline`      |          |            |                |                  |                  |  ✓   |
+- `lowess` and `huber` depend on `statsmodels`
+- `hspline` and `gp` depend on `sklearn
+- `pspline` depends on `pygam`
+- `supersmoother` depends on `supersmoother`
+- `untrendy` depends on `untrendy`
 
-
-To install all dependencies, type ``$ pip install numpy numba scipy statsmodels sklearn supersmoother untrendy pygam``.
+To install all additional dependencies, type ``$ pip install statsmodels sklearn supersmoother untrendy pygam``.
 
 Attribution
 ----------------
