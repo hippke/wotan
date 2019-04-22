@@ -19,7 +19,7 @@ except:
 setup(
     name='wotan',
     version=WOTAN_VERSIONING,
-    description='Wotan is a free and open source algorithm to automagically remove stellar trends from light curves for exoplanet transit detection',
+    description='Wotan offers free and open source algorithms to automagically remove stellar trends from light curves for exoplanet transit detection.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/hippke/wotan',
@@ -30,5 +30,6 @@ setup(
     install_requires=[
         'numpy',
         'numba',
+        'scipy'
         ]
 )
