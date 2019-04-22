@@ -67,18 +67,20 @@ To install the released version, type
 
 which automatically installs `numpy` and `numba` if not present. Depending on the algorithm, additional dependencies exist:
 
-| Method          |`scipy`   |`sklearn`   |`statsmodels`   |`supersmoother`   | `untrendy`       |
-| ----------------|:--------:|:----------:|:--------------:|:----------------:|:----------------:|
-| `medfilt`       | ✓        |            |                |                  |                  |
-| `CoFiAM`        | ✓        |            |                |                  |                  |
-| `huberspline`   | ✓        | ✓          |                |                  |                  |
-| `gp`            | ✓        | ✓          |                |                  |                  |
-| `lowess`        |          |            | ✓              |                  |                  |
-| `huber `        |          |            | ✓              |                  |                  |
-| `supersmoother` |          |            |                | ✓                |                  |
-| `untrendy`      |          |            |                |                  | ✓                |
+| Method          |`scipy`   |`sklearn`   |`statsmodels`   |`supersmoother`   | `untrendy`       | `pygam`       |
+| ----------------|:--------:|:----------:|:--------------:|:----------------:|:----------------:|:----------------:|
+| `medfilt`       | ✓        |            |                |                  |                  |     |
+| `CoFiAM`        | ✓        |            |                |                  |                  |     |
+| `hspline`       | ✓        | ✓          |                |                  |                  |     |
+| `gp`            | ✓        | ✓          |                |                  |                  |     |
+| `lowess`        |          |            | ✓              |                  |                  |     |
+| `huber `        |          |            | ✓              |                  |                  |     |
+| `supersmoother` |          |            |                | ✓                |                  |     |
+| `untrendy`      |          |            |                |                  | ✓                |     |
+| `pspline`      |          |            |                |                  | ✓                |  ✓   |
 
-To install all dependencies, type ``$ pip install numpy numba scipy statsmodels sklearn supersmoother untrendy``.
+
+To install all dependencies, type ``$ pip install numpy numba scipy statsmodels sklearn supersmoother untrendy pygam``.
 
 Attribution
 ----------------
@@ -94,7 +96,8 @@ Originality
 ----------------
 
 As all scientific work, wōtan is [*standing on the shoulders of giants*](https://en.wikiquote.org/wiki/Isaac_Newton). Particularly, many detrending methods are wrapped from existing packages. Original contributions include:
-- Original implementation of a time-windowed detrending master module with edge treatments and segmentation options
-- Original implementation of robust location estimates using Newton-Raphson iteration to a precision threshold for Tukey's biweight, Andrew's sine wave, and the Welsch-Leclerc. This is probably a "first", which reduces jitter in the location estimate by ~10 ppm
+- A time-windowed detrending master module with edge treatments and segmentation options
+- Robust location estimates using Newton-Raphson iteration to a precision threshold for Tukey's biweight, Andrew's sine wave, and the Welsch-Leclerc. This is probably a "first", which reduces jitter in the location estimate by ~10 ppm
+- Robustified penalized splines for automatic knot distance determination and outlier resistance
 - Bringing together many methods in one place in a common interface, with sensible defaults
-- Providing documentation, tutorials, and a [paper](www) which compares and benchmarks the methods 
+- Providing documentation, tutorials, and a [paper](www) which compares and benchmarks the methods
