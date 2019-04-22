@@ -2,18 +2,14 @@
 from light curves for exoplanet transit detection.
 """
 
-# TODO:
-# - refactor parameters into params tailored for each method (doc, tests)
-# - Integrate untrendy (incl. tests, doc)
-# - GPs: tests, doc
-# huber cval=1.5 fails to converge
-
-
 from __future__ import division
 import numpy
 from numpy import mean, median, array, sort, inf, sin, exp, pi, full, append, \
     concatenate, diff, where, add, float32, nan, isnan, linspace, cos, ones, zeros
 from numba import jit
+import scipy.interpolate
+from scipy.optimize import leastsq
+from scipy.signal import savgol_filter, medfilt, lombscargle
 
 # Hardcoded constants:
 
@@ -113,10 +109,6 @@ def detrend_cofiam(t, y, ferr, window_length):
         result = cofiam_detrend_curve(t, best_param, D_max, k_max)
         return out_func
 
-    try:
-        from scipy.optimize import leastsq
-    except:
-        raise ImportError('Could not import scipy')
     D_max = 2 * (max(t) - min(t))
     k_max = max(1, min(100, int(D_max / window_length)))
     dw_previous = inf
@@ -290,10 +282,6 @@ def huber_spline_segment(time, flux, knot_distance):
         from sklearn.linear_model import HuberRegressor
     except:
         raise ImportError('Could not import sklearn')
-    try:
-        import scipy.interpolate
-    except:
-        raise ImportError('Could not import scipy')
 
     class BSplineFeatures(TransformerMixin):
         def __init__(self, knots, degree=3, periodic=False):
@@ -360,10 +348,6 @@ def make_gp(time, flux, kernel, kernel_size, kernel_period):
         from sklearn.gaussian_process.kernels import RBF, Matern, ExpSineSquared
     except:
         raise ImportError('Could not import sklearn')
-    try:
-        import scipy.signal as signal
-    except:
-        raise ImportError('Could not import scipy')
 
     if kernel_size is None:
         raise ValueError('kernel_size must be specified')
@@ -385,7 +369,7 @@ def make_gp(time, flux, kernel, kernel_size, kernel_period):
         time_span = numpy.max(time) - numpy.min(time)
         cadence = numpy.nanmedian(numpy.diff(time))
         freqs = numpy.geomspace(1/time_span, 1/cadence, 10000)
-        pgram = signal.lombscargle(time, flux, freqs)
+        pgram = lombscargle(time, flux, freqs)
         kernel_period = 1 / freqs[numpy.argmax(pgram)] * 2 * numpy.pi
 
         # Debug:
@@ -493,8 +477,9 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     trend_flux : array-like
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
-    methods = "biweight lowess andrewsinewave welsch hodges median mean trim_mean \
-        huberspline cofiam supersmoother savgol medfilt gp untrendy huber winsorize"
+    methods = ["biweight", "lowess", "andrewsinewave", "welsch", "hodges", "median",
+        "mean", "trim_mean", "huberspline", "cofiam", "supersmoother", "savgol",
+        "medfilt", "gp", "untrendy", "huber", "winsorize"]
     if method not in methods:
         raise ValueError('Unknown detrending method')
 
@@ -532,7 +517,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval = 2.11
         elif method == 'huber':
             cval = 1.5
-        elif method == 'trim_mean' or method == 'winsorize':
+        elif method in ['trim_mean', 'winsorize']:
             cval = proportiontocut
         elif method == 'savgol':  # polyorder
             cval = 2  # int
@@ -582,7 +567,9 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     for i in range(len(gaps_indexes)-1):
         time_view = time_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         flux_view = flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
-        if method in "biweight andrewsinewave welsch hodges median mean trim_mean winsorize":
+        methods = ["biweight", "andrewsinewave", "welsch", "hodges", "median", "mean",
+            "trim_mean", "winsorize"]
+        if method in methods:
             trend_segment = running_segment(
                 time_view,
                 flux_view,
@@ -627,18 +614,10 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             trend_segment = detrend_cofiam(
                 time_view, flux_view, ones(len(time_view)), window_length)
         elif method == 'savgol':
-            try:
-                from scipy.signal import savgol_filter
-            except:
-                raise ImportError('Could not import scipy')
             if window_length%2 == 0:
                 window_length += 1
             trend_segment = savgol_filter(flux_view, window_length, polyorder=int(cval))
         elif method == 'medfilt':
-            try:
-                from scipy.signal import medfilt
-            except:
-                raise ImportError('Could not import scipy')
             trend_segment = medfilt(flux_view, window_length)
         elif method == 'gp':
             trend_segment = make_gp(
