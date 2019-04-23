@@ -4,7 +4,7 @@ from light curves for exoplanet transit detection.
 
 from __future__ import print_function, division
 import numpy
-from numpy import array, isnan, float32, append, full, where, nan, ones, inf
+from numpy import array, isnan, float32, append, full, where, nan, ones, inf, median
 from numba import jit
 from scipy.signal import savgol_filter, medfilt
 
