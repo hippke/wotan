@@ -1,33 +1,16 @@
 Installation
 =====================================
 
-Wotan can be installed conveniently using pip::
+To install the released version, type
 
-    pip install wotan
+    $ pip install wotan
 
-The latest version can be pulled from github::
+which automatically installs `numpy`, `numba` and `scipy` if not present. Depending on the algorithm, additional dependencies exist:
 
-    git clone https://github.com/hippke/wotan.git
-    cd wotan
-    python setup.py install
+- `lowess` and `huber` depend on `statsmodels`
+- `hspline` and `gp` depend on `sklearn
+- `pspline` depends on `pygam`
+- `supersmoother` depends on `supersmoother`
+- `untrendy` depends on `untrendy`
 
-If you don't have ``git`` on your machine, you can find installation instructions `here <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_.
-
-
-Dependencies
-------------------------
-
-Wotan requires numpy and numba to run. Additional dependencies:
-
-- `lowess` requires `statsmodels` (``pip install statsmodels``)
-- `huberspline` requires `sklearn` and `scipy` (``pip install sklearn scipy``)
-- `supersmoother` requires `supersmoother` (``pip install supersmoother``)
-- `CoFiAM` requires `scipy` (``pip install scipy``)
-
-To install all dependencies, use ``pip install numpy numba scipy statsmodels sklearn supersmoother``
-
-
-Compatibility
-------------------------
-
-Wotan has been `tested to work <https://travis-ci.com/hippke/wotan>`_ with Python 2.7, 3.5, 3.6, 3.7.
+To install all additional dependencies, type ``$ pip install statsmodels sklearn supersmoother untrendy pygam``.
