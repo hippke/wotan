@@ -22,6 +22,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval=None, return_trend=False, method='biweight', kernel=None,
             kernel_size=None, kernel_period=None, proportiontocut=0.1):
     """``flatten`` removes low frequency trends in time-series data.
+
     Parameters
     ----------
     time : array-like
@@ -76,6 +77,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     return_trend : bool, default: False
         If `True`, the method will return a tuple of two elements
         (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend.
+        
     Returns
     -------
     flatten_flux : array-like
