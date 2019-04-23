@@ -32,7 +32,7 @@ def main():
     filename = "https://archive.stsci.edu/hlsps/tess-data-alerts/" \
     "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
 
-    filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
+    #filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
     #filename = 'P:/P/Dok/tess_alarm/hlsp_tess-data-alerts_tess_phot_00077031414-s02_tess_v1_lc.fits'
     #filename = 'tess2018206045859-s0001-0000000201248411-111-s_llc.fits'
     time, flux = load_file(filename)
@@ -147,7 +147,7 @@ def main():
         kernel_size=1,
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 200, decimal=1)
-    """
+    
     print("Detrending 15 (untrendy)...")
     flatten_lc, trend_lc2 = flatten(
         time,
@@ -156,7 +156,7 @@ def main():
         window_length=1,
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.997281790234, decimal=2)
-    """
+
 
     print("Detrending 16 (huber)...")
     flatten_lc, trend_lc = flatten(
