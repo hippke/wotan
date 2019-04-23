@@ -1,5 +1,5 @@
-from __future__ import print_function
-from wotan import flatten
+from __future__ import print_function, division
+from wotan import flatten, t14
 import numpy
 from astropy.io import fits
 
@@ -14,7 +14,17 @@ def load_file(filename):
 
 
 def main():
-    print("Starting test for wotan...")
+    print("Starting tests for wotan...")
+
+    numpy.testing.assert_almost_equal(
+        t14(R_s=1, M_s=1, P=365),
+        0.6489947464173134)
+
+    numpy.testing.assert_almost_equal(
+        t14(R_s=1, M_s=1, P=365, small_planet=True),
+        0.5403625370706341)
+    print("Transit duration correct.")
+
     numpy.random.seed(seed=0)  # reproducibility
 
     # TESS test
@@ -22,7 +32,7 @@ def main():
     filename = "https://archive.stsci.edu/hlsps/tess-data-alerts/" \
     "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
 
-    #filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
+    filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
     #filename = 'P:/P/Dok/tess_alarm/hlsp_tess-data-alerts_tess_phot_00077031414-s02_tess_v1_lc.fits'
     #filename = 'tess2018206045859-s0001-0000000201248411-111-s_llc.fits'
     time, flux = load_file(filename)
@@ -75,10 +85,10 @@ def main():
 
     print("Detrending 8 (supersmoother)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='supersmoother', return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.933205071175, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.00632204841, decimal=2)
 
-    print("Detrending 9 (huberspline)...")
-    flatten_lc, trend_lc = flatten(time, flux, window_length, method='huberspline', return_trend=True)
+    print("Detrending 9 (hspline)...")
+    flatten_lc, trend_lc = flatten(time, flux, window_length, method='hspline', return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.07625225313, decimal=2)
 
     print("Detrending 10 (cofiam)...")
@@ -126,6 +136,7 @@ def main():
 
     time_synth = numpy.linspace(0, 30, 200)
     flux_synth = numpy.sin(time_synth) + numpy.random.normal(0, 0.1, 200)
+    flux_synth = 1 + flux_synth / 100
     time_synth *= 1.5
     print("Detrending 15 (gp periodic_auto)...")
     flatten_lc, trend_lc2 = flatten(
@@ -133,10 +144,10 @@ def main():
         flux_synth,
         method='gp',
         kernel='periodic_auto',
-        kernel_size=5,
+        kernel_size=1,
         return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 124.1, decimal=1)
-
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 200, decimal=1)
+    """
     print("Detrending 15 (untrendy)...")
     flatten_lc, trend_lc2 = flatten(
         time,
@@ -145,7 +156,7 @@ def main():
         window_length=1,
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.997281790234, decimal=2)
-
+    """
 
     print("Detrending 16 (huber)...")
     flatten_lc, trend_lc = flatten(
@@ -176,7 +187,6 @@ def main():
     #plt.plot(time[:2000], trend_lc1[:2000], color='red')
     plt.plot(time, trend_lc, color='red', linewidth=2)
     plt.plot(time, trend_lc2, color='blue', linewidth=2)
-
     plt.show()
     plt.close()
     plt.scatter(time, flatten_lc, s=1, color='black')

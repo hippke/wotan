@@ -1,7 +1,7 @@
 from setuptools import setup
 from os import path
 
-# Pull TLS version from single source of truth file
+# Pull wotan version from single source of truth file
 try:  # Python 2
     execfile(path.join("wotan", 'version.py'))
 except:  # Python 3
@@ -19,13 +19,14 @@ except:
 setup(
     name='wotan',
     version=WOTAN_VERSIONING,
-    description='Wotan offers free and open source algorithms to automagically remove stellar trends from light curves for exoplanet transit detection.',
+    description='Detrending algorithms',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/hippke/wotan',
     author='Michael Hippke',
     author_email='michael@hippke.org',
     license='MIT',
+    zip_safe=False,
     packages=['wotan'],
     install_requires=[
         'numpy',
