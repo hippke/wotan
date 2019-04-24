@@ -181,6 +181,17 @@ def main():
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.064587196448, decimal=2)
 
+
+    print("Detrending 18 (pspline)...")
+    flatten_lc, trend_lc = flatten(
+        time,
+        flux,
+        method='pspline',
+        return_trend=True
+        )
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18121.832133916843, decimal=2)
+
+
     """
     import matplotlib.pyplot as plt
     plt.scatter(time, flux, s=1, color='black')

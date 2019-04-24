@@ -106,7 +106,7 @@ def running_segment_huber(time, flux, window_length, edge_cutoff, cval):
             except:
                 raise ImportError('Could not import statsmodels')
             huber = sm.robust.scale.Huber(
-                maxiter=constants.MAXITER,
+                maxiter=constants.MAXITER_HUBER,
                 tol=constants.FTOL,
                 c=cval
                 )

@@ -12,6 +12,7 @@ methods = [
     "mean",
     "trim_mean",
     "hspline",
+    "pspline",
     "cofiam",
     "supersmoother",
     "savgol",
@@ -40,7 +41,7 @@ FTOL = 1e-6
 # Iterative Huber estimator sometimes fails to converge. Its default is 30 in:
 # https://www.statsmodels.org/dev/_modules/statsmodels/robust/scale.html#Huber
 # This is often not sufficient --> set MAXITER=1000 to avoid infinite loop
-MAXITER = 1000
+MAXITER_HUBER = 1000
 
 # Maximum number of sines to be fit for COFIAM
 COFIAM_MAX_SINES = 100
@@ -56,3 +57,8 @@ primary_span_lower = 1
 primary_span_upper = 3
 middle_span = 3
 upper_span = 2
+
+# Penalized splines
+PSPLINES_MAXITER = 10
+PSPLINES_MAX_SPLINES = 20
+PSPLINES_STDEV_CUT = 2

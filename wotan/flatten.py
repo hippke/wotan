@@ -5,7 +5,6 @@ from light curves for exoplanet transit detection.
 from __future__ import print_function, division
 import numpy
 from numpy import array, isnan, float32, append, full, where, nan, ones, inf, median
-from numba import jit
 from scipy.signal import savgol_filter, medfilt
 
 # wotan
@@ -16,13 +15,13 @@ from wotan.huber_spline import detrend_huber_spline
 from wotan.slider import running_segment, running_segment_huber
 from wotan.gaps import get_gaps_indexes
 from wotan.t14 import t14
+from wotan.pspline import pspline
 
 
 def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval=None, return_trend=False, method='biweight', kernel=None,
             kernel_size=None, kernel_period=None, proportiontocut=0.1):
     """``flatten`` removes low frequency trends in time-series data.
-
     Parameters
     ----------
     time : array-like
@@ -77,7 +76,6 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     return_trend : bool, default: False
         If `True`, the method will return a tuple of two elements
         (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend.
-        
     Returns
     -------
     flatten_flux : array-like
@@ -161,7 +159,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     trend_segment = array([])
 
     # Iterate over all segments
-    for i in range(len(gaps_indexes)-1):
+    for i in range(len(gaps_indexes) - 1):
         time_view = time_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         flux_view = flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         methods = ["biweight", "andrewsinewave", "welsch", "hodges", "median", "mean",
@@ -243,6 +241,9 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             scale_factor = median(flux_view)
             call_trend = fit_trend(time_view, flux_view / scale_factor, dt=window_length)
             trend_segment = call_trend(time_view) * scale_factor
+        elif method == 'pspline':
+            print('Segment', i + 1, 'of', len(gaps_indexes) - 1)
+            trend_segment = pspline(time_view, flux_view)
 
         trend_flux = append(trend_flux, trend_segment)
 

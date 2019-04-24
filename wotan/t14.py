@@ -5,7 +5,7 @@ import wotan.constants as constants
 
 
 def t14(R_s, M_s, P, small_planet=False):
-    """Planetary transit duration assuming a central transit on a circular orbit.
+    """Planetary transit duration assuming a central transit on a circular orbit
     
     Parameters
     ----------
