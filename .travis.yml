@@ -3,19 +3,13 @@ python:
   - 2.7
   - 3.5
   - 3.6
-# Enable 3.7 without globally enabling sudo and dist: xenial for other build jobs
 matrix:
   include:
     - python: 3.7
       dist: xenial
       sudo: true
 install:
-  - pip install astropy  # only needed for tests
-  - pip install statsmodels  # lowess requires statsmodels
-  - pip install sklearn scipy  # huberspline requires sklearn and scipy, CoFiAM requires scipy
-  - pip install supersmoother
-  - pip install untrendy
-  - pip install pygam
+  - pip install astropy statsmodels sklearn scipy supersmoother untrendy pygam
 script:
   - python setup.py install
   - python wotan/tests.py
