@@ -28,11 +28,8 @@ def make_gp(time, flux, kernel, kernel_size, kernel_period):
 
     # GPs need flux near zero, otherwise they often fail to converge
     # So, we normalize by some constant (the median) and later transform back
-    #flux = flux / 100000
     offset = numpy.median(flux)
-    flux -= offset
-    #flux = flux / 100000
-    
+    flux -= offset   
 
     # Determine most significant period
     if kernel == 'periodic_auto':
@@ -41,12 +38,6 @@ def make_gp(time, flux, kernel, kernel_size, kernel_period):
         freqs = numpy.geomspace(1/time_span, 1/cadence, constants.LS_FREQS)
         pgram = lombscargle(time, flux, freqs)
         kernel_period = 1 / freqs[numpy.argmax(pgram)] * 2 * numpy.pi
-
-        # Debug:
-        # print('kernel_period', kernel_period)
-        # import matplotlib.pyplot as plt
-        # plt.plot(freqs, pgram)
-        # plt.show()
 
     # RBF and matern kernels are very similar when matern's (kernel_size * 1000)
     if kernel == 'matern':
@@ -60,16 +51,18 @@ def make_gp(time, flux, kernel, kernel_size, kernel_period):
         use_kernel = Matern(kernel_size, kernel_size_bounds, nu=3/2)
     elif 'periodic' in kernel:
         kernel_period_bounds=(0.5 * kernel_period, 2 * kernel_period)
+        
+        # The periodic part
         use_kernel = ExpSineSquared(
             kernel_size,
             kernel_period,
             kernel_size_bounds,
             kernel_period_bounds
             )
+        # For additional trends
+        use_kernel2 = RBF(kernel_size, kernel_size_bounds)  
     grid = time.reshape(-1, 1)
     trend_segment = GaussianProcessRegressor(
-        use_kernel, alpha=1e-5).fit(grid, flux).predict(grid)
+        use_kernel + use_kernel2, alpha=1e-5).fit(grid, flux).predict(grid)
 
-    #trend_segment = trend_segment * 100000
-    #trend_segment = trend_segment * 100000
-    return (trend_segment + offset) #* 100000
+    return (trend_segment + offset)
