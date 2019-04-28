@@ -18,11 +18,11 @@ def main():
 
     numpy.testing.assert_almost_equal(
         t14(R_s=1, M_s=1, P=365),
-        0.6489947464173134)
+        0.6490025258902046)
 
     numpy.testing.assert_almost_equal(
         t14(R_s=1, M_s=1, P=365, small_planet=True),
-        0.5403625370706341)
+        0.5403690143737738)
     print("Transit duration correct.")
 
     numpy.random.seed(seed=0)  # reproducibility
