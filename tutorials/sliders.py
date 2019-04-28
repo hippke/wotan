@@ -15,7 +15,7 @@ print('Loading TESS data from archive.stsci.edu...')
 #"hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
 
 filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
-filename = 'P:/P/Dok/tess_alarm/hlsp_tess-data-alerts_tess_phot_00077031414-s02_tess_v1_lc.fits'
+filename = "https://archive.stsci.edu/hlsps/tess-data-alerts/hlsp_tess-data-alerts_tess_phot_00077031414-s02_tess_v1_lc.fits"
 #filename = 'tess2018206045859-s0001-0000000201248411-111-s_llc.fits'
 time, flux = load_file(filename)
 #time = time[:5000]
@@ -93,6 +93,5 @@ plt.plot(time, trend_lc2, linewidth=2, color='blue')
 plt.plot(time, trend_lc3, linewidth=2, color='orange', linestyle='dashed')
 plt.plot(time, trend_lc4, linewidth=2, color='pink')
 #plt.xlim(1370.85, 1371.3)
-
 #plt.ylim(6750, 6795)  #   6725, 6900
 plt.show()

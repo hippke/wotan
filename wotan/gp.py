@@ -47,8 +47,14 @@ def make_gp(time, flux, kernel, kernel_size, kernel_period):
 
     if kernel is None or kernel == 'squared_exp':
         use_kernel = RBF(kernel_size, kernel_size_bounds)
+        grid = time.reshape(-1, 1)
+        trend_segment = GaussianProcessRegressor(
+            use_kernel, alpha=1e-5).fit(grid, flux).predict(grid)
     elif kernel == 'matern':
         use_kernel = Matern(kernel_size, kernel_size_bounds, nu=3/2)
+        grid = time.reshape(-1, 1)
+        trend_segment = GaussianProcessRegressor(
+            use_kernel, alpha=1e-5).fit(grid, flux).predict(grid)
     elif 'periodic' in kernel:
         kernel_period_bounds=(0.5 * kernel_period, 2 * kernel_period)
         
@@ -61,8 +67,8 @@ def make_gp(time, flux, kernel, kernel_size, kernel_period):
             )
         # For additional trends
         use_kernel2 = RBF(kernel_size, kernel_size_bounds)  
-    grid = time.reshape(-1, 1)
-    trend_segment = GaussianProcessRegressor(
-        use_kernel + use_kernel2, alpha=1e-5).fit(grid, flux).predict(grid)
+        grid = time.reshape(-1, 1)
+        trend_segment = GaussianProcessRegressor(
+            use_kernel + use_kernel2, alpha=1e-5).fit(grid, flux).predict(grid)
 
     return (trend_segment + offset)

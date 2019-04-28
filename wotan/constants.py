@@ -24,7 +24,7 @@ methods = [
 ]
 
 # astrophysical constants
-G = 6.67408e-11  # gravitational constant [m^3 / kg / s^2]
+G = 6.67384e-11  # gravitational constant [m^3 / kg / s^2]
 R_sun = 695508000  # radius of the Sun [m]
 R_earth = 6371000  # radius of the Earth [m]
 R_jup = 69911000  # radius of Jupiter [m]
@@ -60,5 +60,5 @@ upper_span = 2
 
 # Penalized splines
 PSPLINES_MAXITER = 10
-PSPLINES_MAX_SPLINES = 20
+PSPLINES_MAX_SPLINES = 50
 PSPLINES_STDEV_CUT = 2
