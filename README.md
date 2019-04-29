@@ -45,8 +45,8 @@ Available detrending algorithms
    - ``savgol`` sliding segments are fit with polynomials ([Savitzky & Golay 1964](https://ui.adsabs.harvard.edu/#abs/1964AnaCh..36.1627S)), cadence-based
    - ``supersmoother`` [Friedman's (1984)](https://www.slac.stanford.edu/pubs/slacpubs/3250/slac-pub-3477.pdf) Super-Smoother, a local linear regression with adaptive bandwidth
 - ``gp`` Gaussian Processes offering:
-   - ``squared_exp`` Squared-exponential kernel
-   - ``matern`` Matern 3/2 kernel
+   - ``squared_exp`` Squared-exponential kernel, with option for iterative sigma-clipping
+   - ``matern`` Matern 3/2 kernel, with option for iterative sigma-clipping
    - ``periodic`` Periodic kernel informed by a user-specified period
    - ``periodic_auto`` Periodic kernel informed by a Lomb-Scargle periodogram pre-search
 
@@ -89,10 +89,11 @@ Please cite [Hippke et al. (2019, XXX)](https://XXX) if you find this code usefu
 
 Originality
 ----------------
-
 As all scientific work, wōtan is [*standing on the shoulders of giants*](https://en.wikiquote.org/wiki/Isaac_Newton). Particularly, many detrending methods are wrapped from existing packages. Original contributions include:
 - A time-windowed detrending master module with edge treatments and segmentation options
 - Robust location estimates using Newton-Raphson iteration to a precision threshold for Tukey's biweight, Andrew's sine wave, and the Welsch-Leclerc. This is probably a "first", which reduces jitter in the location estimate by ~10 ppm
-- Robustified penalized splines for automatic knot distance determination and outlier resistance
+- Robustified (iterative sigma-clipping) penalized splines for automatic knot distance determination and outlier resistance
+- Robustified (iterative sigma-clipping) Gaussian processes
+- GP with a periodic kernel informed by a Lomb-Scargle periodogram pre-search
 - Bringing together many methods in one place in a common interface, with sensible defaults
 - Providing documentation, tutorials, and a [paper](www) which compares and benchmarks the methods
