@@ -29,13 +29,13 @@ def main():
 
     # TESS test
     print('Loading TESS data from archive.stsci.edu...')
-    filename = "https://archive.stsci.edu/hlsps/tess-data-alerts/" \
-    "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
-
+    path = 'https://archive.stsci.edu/hlsps/tess-data-alerts/'
+    filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
+    #path = 'P:/P/Dok/tess_alarm/'
     #filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
     #filename = 'P:/P/Dok/tess_alarm/hlsp_tess-data-alerts_tess_phot_00077031414-s02_tess_v1_lc.fits'
     #filename = 'tess2018206045859-s0001-0000000201248411-111-s_llc.fits'
-    time, flux = load_file(filename)
+    time, flux = load_file(path + filename)
 
     window_length = 0.5
 
@@ -113,7 +113,30 @@ def main():
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.99958552324, decimal=2)
 
-    print("Detrending 13 (gp matern)...")
+    print("Detrending 13 (gp squared_exp robust)...")
+    flatten_lc, trend_lc1 = flatten(
+        time[:2000],
+        flux[:2000],
+        method='gp',
+        kernel='squared_exp',
+        kernel_size=10,
+        robust=True,
+        return_trend=True)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.8820772313468, decimal=2)
+    
+    """
+    import matplotlib.pyplot as plt
+    plt.scatter(time, flux, s=1, color='black')
+    plt.plot(time[:2000], trend_lc1[:2000], color='red')
+    # plt.plot(time, trend_lc, color='red', linewidth=2)
+    plt.plot(time[:2000], trend_lc1, color='blue', linewidth=2)
+    plt.show()
+    plt.close()
+    plt.scatter(time, flatten_lc, s=1, color='black')
+    plt.show()
+    """    
+
+    print("Detrending 14 (gp matern)...")
     flatten_lc, trend_lc2 = flatten(
         time[:2000],
         flux[:2000],
@@ -123,7 +146,7 @@ def main():
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1949.0001583058202, decimal=2)
 
-    print("Detrending 14 (gp periodic)...")
+    print("Detrending 15 (gp periodic)...")
     flatten_lc, trend_lc2 = flatten(
         time[:2000],
         flux[:2000],
@@ -138,7 +161,7 @@ def main():
     flux_synth = numpy.sin(time_synth) + numpy.random.normal(0, 0.1, 200)
     flux_synth = 1 + flux_synth / 100
     time_synth *= 1.5
-    print("Detrending 15 (gp periodic_auto)...")
+    print("Detrending 16 (gp periodic_auto)...")
     flatten_lc, trend_lc2 = flatten(
         time_synth,
         flux_synth,
@@ -148,7 +171,7 @@ def main():
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 200, decimal=1)
     
-    print("Detrending 15 (untrendy)...")
+    print("Detrending 17 (untrendy)...")
     flatten_lc, trend_lc2 = flatten(
         time,
         flux,
@@ -157,8 +180,7 @@ def main():
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.997281790234, decimal=2)
 
-
-    print("Detrending 16 (huber)...")
+    print("Detrending 18 (huber)...")
     flatten_lc, trend_lc = flatten(
         time[:1000],
         flux[:1000],
@@ -169,7 +191,7 @@ def main():
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 994.01102, decimal=2)
 
-    print("Detrending 17 (winsorize)...")
+    print("Detrending 19 (winsorize)...")
     flatten_lc, trend_lc2 = flatten(
         time,
         flux,
@@ -181,8 +203,7 @@ def main():
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.064587196448, decimal=2)
 
-
-    print("Detrending 18 (pspline)...")
+    print("Detrending 20 (pspline)...")
     flatten_lc, trend_lc = flatten(
         time,
         flux,
@@ -190,19 +211,6 @@ def main():
         return_trend=True
         )
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18121.832133916843, decimal=2)
-
-
-    """
-    import matplotlib.pyplot as plt
-    plt.scatter(time, flux, s=1, color='black')
-    #plt.plot(time[:2000], trend_lc1[:2000], color='red')
-    plt.plot(time, trend_lc, color='red', linewidth=2)
-    plt.plot(time, trend_lc2, color='blue', linewidth=2)
-    plt.show()
-    plt.close()
-    plt.scatter(time, flatten_lc, s=1, color='black')
-    plt.show()
-    """
 
     print('All tests completed.')
 
