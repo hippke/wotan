@@ -36,7 +36,7 @@ Available detrending algorithms
    - ``trim_mean`` trimmed mean with adjustable caps
    - ``winsorize`` outliers are [*winsorized*](https://en.wikipedia.org/wiki/Winsorizing) to a specified percentile
 - Splines:
-   - ``untrendy`` Spline with iterative sigma-clipping ([based on the "untrendy" package](https://github.com/dfm/untrendy))
+   - ``rspline`` Spline with iterative sigma-clipping
    - ``hspline`` Spline with a robust Huber estimator ([Huber 1981](https://books.google.de/books?id=hVbhlwEACAAJ))
    - ``pspline`` Penalized spline to automatically select the knot distance [(Eilers 1996)](https://pdfs.semanticscholar.org/5e3d/4cf7824be321af95ac098595957d8a87bf68.pdf), with iteratively sigma-clipping
 - Polynomials and others:
@@ -73,9 +73,8 @@ which automatically installs `numpy`, `numba` and ``scipy`` if not present. Depe
 - `hspline` and `gp` depend on `sklearn
 - `pspline` depends on `pygam`
 - `supersmoother` depends on `supersmoother`
-- `untrendy` depends on `untrendy`
 
-To install all additional dependencies, type ``$ pip install statsmodels sklearn supersmoother untrendy pygam``.
+To install all additional dependencies, type ``$ pip install statsmodels sklearn supersmoother pygam``.
 
 Attribution
 ----------------
