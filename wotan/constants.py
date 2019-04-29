@@ -43,6 +43,10 @@ FTOL = 1e-6
 # This is often not sufficient --> set MAXITER=1000 to avoid infinite loop
 MAXITER_HUBER = 1000
 
+# Fraction to cut off (or filled) of both tails of the distribution using methods
+# ``trim_mean`` (or ``winsorize``)
+PROPORTIONTOCUT = 0.1
+
 # Maximum number of sines to be fit for COFIAM
 COFIAM_MAX_SINES = 100
 
@@ -61,4 +65,7 @@ upper_span = 2
 # Penalized splines
 PSPLINES_MAXITER = 10
 PSPLINES_MAX_SPLINES = 50
-PSPLINES_STDEV_CUT = 2
+
+# Outliers beyond these threshold are removed in each iteration
+# The threhold is calculated in standard deviations from the mean (after trend fitting)
+PSPLINES_STDEV_CUT = 2  
