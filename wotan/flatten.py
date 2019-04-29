@@ -76,13 +76,14 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         provided for the kernel `periodic`. Can not be specified for the
         `periodic_auto`, for which it is determined automatically using a Lomb-Scargle
         periodogram pre-search.
-	robust : bool, default: False
-		If `True`, the Gaussian Process kernels `squared_exp` and `matern` will be run
+    robust : bool, default: False
+        If `True`, the Gaussian Process kernels `squared_exp` and `matern` will be run
         iteratively. In each iteration, 2-sigma outliers from the fitted trend will be 
         clipped until convergence.
     return_trend : bool, default: False
         If `True`, the method will return a tuple of two elements
         (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend.
+
     Returns
     -------
     flatten_flux : array-like
