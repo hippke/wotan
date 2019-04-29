@@ -16,6 +16,7 @@ from wotan.slider import running_segment, running_segment_huber
 from wotan.gaps import get_gaps_indexes
 from wotan.t14 import t14
 from wotan.pspline import pspline
+from wotan.iter_spline import iter_spline
 
 
 def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
@@ -38,7 +39,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         Determines detrending method and location estimator. A time-windowed slider is
         invoked for location estimators `median`, `biweight`, `hodges`, `welsch`,
         `huber`, `andrewsinewave`, `mean`, `trim_mean`, or `winsorize`. Spline-based
-        detrending is performed for `hspline` and `untrendy`. A locally weighted
+        detrending is performed for `hspline` and `rspline`. A locally weighted
         scatterplot smoothing is performed for `lowess`. The Savitzky-Golay filter is
         run for ``savgol``. A cadence-based sliding median is performed for ``medfilt``.
     break_tolerance : float, default: window_length/2
@@ -241,16 +242,9 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
                 kernel_period,
                 robust
                 )
-        elif method == 'untrendy':
-            try:
-                from untrendy import fit_trend
-            except:
-                raise ImportError('Could not import untrendy')
-            # untrendy needs flux near unity, otherwise it crashes in scipy/interpolate
-            # So, we normalize by some constant (the median) and later transform back
-            scale_factor = median(flux_view)
-            call_trend = fit_trend(time_view, flux_view / scale_factor, dt=window_length)
-            trend_segment = call_trend(time_view) * scale_factor
+        elif method == 'rspline':
+            print('Segment', i + 1, 'of', len(gaps_indexes) - 1)
+            trend_segment = iter_spline(time_view, flux_view, window_length)
         elif method == 'pspline':
             print('Segment', i + 1, 'of', len(gaps_indexes) - 1)
             trend_segment = pspline(time_view, flux_view)

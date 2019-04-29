@@ -18,7 +18,7 @@ methods = [
     "savgol",
     "medfilt",
     "gp",
-    "untrendy",
+    "rspline",
     "huber",
     "winsorize",
 ]

@@ -171,14 +171,14 @@ def main():
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 200, decimal=1)
     
-    print("Detrending 17 (untrendy)...")
+    print("Detrending 17 (rspline)...")
     flatten_lc, trend_lc2 = flatten(
         time,
         flux,
-        method='untrendy',
+        method='rspline',
         window_length=1,
         return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.997281790234, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18121.812790732245, decimal=2)
 
     print("Detrending 18 (huber)...")
     flatten_lc, trend_lc = flatten(
