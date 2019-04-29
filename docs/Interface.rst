@@ -7,6 +7,38 @@ Detrending with the ``flatten`` module
 
 .. automodule:: flatten.flatten
 
+Usage example:
+
+::
+
+    import numpy as np
+    from astropy.io import fits
+
+    def load_file(filename):
+        """Loads a TESS *spoc* FITS file and returns TIME, PDCSAP_FLUX"""
+        hdu = fits.open(filename)
+        time = hdu[1].data['TIME']
+        flux = hdu[1].data['PDCSAP_FLUX']
+        flux[flux == 0] = np.nan
+        return time, flux
+
+    print('Loading TESS data from archive.stsci.edu...')
+    path = 'https://archive.stsci.edu/hlsps/tess-data-alerts/'
+    filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
+    time, flux = load_file(path + filename)
+
+    # Use wotan to detrend
+    from wotan import flatten
+    flatten_lc1, trend_lc1 = flatten(time, flux, window_length=0.75, return_trend=True, method='mean')
+    flatten_lc2, trend_lc2 = flatten(time, flux, window_length=0.75, return_trend=True, method='biweight')
+
+    # Plot the result
+    import matplotlib.pyplot as plt
+    plt.scatter(time, flux, s=1, color='black')
+    plt.plot(time, trend_lc1, linewidth=2, color='red')
+    plt.plot(time, trend_lc2, linewidth=2, color='blue')
+    plt.xlim(min(time), 1365)
+    plt.show()
 
 
 Choosing the right window size
