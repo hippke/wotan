@@ -9,7 +9,7 @@ def cleaned_array(t, y, dy=None):
         valid = False
         if value is not None:
             if not isnan(value):
-                if value > 0 and value < inf:
+                if value < inf:
                     valid = True
         return valid
 
