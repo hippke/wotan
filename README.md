@@ -67,8 +67,8 @@ It depends on your data and what you like to achieve. If possible, try it out! U
 
 If that is too much effort, you should first examine your data.
 - Is it mostly white (Gaussian) noise? Use a time-windowed sliding mean. This is the most efficient method for white noise.
-- With promiment outliers (such as transits or flares), use a robust time-windowed method such as the ``biweight``. This is usually superior to the ``median`` or clipped/trimmed methods.
-- Is it (semi) periodic? In addition to a time-windowed biweight, try a spline-based method. Experimenting with periodic GPs is worthwhile.
+- With prominent outliers (such as transits or flares), use a robust time-windowed method such as the ``biweight``. This is usually superior to the ``median`` or trimmed methods.
+- Are there (semi-) periodic trends? In addition to a time-windowed biweight, try a spline-based method. Experimenting with periodic GPs is worthwhile.
 
 
 Installation
