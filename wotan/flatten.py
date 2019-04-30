@@ -25,7 +25,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             proportiontocut=constants.PROPORTIONTOCUT, robust=False):
     """
     ``flatten`` removes low frequency trends in time-series data.
-
+        
     Parameters
     ----------
     time : array-like
@@ -35,13 +35,14 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     window_length : float
         The length of the filter window in units of ``time`` (usually days), or in
         cadences (for cadence-based sliders ``savgol`` and ``medfilt``).
-    method : string, default: `biweight`
+    method : string, default: ``biweight``
         Determines detrending method and location estimator. A time-windowed slider is
-        invoked for location estimators `median`, `biweight`, `hodges`, `welsch`,
-        `huber`, `andrewsinewave`, `mean`, `trim_mean`, or `winsorize`. Spline-based
-        detrending is performed for `hspline` and `rspline`. A locally weighted
-        scatterplot smoothing is performed for `lowess`. The Savitzky-Golay filter is
-        run for ``savgol``. A cadence-based sliding median is performed for ``medfilt``.
+        invoked for location estimators ``median``, ``biweight``, ``hodges``,
+        ``welsch``, ``huber``, ``andrewsinewave``, ``mean``, ``trim_mean``, or
+        ``winsorize``. Spline-based detrending is performed for ``hspline``, ``rspline`
+        and ``pspline``. A locally weighted scatterplot smoothing is performed for 
+        ``lowess``. The Savitzky-Golay filter is run for ``savgol``. A cadence-based 
+        sliding median is performed for ``medfilt``.
     break_tolerance : float, default: window_length/2
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
