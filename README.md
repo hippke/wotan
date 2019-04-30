@@ -61,6 +61,16 @@ Available features
 - ``return_trend`` If `True`, the method will return a tuple of two elements (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend. Otherwise, it will only return ``flattened_flux``.
 
 
+What method to choose?
+-----------------------
+It depends on your data and what you like to achieve. If possible, try it out! Use wotan with a selection of methods, iterate over their parameter space, and choose what gives the best results for your research.
+
+If that is too much effort, you should first examine your data.
+- Is it mostly white (Gaussian) noise? Use a time-windowed sliding mean. This is the most efficient method for white noise.
+- With promiment outliers (such as transits or flares), use a robust time-windowed method such as the ``biweight``. This is usually superior to the ``median`` or clipped/trimmed methods.
+- Is it (semi) periodic? In addition to a time-windowed biweight, try a spline-based method. Experimenting with periodic GPs is worthwhile.
+
+
 Installation
 ------------
 To install the released version, type
@@ -76,15 +86,6 @@ which automatically installs `numpy`, `numba` and ``scipy`` if not present. Depe
 
 To install all additional dependencies, type ``$ pip install statsmodels sklearn supersmoother pygam``.
 
-Attribution
-----------------
-Please cite [Hippke et al. (2019, XXX)](https://XXX) if you find this code useful in your research. The BibTeX entry for the paper is:
-
-```
-@ARTICLE{XXX,
-      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-}
-```
 
 Originality
 ----------------
@@ -96,3 +97,14 @@ As all scientific work, wōtan is [*standing on the shoulders of giants*](https:
 - GP with a periodic kernel informed by a Lomb-Scargle periodogram pre-search
 - Bringing together many methods in one place in a common interface, with sensible defaults
 - Providing documentation, tutorials, and a [paper](www) which compares and benchmarks the methods
+
+
+Attribution
+----------------
+Please cite [Hippke et al. (2019, XXX)](https://XXX) if you find this code useful in your research. The BibTeX entry for the paper is:
+
+```
+@ARTICLE{XXX,
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+```
