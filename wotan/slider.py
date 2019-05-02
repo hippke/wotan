@@ -105,10 +105,18 @@ def running_segment_huber(time, flux, window_length, edge_cutoff, cval):
                 import statsmodels.api as sm
             except:
                 raise ImportError('Could not import statsmodels')
-            huber = sm.robust.scale.Huber(
-                maxiter=constants.MAXITER_HUBER,
-                tol=constants.FTOL,
-                c=cval
-                )
-            mean_all[i], error = huber(flux[idx_start:idx_end])
+                
+            try:
+                huber = sm.robust.scale.Huber(
+                    maxiter=constants.MAXITER_HUBER,
+                    tol=constants.FTOL,
+                    c=cval
+                    )
+                mean_all[i], error = huber(flux[idx_start:idx_end])
+            # Non-convergence sometimes happens with Huber and is "normal"
+            # It it typically rare, less than 1/1000 trials.
+            # Then, we take the median instead
+            except:
+                mean_all[i] = median(flux[idx_start:idx_end])
+            
     return mean_all
