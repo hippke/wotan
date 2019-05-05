@@ -2,7 +2,9 @@ from __future__ import print_function, division
 from numba import jit
 import numpy
 from numpy import mean, median, full, nan
-from wotan.location_estimates import location_iter, hodges, trim_mean, winsorize_mean
+from wotan.location_estimates import (
+    location_iter, hodges, trim_mean, winsorize_mean, hampel
+    )
 import wotan.constants as constants
 
 
@@ -18,6 +20,8 @@ def running_segment(time, flux, window_length, edge_cutoff, cval, method_code):
     # 5 : median
     # 6 : mean
     # 7 : trim_mean
+    # 8 : winsorize
+    # 9 : hampel
 
     size = len(time)
     mean_all = full(size, nan)
@@ -70,6 +74,11 @@ def running_segment(time, flux, window_length, edge_cutoff, cval, method_code):
                 mean_all[i] = winsorize_mean(
                     flux[idx_start:idx_end],
                     proportiontocut=cval)
+            # hampel
+            elif method_code == 9:
+                mean_all[i] = hampel(
+                    flux[idx_start:idx_end],
+                    cval=cval)
     return mean_all
 
 
@@ -105,18 +114,10 @@ def running_segment_huber(time, flux, window_length, edge_cutoff, cval):
                 import statsmodels.api as sm
             except:
                 raise ImportError('Could not import statsmodels')
-                
-            try:
-                huber = sm.robust.scale.Huber(
-                    maxiter=constants.MAXITER_HUBER,
-                    tol=constants.FTOL,
-                    c=cval
-                    )
-                mean_all[i], error = huber(flux[idx_start:idx_end])
-            # Non-convergence sometimes happens with Huber and is "normal"
-            # It it typically rare, less than 1/1000 trials.
-            # Then, we take the median instead
-            except:
-                mean_all[i] = median(flux[idx_start:idx_end])
-            
+            huber = sm.robust.scale.Huber(
+                maxiter=constants.MAXITER_HUBER,
+                tol=constants.FTOL,
+                c=cval
+                )
+            mean_all[i], error = huber(flux[idx_start:idx_end])
     return mean_all

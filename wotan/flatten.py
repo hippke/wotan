@@ -57,14 +57,14 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         this fills the window completely. Applicable only for time-windowed sliders.
     cval : float or int
         Tuning parameter for the robust estimators. Default values are 5 (`biweight` and
-        `lowess`), 1.339 (`andrewsinewave`), 2.11 (`welsch`), 1.5 (``huber``). A
-        ``cval`` of 6 for the biweight includes data up to 4 standard deviations from
-        the central location and has an efficiency of 98%. Another typical value for the
-        biweight is 4.685 with 95% efficiency. Larger values for make the estimate more
-        efficient but less robust. For the super-smoother, cval determines the bass
-        enhancement (smoothness) and can be `None` or in the range 0 < ``cval`` < 10.
-        For the ``savgol``, ``cval`` determines the (integer) polynomial order
-        (default: 2).
+        `lowess`), 1.339 (`andrewsinewave`), 2.11 (`welsch`), 1.5 (``huber``), 
+        3 (``hampel``). A ``cval`` of 6 for the biweight includes data up to 4 standard
+        deviations from the central location and has an efficiency of 98%. Another
+        typical value for the biweight is 4.685 with 95% efficiency. Larger values for
+        make the estimate more efficient but less robust. For the super-smoother, cval
+        determines the bass enhancement (smoothness) and can be `None` or in the range
+        0 < ``cval`` < 10. For the ``savgol``, ``cval`` determines the (integer)
+        polynomial order (default: 2).
     proportiontocut : float, default: 0.1
         Fraction to cut off (or filled) of both tails of the distribution using methods
         ``trim_mean`` (or ``winsorize``)
@@ -114,6 +114,9 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         method_code = 7
     elif method == 'winsorize':
         method_code = 8
+    elif method == 'hampel':
+        method_code = 9
+
 
     error_text = 'proportiontocut must be >0 and <0.5'
     if not isinstance(proportiontocut, float):
@@ -133,6 +136,8 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval = 1.5
         elif method in ['trim_mean', 'winsorize']:
             cval = proportiontocut
+        elif method == 'hampel':
+            cval = 3
         elif method == 'savgol':  # polyorder
             cval = 2  # int
         else:
@@ -173,7 +178,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         time_view = time_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         flux_view = flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         methods = ["biweight", "andrewsinewave", "welsch", "hodges", "median", "mean",
-            "trim_mean", "winsorize"]
+            "trim_mean", "winsorize", "hampel"]
         if method in methods:
             trend_segment = running_segment(
                 time_view,

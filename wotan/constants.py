@@ -21,6 +21,7 @@ methods = [
     "rspline",
     "huber",
     "winsorize",
+    "hampel"
 ]
 
 # astrophysical constants

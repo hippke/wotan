@@ -64,6 +64,21 @@ def location_iter(data, cval, method_code):
 
 
 @jit(fastmath=True, nopython=True, cache=True)
+def hampel(data, cval):
+    """Values beyond (cval * mad {=median absolute deviation}) are replaced with the 
+    median. Source: Ronald K. Pearson, Moncef Gabbouj (p. 147), "Nonlinear Digital 
+    Filtering with Python: An Introduction" recommend cval=3"""
+    
+    flux = data.copy()
+    median_data = median(flux)
+    diff = numpy.abs(flux - median_data)
+    mad = median(diff)
+    flux[diff >= cval * mad] = median_data
+
+    return mean(flux)
+
+
+@jit(fastmath=True, nopython=True, cache=True)
 def trim_mean(data, proportiontocut):
     """Mean of array after trimming `proportiontocut` from both tails."""
     len_data = len(data)

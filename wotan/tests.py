@@ -38,7 +38,7 @@ def main():
     time, flux = load_file(path + filename)
 
     window_length = 0.5
-
+    """
     print("Detrending 1 (biweight)...")
     flatten_lc, trend_lc = flatten(
         time,
@@ -124,17 +124,7 @@ def main():
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.8820772313468, decimal=2)
     
-    """
-    import matplotlib.pyplot as plt
-    plt.scatter(time, flux, s=1, color='black')
-    plt.plot(time[:2000], trend_lc1[:2000], color='red')
-    # plt.plot(time, trend_lc, color='red', linewidth=2)
-    plt.plot(time[:2000], trend_lc1, color='blue', linewidth=2)
-    plt.show()
-    plt.close()
-    plt.scatter(time, flatten_lc, s=1, color='black')
-    plt.show()
-    """    
+
 
     print("Detrending 14 (gp matern)...")
     flatten_lc, trend_lc2 = flatten(
@@ -190,7 +180,7 @@ def main():
         break_tolerance=0.4,
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 994.01102, decimal=2)
-
+    """
     print("Detrending 19 (winsorize)...")
     flatten_lc, trend_lc2 = flatten(
         time,
@@ -202,7 +192,7 @@ def main():
         proportiontocut=0.1,
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.064587196448, decimal=2)
-
+    """
     print("Detrending 20 (pspline)...")
     flatten_lc, trend_lc = flatten(
         time,
@@ -211,6 +201,29 @@ def main():
         return_trend=True
         )
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18121.832133916843, decimal=2)
+    """
+    print("Detrending 21 (hampel)...")
+    flatten_lc, trend_lc1 = flatten(
+        time,
+        flux,
+        method='hampel',
+        window_length=0.5,
+        cval=3,
+        return_trend=True
+        )
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.158072498867, decimal=2)
+
+    """
+    import matplotlib.pyplot as plt
+    plt.scatter(time, flux, s=1, color='black')
+    plt.plot(time, trend_lc1, color='red', linewidth=2)
+    plt.plot(time, trend_lc2, color='blue', linewidth=2, linestyle='dashed')
+    plt.show()
+    plt.close()
+    plt.scatter(time, flatten_lc, s=1, color='black')
+    plt.show()
+    """
+
 
     print('All tests completed.')
 

@@ -35,6 +35,7 @@ Available detrending algorithms
    - ``mean`` The least robust (but most efficient for white noise)
    - ``trim_mean`` Trimmed mean (outliers are removed)
    - ``winsorize`` Trimmed mean (outliers are [*winsorized*](https://en.wikipedia.org/wiki/Winsorizing) to a specified percentile)
+   - ``hampel`` Trimmed mean (outliers are [replaced](https://link.springer.com/article/10.1186/s13634-016-0383-6) with the median)
 - Splines:
    - ``rspline`` Spline with iterative sigma-clipping
    - ``hspline`` Spline with a robust Huber estimator ([Huber 1981](https://books.google.de/books?id=hVbhlwEACAAJ))
