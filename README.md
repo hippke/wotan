@@ -25,10 +25,10 @@ Available detrending algorithms
 ---------------------------------
 
 - Time-windowed sliders with location estimates:
-   - ``biweight`` Robust M-estimator using [Tukey's biweight](https://books.google.de/books?id=pGlHAAAAMAAJ)
-   - ``andrewsinewave`` Robust M-estimator using [Andrew's sine wave](http://www.jstor.org/stable/j.ctt13x12sw.3)
-   - ``welsch`` Robust M-estimator using [Welsch](https://doi.org/10.1080/03610917808812083)-[Leclerc](https://doi.org/10.1007/BF00054839)
-   - ``huber`` [Huber's M-estimator (1981)](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y)
+   - ``biweight`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) using [Tukey's biweight](https://books.google.de/books?id=pGlHAAAAMAAJ)
+   - ``andrewsinewave`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) using [Andrew's sine wave](http://www.jstor.org/stable/j.ctt13x12sw.3)
+   - ``welsch`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) from [Welsch](https://doi.org/10.1080/03610917808812083)-[Leclerc](https://doi.org/10.1007/BF00054839)
+   - ``huber`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) from  [Huber (1981)](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y)
    - ``hodges`` Rank-based robust estimator [Hodges-Lehmann](https://doi.org/10.1214/aoms/1177704172)-[Sen](https://doi.org/10.2307/2527532)
    - ``median`` The most robust (but least efficient)
    - ``medfilt`` A cadence-based median filter (*not* time-windowed) for comparison
