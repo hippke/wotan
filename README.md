@@ -63,7 +63,7 @@ Available features
 
 What method to choose?
 -----------------------
-It depends on your data and what you like to achieve. If possible, try it out! Use wotan with a selection of methods, iterate over their parameter space, and choose what gives the best results for your research.
+It depends on your data and what you like to achieve ([relevant xkcd](https://xkcd.com/2048/)). If possible, try it out! Use wotan with a selection of methods, iterate over their parameter space, and choose what gives the best results for your research.
 
 If that is too much effort, you should first examine your data.
 - Is it mostly white (Gaussian) noise? Use a time-windowed sliding mean. This is the most efficient method for white noise.
