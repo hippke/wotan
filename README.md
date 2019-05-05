@@ -24,17 +24,17 @@ For more details, have a look at the [interactive playground](www), the [documen
 Available detrending algorithms
 ---------------------------------
 
-- Time-windowed sliders with robust location estimates:
-   - ``biweight`` [Tukey's biweight](https://books.google.de/books?id=pGlHAAAAMAAJ)
-   - ``andrewsinewave`` [Andrew's sine wave](http://www.jstor.org/stable/j.ctt13x12sw.3)
-   - ``hodges`` [Hodges-Lehmann](https://doi.org/10.1214/aoms/1177704172)-[Sen](https://doi.org/10.2307/2527532)
-   - ``welsch`` [Welsch](https://doi.org/10.1080/03610917808812083)-[Leclerc](https://doi.org/10.1007/BF00054839)
+- Time-windowed sliders with location estimates:
+   - ``biweight`` Robust M-estimator using [Tukey's biweight](https://books.google.de/books?id=pGlHAAAAMAAJ)
+   - ``andrewsinewave`` Robust M-estimator using [Andrew's sine wave](http://www.jstor.org/stable/j.ctt13x12sw.3)
+   - ``welsch`` Robust M-estimator using [Welsch](https://doi.org/10.1080/03610917808812083)-[Leclerc](https://doi.org/10.1007/BF00054839)
    - ``huber`` [Huber's M-estimator (1981)](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y)
-   - ``median`` the most robust (but least efficient)
-   - ``medfilt`` a cadence-based median filter (*not* time-windowed) for comparison
-   - ``mean`` the least robust (but most efficient for white noise)
-   - ``trim_mean`` trimmed mean with adjustable caps
-   - ``winsorize`` outliers are [*winsorized*](https://en.wikipedia.org/wiki/Winsorizing) to a specified percentile
+   - ``hodges`` Rank-based robust estimator [Hodges-Lehmann](https://doi.org/10.1214/aoms/1177704172)-[Sen](https://doi.org/10.2307/2527532)
+   - ``median`` The most robust (but least efficient)
+   - ``medfilt`` A cadence-based median filter (*not* time-windowed) for comparison
+   - ``mean`` The least robust (but most efficient for white noise)
+   - ``trim_mean`` Trimmed mean (outliers are removed)
+   - ``winsorize`` Trimmed mean (outliers are [*winsorized*](https://en.wikipedia.org/wiki/Winsorizing) to a specified percentile)
 - Splines:
    - ``rspline`` Spline with iterative sigma-clipping
    - ``hspline`` Spline with a robust Huber estimator ([Huber 1981](https://books.google.de/books?id=hVbhlwEACAAJ))
