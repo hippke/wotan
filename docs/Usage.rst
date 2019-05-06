@@ -216,7 +216,7 @@ Friedman's (1984) Super-Smoother, a local linear regression with adaptive bandwi
         window_length=0.5,    # The knot distance in units of ``time``
         break_tolerance=0.5,  # Split into segments at breaks longer than that
         return_trend=True,    # Return trend and flattened light curve
-        cval=None             # 
+        cval=None             # Bass enhancement (smoothness)
         )
 
 .. note::
@@ -263,8 +263,8 @@ Example usage:
         time,                 # Array of time values
         flux,                 # Array of flux values
         method='gp',
-        kernel='squared_exp',
-        kernel_size=10,
+        kernel='squared_exp', # GP kernel choice
+        kernel_size=10,       # GP kernel length
         break_tolerance=0.5,  # Split into segments at breaks longer than that
         return_trend=True,    # Return trend and flattened light curve
         )
@@ -281,11 +281,11 @@ A robustification (iterative sigma-clipping of 2-sigma outliers until convergenc
     flatten_lc, trend_lc = flatten(
         time,                 # Array of time values
         flux,                 # Array of flux values
-        method='gp',
-        kernel='squared_exp',
-        kernel_size=10,
+        method='gp',          
+        kernel='squared_exp', # GP kernel choice
+        kernel_size=10,       # GP kernel length
         break_tolerance=0.5,  # Split into segments at breaks longer than that
-        robust=True,
+        robust=True,          # Robustification using iterative sigma clipping
         return_trend=True,    # Return trend and flattened light curve
         )
 
@@ -296,14 +296,14 @@ In the presence of strong periodicity, we can also use the periodic kernel. This
 ::
 
     flatten_lc2, trend_lc2 = flatten(
-        time,                 # Array of time values
-        flux,                 # Array of flux values
+        time,                  # Array of time values
+        flux,                  # Array of flux values
         method='gp',
-        kernel='periodic',
-        kernel_period=2*3.141592,
-        kernel_size=10,
-        break_tolerance=0.5,
-        return_trend=True,
+        kernel='periodic',     # GP kernel choice
+        kernel_period=2*3.14,  # GP kernel period
+        kernel_size=10,        # GP kernel length
+        break_tolerance=0.5,   # Split into segments at breaks longer than that
+        return_trend=True,     # Return trend and flattened light curve
         )
 
 Usually, however, it is better to let wotan detect the period. We can do this by setting ``kernel='periodic_auto'``. Then, a Lomb-Scargle periodogram is calculated, and the strongest peak is used as the period. In addition, a Matern kernel is added to consume the remaining non-periodic variation. This version does not support robustification. Example:
@@ -311,11 +311,11 @@ Usually, however, it is better to let wotan detect the period. We can do this by
 ::
 
     flatten_lc2, trend_lc2 = flatten(
-        time,                 # Array of time values
-        flux,                 # Array of flux values
+        time,                    # Array of time values
+        flux,                    # Array of flux values
         method='gp',
-        kernel='periodic_auto',
-        kernel_size=10,
-        break_tolerance=0.5,
-        return_trend=True,
+        kernel='periodic_auto',  # GP kernel choice
+        kernel_size=10,          # GP kernel length
+        break_tolerance=0.5,     # Split into segments at breaks longer than that
+        return_trend=True,       # Return trend and flattened light curve
         )
