@@ -38,6 +38,20 @@ Example usage:
         cval=5.0              # Tuning parameter for the robust estimators
         )
 
+Which we can plot as follows:
+
+::
+
+    import matplotlib.pyplot as plt
+    plt.scatter(time, flux, s=1, color='black')
+    plt.plot(time, trend_lc, color='red', linewidth=2)
+    plt.show()
+
+    plt.close()
+    plt.scatter(time, flatten_lc, s=1, color='black')
+    plt.show()
+
+
 .. note::
 
    For the ``biweight``, a ``cval`` of 6 includes data up to 4 standard deviations (6 median absolute deviations) from the central location and has an efficiency of 98%. Another typical value for the ``biweight`` is 4.685 with 95% efficiency. Larger values for make the estimate more efficient but less robust.
