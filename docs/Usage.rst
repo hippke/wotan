@@ -48,6 +48,7 @@ Example usage:
 
 .. note::
    For the other estimators, the same logic applies. However, their default values are different, following the standard statistics literature. It is typically set to achieve ~95% efficiency for Gaussian data.
+
    - ``andrewsinewave`` 1.339
    - ``welsch`` 2.11
    - ``huber`` 1.5
