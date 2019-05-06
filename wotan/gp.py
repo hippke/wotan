@@ -22,8 +22,7 @@ def make_gp(time, flux, kernel, kernel_size, kernel_period, robust):
     # GPs need flux near zero, otherwise they often fail to converge
     # So, we normalize by some constant (the median) and later transform back
     offset = numpy.median(flux)
-    flux -= offset   
-
+    flux -= offset
 
     # RBF and matern kernels are similar when matern's (kernel_size * 1000)
     if kernel == 'matern':
@@ -41,10 +40,14 @@ def make_gp(time, flux, kernel, kernel_size, kernel_period, robust):
     # Single pass or iteratively clipped
     if kernel == 'matern' or kernel == 'squared_exp' or kernel is None:
         if robust:
+            converged = False
             newflux = flux.copy()
             newtime = time.copy()
             detrended_flux = flux.copy()
             for i in range(constants.PSPLINES_MAXITER):
+                # Flux must be ~1. First round may by ~0. Then correct: 
+                if abs(numpy.median(detrended_flux)) < 0.5:
+                    detrended_flux += 1
                 mask_outliers = numpy.ma.where(
                     1-detrended_flux < constants.PSPLINES_STDEV_CUT * numpy.std(
                         detrended_flux))
@@ -59,7 +62,7 @@ def make_gp(time, flux, kernel, kernel_size, kernel_period, robust):
                         detrended_flux))
                 print('Iteration:', i + 1, 'Rejected outliers:', len(mask_outliers[0]))
                 # Check convergence
-                if len(mask_outliers[0]) == 0:
+                if converged or len(mask_outliers[0]) == 0:
                     print('Converged.')
                     break
             # Final iteration, applied to unclipped time series 
