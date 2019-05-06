@@ -1,9 +1,7 @@
 Usage examples
 ==============
 
-As follows are usage example for all detrending methods offered by wotan.
-
-In all examples, the following synthetic data are used: 
+As follows are usage example for all detrending methods offered by wotan. In all examples, the following synthetic data are used: 
 
 ::
 
@@ -47,7 +45,7 @@ Example usage:
 
 
 .. note::
-   For the other estimators, the same logic applies. However, their default values are different, following the standard statistics literature. It is typically set to achieve ~95% efficiency for Gaussian data.
+   For the other estimators, the same logic applies. However, their default values are different, following the standard statistics literature. It is typically set to achieve ~95% efficiency for Gaussian data. Defaults:
 
    - ``andrewsinewave`` 1.339
    - ``welsch`` 2.11
@@ -58,11 +56,11 @@ Example usage:
 trim_mean, winsorize
 --------------------
 
-There are 3 methods which first focus on outlier treatment, followed by taking the mean in a second stage: ``trim_mean``, ``winsorize`` and ``hampel``. The ``hampel`` is already listed above because its threshold is defined as ``cval`` times the median absolute deviation, beyond which it replaced values with the median.
+There are 3 methods which first focus on outlier treatment, followed by taking the mean in a second stage: ``trim_mean``, ``winsorize`` and ``hampel``. 
 
-The ``trim_mean`` deletes the fraction ``proportiontocut`` from both sides of the distribution.
-
-The ``winsorize`` replaces the fraction ``proportiontocut`` from both sides of the distribution with the remaining values at the edges.
+- The ``hampel`` is already discussed in the previous section because its threshold is defined as ``cval`` times the median absolute deviation, beyond which it replaced values with the median.
+- The ``trim_mean`` deletes the fraction ``proportiontocut`` from both sides of the distribution.
+- The ``winsorize`` replaces the fraction ``proportiontocut`` from both sides of the distribution with the remaining values at the edges.
 
 Example usage:
 
@@ -128,8 +126,8 @@ Spline with iterative sigma-clipping. It does not provide ``edge_cutoff``, but b
 ::
 
     flatten_lc, trend_lc = flatten(
-        time,
-        flux,
+        time,                 # Array of time values
+        flux,                 # Array of flux values
         method='rspline',
         window_length=0.5,    # The knot distance in units of ``time``
         break_tolerance=0.5,  # Split into segments at breaks longer than that
@@ -145,8 +143,8 @@ Spline with robust Huber-estimator (linear and quadratic loss). It does not prov
 ::
 
     flatten_lc, trend_lc = flatten(
-        time,
-        flux,
+        time,                 # Array of time values
+        flux,                 # Array of flux values
         method='hspline',
         window_length=0.5,    # The knot distance in units of ``time``
         break_tolerance=0.5,  # Split into segments at breaks longer than that
@@ -162,8 +160,8 @@ Spline with iterative sigma-clipping. Auto-determination of ``window_length``. I
 ::
 
     flatten_lc, trend_lc = flatten(
-        time,
-        flux,
+        time,                 # Array of time values
+        flux,                 # Array of flux values
         method='pspline',
         break_tolerance=0.5,  # Split into segments at breaks longer than that
         return_trend=True,    # Return trend and flattened light curve
@@ -178,8 +176,8 @@ Locally weighted scatterplot smoothing (Cleveland 1979). Offers segmentation (``
 ::
 
     flatten_lc, trend_lc = flatten(
-        time,
-        flux,
+        time,                 # Array of time values
+        flux,                 # Array of flux values
         method='lowess',
         window_length=1,      # The length of the filter window in units of ``time``
         break_tolerance=0.5,  # Split into segments at breaks longer than that
@@ -192,9 +190,11 @@ CoFiAM
 
 Cosine Filtering with Autocorrelation Minimization. Does not provide ``edge_cutoff``, but benefits greatly from using a sensible ``break_tolerance``. Example usage:
 
+::
+
     flatten_lc, trend_lc = flatten(
-        time,
-        flux,
+        time,                 # Array of time values
+        flux,                 # Array of flux values
         method='cofiam',
         window_length=0.5,    # The knot distance in units of ``time``
         break_tolerance=0.5,  # Split into segments at breaks longer than that
@@ -210,8 +210,8 @@ Friedman's (1984) Super-Smoother, a local linear regression with adaptive bandwi
 ::
 
     flatten_lc, trend_lc = flatten(
-        time,
-        flux,
+        time,                 # Array of time values
+        flux,                 # Array of flux values
         method='supersmoother',
         window_length=0.5,    # The knot distance in units of ``time``
         break_tolerance=0.5,  # Split into segments at breaks longer than that
@@ -234,10 +234,10 @@ Example usage:
 ::
 
     flatten_lc, trend_lc = flatten(
-        time,
-        flux,
+        time,                 # Array of time values
+        flux,                 # Array of flux values
         method='savgol',
-        window_length=51,    # The knot distance in units of ``time``
+        window_length=51,     # The window length in cadences
         break_tolerance=0.5,  # Split into segments at breaks longer than that
         return_trend=True,    # Return trend and flattened light curve
         )
@@ -246,7 +246,7 @@ Example usage:
 Gaussian Processes
 ------------------
 
-Available kernels are 
+Available kernels are :
 
 - ``squared_exp`` Squared-exponential kernel, with option for iterative sigma-clipping
 - ``matern`` Matern 3/2 kernel, with option for iterative sigma-clipping
@@ -260,8 +260,8 @@ Example usage:
 ::
 
     flatten_lc, trend_lc = flatten(
-        time,
-        flux,
+        time,                 # Array of time values
+        flux,                 # Array of flux values
         method='gp',
         kernel='squared_exp',
         kernel_size=10,
@@ -279,8 +279,8 @@ A robustification (iterative sigma-clipping of 2-sigma outliers until convergenc
 ::
 
     flatten_lc, trend_lc = flatten(
-        time,
-        flux,
+        time,                 # Array of time values
+        flux,                 # Array of flux values
         method='gp',
         kernel='squared_exp',
         kernel_size=10,
@@ -295,27 +295,27 @@ In the presence of strong periodicity, we can also use the periodic kernel. This
 
 ::
 
-flatten_lc2, trend_lc2 = flatten(
-    time,
-    flux,
-    method='gp',
-    kernel='periodic',
-    kernel_period=2*3.141592,
-    kernel_size=10,
-    break_tolerance=0.5,
-    return_trend=True,
-    )
+    flatten_lc2, trend_lc2 = flatten(
+        time,                 # Array of time values
+        flux,                 # Array of flux values
+        method='gp',
+        kernel='periodic',
+        kernel_period=2*3.141592,
+        kernel_size=10,
+        break_tolerance=0.5,
+        return_trend=True,
+        )
 
 Usually, however, it is better to let wotan detect the period. We can do this by setting ``kernel='periodic_auto'``. Then, a Lomb-Scargle periodogram is calculated, and the strongest peak is used as the period. In addition, a Matern kernel is added to consume the remaining non-periodic variation. This version does not support robustification. Example:
 
 ::
 
-flatten_lc2, trend_lc2 = flatten(
-    time,
-    flux,
-    method='gp',
-    kernel='periodic_auto',
-    kernel_size=10,
-    break_tolerance=0.5,
-    return_trend=True,
-    )
+    flatten_lc2, trend_lc2 = flatten(
+        time,                 # Array of time values
+        flux,                 # Array of flux values
+        method='gp',
+        kernel='periodic_auto',
+        kernel_size=10,
+        break_tolerance=0.5,
+        return_trend=True,
+        )
