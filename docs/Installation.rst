@@ -13,4 +13,4 @@ which automatically installs `numpy`, `numba` and `scipy` if not present. Depend
 - `supersmoother` depends on `supersmoother`
 - `untrendy` depends on `untrendy`
 
-To install all additional dependencies, type ``$ pip install statsmodels sklearn supersmoother untrendy pygam``.
+To install all additional dependencies, type ``$ pip install statsmodels sklearn supersmoother pygam``.
