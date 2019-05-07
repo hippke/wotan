@@ -20,8 +20,8 @@ As follows are usage example for all detrending methods offered by wotan. In all
     flux[300:400] = np.nan
 
 
-Biweight, andrewsinewave, welsch, huber, hampel
------------------------------------------------
+Biweight, andrewsinewave, welsch, huber, huber_psi, hampel
+-------------------------------------------------------------
 
 Example usage:
 
@@ -64,6 +64,7 @@ Which we can plot as follows:
    - ``andrewsinewave`` 1.339
    - ``welsch`` 2.11
    - ``huber`` 1.5
+   - ``huber_psi`` 1.28
    - ``hampel`` 3
 
 
@@ -241,7 +242,7 @@ Friedman's (1984) Super-Smoother, a local linear regression with adaptive bandwi
 Savitzky-Golay savgol
 ---------------------
 
-Sliding segments are fit with polynomials (Savitzky & Golay 1964). This filter is cadence-based (not time-windowed), so that ``window_length`` must be an integer value. If an even integer is provided, it is made uneven (a requirement) by adding 1. The polyorder is hard-coded to 2 - the best value from our experiments. Does not provide ``edge_cutoff``, but benefits from using a sensible ``break_tolerance``. 
+Sliding segments are fit with polynomials (Savitzky & Golay 1964). This filter is cadence-based (not time-windowed), so that ``window_length`` must be an integer value. If an even integer is provided, it is made uneven (a requirement) by adding 1. The polyorder is set by ``cval`` (default: 2 - the best value from our experiments). Does not provide ``edge_cutoff``, but benefits from using a sensible ``break_tolerance``. 
 
 Example usage:
 
@@ -251,6 +252,7 @@ Example usage:
         time,                 # Array of time values
         flux,                 # Array of flux values
         method='savgol',
+        cval=2,               # Defines polyorder
         window_length=51,     # The window length in cadences
         break_tolerance=0.5,  # Split into segments at breaks longer than that
         return_trend=True,    # Return trend and flattened light curve
