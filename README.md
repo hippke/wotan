@@ -30,6 +30,7 @@ Available detrending algorithms
    - ``welsch`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) from [Welsch](https://doi.org/10.1080/03610917808812083)-[Leclerc](https://doi.org/10.1007/BF00054839)
    - ``huber`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) from  [Huber (1981)](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y) (iterative)
    - ``huber_psi`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) based on [Huber's ψ](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y) (one-step)
+   - ``tau`` Robust τ estimator from [Yohai & Zamar (1986)](https://www.tandfonline.com/doi/abs/10.1080/01621459.1988.10478611)
    - ``hodges`` Rank-based robust estimator [Hodges-Lehmann](https://doi.org/10.1214/aoms/1177704172)-[Sen](https://doi.org/10.2307/2527532)
    - ``median`` The most robust (but least efficient)
    - ``medfilt`` A cadence-based median filter (*not* time-windowed) for comparison
