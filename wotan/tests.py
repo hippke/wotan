@@ -212,6 +212,27 @@ def main():
         return_trend=True
         )
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.158072498867, decimal=2)
+    
+    print("Detrending 22 (lowess)...")
+    flatten_lc, trend_lc1 = flatten(
+        time,
+        flux,
+        method='lowess',
+        window_length=1,
+        return_trend=True
+        )
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.08085676265, decimal=2)
+
+    print("Detrending 23 (huber_psi)...")
+    flatten_lc, trend_lc2 = flatten(
+        time,
+        flux,
+        method='huber_psi',
+        window_length=0.5,
+        return_trend=True
+        )
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.122065014355, decimal=2)
+
 
     """
     import matplotlib.pyplot as plt
