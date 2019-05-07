@@ -64,6 +64,19 @@ def location_iter(data, cval, method_code):
 
 
 @jit(fastmath=True, nopython=True, cache=True)
+def huber_psi(x, cval):
+    """One-step M-estimator of location using Huber's psi"""
+    med = median(x)
+    mad = median(numpy.abs(x - med))
+    y = (x - med) / mad
+    y[y > cval] = cval
+    y[y < -cval] = -cval
+    a = numpy.sum(y)
+    b = (numpy.abs(y) <= cval).sum()  # how many values in y < cval?
+    return med + mad * a / b
+
+
+@jit(fastmath=True, nopython=True, cache=True)
 def hampel(data, cval):
     """Values beyond (cval * mad {=median absolute deviation}) are replaced with the 
     median. Source: Ronald K. Pearson, Moncef Gabbouj (p. 147), "Nonlinear Digital 
