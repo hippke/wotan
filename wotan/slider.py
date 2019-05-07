@@ -3,7 +3,7 @@ from numba import jit
 import numpy
 from numpy import mean, median, full, nan
 from wotan.location_estimates import (
-    location_iter, hodges, trim_mean, winsorize_mean, hampel
+    location_iter, hodges, trim_mean, winsorize_mean, hampel, huber_psi
     )
 import wotan.constants as constants
 
@@ -22,6 +22,7 @@ def running_segment(time, flux, window_length, edge_cutoff, cval, method_code):
     # 7 : trim_mean
     # 8 : winsorize
     # 9 : hampel
+    # 10: huber_one
 
     size = len(time)
     mean_all = full(size, nan)
@@ -46,39 +47,32 @@ def running_segment(time, flux, window_length, edge_cutoff, cval, method_code):
                 idx_start += 1
             while time[idx_end] < time[i] + half_window and idx_end < size-1:
                 idx_end += 1
-
             # Get the location estimate for the segment in question
             # iterative method for: biweight, andrewsinewave, welsch
+            f = flux[idx_start:idx_end]
             if method_code == 1 or method_code == 2 or method_code == 3:
-                mean_all[i] = location_iter(
-                    flux[idx_start:idx_end],
-                    cval,
-                    method_code
-                    )
+                mean_all[i] = location_iter(f, cval, method_code)
             # hodges
             elif method_code == 4:
-                mean_all[i] = hodges(flux[idx_start:idx_end])
+                mean_all[i] = hodges(f)
             # median
             elif method_code == 5:
-                mean_all[i] = median(flux[idx_start:idx_end])
+                mean_all[i] = median(f)
             # mean
             elif method_code == 6:
-                mean_all[i] = mean(flux[idx_start:idx_end])
+                mean_all[i] = mean(f)
             # trim_mean
             elif method_code == 7:
-                mean_all[i] = trim_mean(
-                    flux[idx_start:idx_end],
-                    proportiontocut=cval)
+                mean_all[i] = trim_mean(f, proportiontocut=cval)
             # winsorize
             elif method_code == 8:
-                mean_all[i] = winsorize_mean(
-                    flux[idx_start:idx_end],
-                    proportiontocut=cval)
+                mean_all[i] = winsorize_mean(f, proportiontocut=cval)
             # hampel
             elif method_code == 9:
-                mean_all[i] = hampel(
-                    flux[idx_start:idx_end],
-                    cval=cval)
+                mean_all[i] = hampel(f, cval=cval)
+            # huber_psi
+            elif method_code == 10:
+                mean_all[i] = huber_psi(f, cval=cval)
     return mean_all
 
 
@@ -114,10 +108,16 @@ def running_segment_huber(time, flux, window_length, edge_cutoff, cval):
                 import statsmodels.api as sm
             except:
                 raise ImportError('Could not import statsmodels')
-            huber = sm.robust.scale.Huber(
-                maxiter=constants.MAXITER_HUBER,
-                tol=constants.FTOL,
-                c=cval
-                )
-            mean_all[i], error = huber(flux[idx_start:idx_end])
+
+            # Huber is not numerically stable
+            # If it does not converge, we fall back to the median
+            try:
+                huber = sm.robust.scale.Huber(
+                    maxiter=constants.MAXITER_HUBER,
+                    tol=constants.FTOL,
+                    c=cval
+                    )
+                mean_all[i], error = huber(flux[idx_start:idx_end])
+            except:
+                mean_all[i] = median(flux[idx_start:idx_end])
     return mean_all
