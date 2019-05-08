@@ -23,7 +23,7 @@ As follows are usage example for all detrending methods offered by wotan. In all
 Robust estimators with tuning constant
 --------------------------------------
 
-Some robust estimators can be tuned: ``biweight``, ``andrewsinewave``, ``welsch``, ``huber``, ``huber_psi``, ``hampel``, ``hampelfilt`` 
+Some robust estimators can be tuned: ``biweight``, ``andrewsinewave``, ``welsch``, ``huber``, ``huber_psi``, ``hampel``, ``hampelfilt``. The `hodges`` can not be tuned.
 
 
 Example usage:
@@ -67,6 +67,7 @@ Which we can plot as follows:
    - ``hampel`` (1.7, 3.4, 8.5)
    - ``hampelfilt`` 3
    - ``ramsay`` 0.3
+   - ``tau``: 4.5
 
    The ``hampel`` has a 3-part descending function, known also as (a,b,c). Its tuning constant ``cval`` must be given as a tuple of 3 values. Typical values are (1.7, 3.4, 8.5) called "17A"; and (2.5, 4.5, 9.5) called "25A". With values given as multiples of the median absolute deviation, the 25A can be stated equivalently: a' = 1.686, b' = 3.035 c' = 6.408 as multiples of the standard deviation.
 
