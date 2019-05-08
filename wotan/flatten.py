@@ -12,7 +12,7 @@ import wotan.constants as constants
 from wotan.cofiam import detrend_cofiam
 from wotan.gp import make_gp
 from wotan.huber_spline import detrend_huber_spline
-from wotan.slider import running_segment, running_segment_huber
+from wotan.slider import running_segment, running_segment_slow
 from wotan.gaps import get_gaps_indexes
 from wotan.t14 import t14
 from wotan.pspline import pspline
@@ -36,13 +36,13 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         The length of the filter window in units of ``time`` (usually days), or in
         cadences (for cadence-based sliders ``savgol`` and ``medfilt``).
     method : string, default: ``biweight``
-        Determines detrending method and location estimator. A time-windowed slider is
-        invoked for location estimators ``median``, ``biweight``, ``hodges``,
-        ``welsch``, ``huber``, ``huber_psi``, ``andrewsinewave``, ``mean``, 
-        ``trim_mean``, ``hampel``, or ``winsorize``. Spline-based detrending is 
-        performed for ``hspline``, ``rspline` and ``pspline``. A locally weighted 
-        scatterplot smoothing is performed for ``lowess``. The Savitzky-Golay filter is
-        run for ``savgol``. A cadence-based sliding median is performed for ``medfilt``.
+        Detrending method. Rime-windowed sliders: ``median``, ``biweight``, ``hodges``,
+        ``tau``, ``welsch``, ``huber``, ``huber_psi``, ``andrewsinewave``, ``mean``, 
+        ``hampel``, ``ramsay``, ``trim_mean``, ``hampelfilt``, ``winsorize``. Cadence
+        based slider: ``medfilt``. Splines: ``hspline``, ``rspline`, ``pspline``.
+        Locally weighted scatterplot smoothing: ``lowess``. Savitzky-Golay filter:
+        ``savgol``. Gaussian processes: ``gp``. Cosine Filtering with Autocorrelation 
+        Minimization: ``cofiam``.  Friedman's Super-Smoother: ``supersmoother``.
     break_tolerance : float, default: window_length/2
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
@@ -56,7 +56,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         cut off each edge. Default: Zero. Cut off is maximally ``window_length``/2, as
         this fills the window completely. Applicable only for time-windowed sliders.
     cval : float or int
-        Tuning parameter for the robust estimators. See documentation for defauls. 
+        Tuning parameter for the robust estimators. See documentation for defaults. 
         Larger values for make the estimate more efficient but less robust. For the 
         super-smoother, cval determines the bass enhancement (smoothness) and can be 
         `None` or in the range 0 < ``cval`` < 10. For the ``savgol``, ``cval`` 
@@ -89,7 +89,6 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     trend_flux : array-like
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
-    
     if method not in constants.methods:
         raise ValueError('Unknown detrending method')
 
@@ -110,10 +109,12 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         method_code = 7
     elif method == 'winsorize':
         method_code = 8
-    elif method == 'hampel':
+    elif method == 'hampelfilt':
         method_code = 9
     elif method == 'huber_psi':
         method_code = 10
+    elif method == 'tau':
+        method_code = 11
 
     error_text = 'proportiontocut must be >0 and <0.5'
     if not isinstance(proportiontocut, float):
@@ -135,8 +136,14 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval = 1.28
         elif method in ['trim_mean', 'winsorize']:
             cval = proportiontocut
-        elif method == 'hampel':
+        elif method == 'hampelfilt':
             cval = 3
+        elif method == 'tau':
+            cval = 4.5
+        elif method == 'hampel':
+            cval = (1.7, 3.4, 8.5)
+        elif method == 'ramsay':
+            cval = 0.3
         elif method == 'savgol':  # polyorder
             cval = 2  # int
         else:
@@ -177,7 +184,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         time_view = time_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         flux_view = flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         methods = ["biweight", "andrewsinewave", "welsch", "hodges", "median", "mean",
-            "trim_mean", "winsorize", "hampel", "huber_psi"]
+            "trim_mean", "winsorize", "huber_psi", "hampelfilt", "tau"]
         if method in methods:
             trend_segment = running_segment(
                 time_view,
@@ -186,13 +193,14 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
                 edge_cutoff,
                 cval,
                 method_code)
-        elif method == 'huber':
-            trend_segment = running_segment_huber(
+        elif method in ["huber", "hampel", "ramsay"]:
+            trend_segment = running_segment_slow(
                 time_view,
                 flux_view,
                 window_length,
                 edge_cutoff,
-                cval
+                cval,
+                method
                 )
         elif method == 'lowess':
             try:

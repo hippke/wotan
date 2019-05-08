@@ -26,18 +26,20 @@ Available detrending algorithms
 
 - Time-windowed sliders with location estimates:
    - ``biweight`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) using [Tukey's biweight](https://books.google.de/books?id=pGlHAAAAMAAJ)
-   - ``andrewsinewave`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) using [Andrew's sine wave](http://www.jstor.org/stable/j.ctt13x12sw.3)
-   - ``welsch`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) from [Welsch](https://doi.org/10.1080/03610917808812083)-[Leclerc](https://doi.org/10.1007/BF00054839)
    - ``huber`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) from  [Huber (1981)](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y) (iterative)
    - ``huber_psi`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) based on [Huber's ψ](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y) (one-step)
+   - ``hampel`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) based on [Hampel (1972)](https://www.tandfonline.com/doi/abs/10.1080/01621459.1974.10482962), 3-part descending, known as (a,b,c), 17A, 25A
+   - ``andrewsinewave`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) using [Andrew's sine wave](http://www.jstor.org/stable/j.ctt13x12sw.3)
+   - ``welsch`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) from [Welsch](https://doi.org/10.1080/03610917808812083)-[Leclerc](https://doi.org/10.1007/BF00054839)
+   - ``ramsay`` Robust M-estimator from [Ramsay (1977)](https://www.jstor.org/stable/2286228?seq=1#page_scan_tab_contents), known as Ramsay's E<sup>a</sup>
    - ``tau`` Robust τ estimator from [Yohai & Zamar (1986)](https://www.tandfonline.com/doi/abs/10.1080/01621459.1988.10478611)
-   - ``hodges`` Rank-based robust estimator [Hodges-Lehmann](https://doi.org/10.1214/aoms/1177704172)-[Sen](https://doi.org/10.2307/2527532)
+   - ``hodges`` Rank-based robust R-estimator [Hodges-Lehmann](https://doi.org/10.1214/aoms/1177704172)-[Sen](https://doi.org/10.2307/2527532)
    - ``median`` The most robust (but least efficient)
    - ``medfilt`` A cadence-based median filter (*not* time-windowed) for comparison
    - ``mean`` The least robust (but most efficient for white noise)
    - ``trim_mean`` Trimmed mean (outliers are removed)
    - ``winsorize`` Trimmed mean (outliers are [*winsorized*](https://en.wikipedia.org/wiki/Winsorizing) to a specified percentile)
-   - ``hampel`` Trimmed mean (outliers are [replaced](https://link.springer.com/article/10.1186/s13634-016-0383-6) with the median)
+   - ``hampelfilt`` Trimmed mean (outliers are [replaced](https://link.springer.com/article/10.1186/s13634-016-0383-6) with the median)
 - Splines:
    - ``rspline`` Spline with iterative sigma-clipping
    - ``hspline`` Spline with a robust Huber estimator ([Huber 1981](https://books.google.de/books?id=hVbhlwEACAAJ))

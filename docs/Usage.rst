@@ -20,8 +20,11 @@ As follows are usage example for all detrending methods offered by wotan. In all
     flux[300:400] = np.nan
 
 
-Biweight, andrewsinewave, welsch, huber, huber_psi, hampel
--------------------------------------------------------------
+Robust estimators with tuning constant
+--------------------------------------
+
+Some robust estimators can be tuned: ``biweight``, ``andrewsinewave``, ``welsch``, ``huber``, ``huber_psi``, ``hampel``, ``hampelfilt`` 
+
 
 Example usage:
 
@@ -54,22 +57,22 @@ Which we can plot as follows:
 
 .. note::
 
-   For the ``biweight``, a ``cval`` of 6 includes data up to 4 standard deviations (6 median absolute deviations) from the central location and has an efficiency of 98%. Another typical value for the ``biweight`` is 4.685 with 95% efficiency. Larger values for make the estimate more efficient but less robust.
-   The default for the ``biweight`` in wotan is 5, as it has shown the best results in the transit injection retrieval experiment
+   Tuning constants ``cval`` are defined as multiples in units of median absolute deviation from the central location. Defaults are usually chosen to achieve high efficiency for Gaussian distributions. For example, for the ``biweight`` a ``cval`` of 6 includes data up to 4 standard deviations (6 median absolute deviations) from the central location and has an efficiency of 98%. Another typical value for the ``biweight`` is 4.685 with 95% efficiency. Larger values for make the estimate more efficient but less robust. The default for the ``biweight`` in wotan is 5, as it has shown the best results in the transit injection retrieval experiment. The other defaults are from the literature.
 
-
-.. note::
-   For the other estimators, the same logic applies. However, their default values are different, following the standard statistics literature. It is typically set to achieve ~95% efficiency for Gaussian data. Defaults:
-
+   - ``biweight`` 5
    - ``andrewsinewave`` 1.339
    - ``welsch`` 2.11
    - ``huber`` 1.5
    - ``huber_psi`` 1.28
-   - ``hampel`` 3
+   - ``hampel`` 
+   - ``hampelfilt`` 3
+   - ``ramsay`` 0.3
+
+   The ``hampel`` has a 3-part descending function , known also as (a,b,c). Its tuning constant ``cval`` must be given as a tuple of 3 values. Typical values are (1.7, 3.4, 8.5) called "17A"; and (2.5, 4.5, 9.5) called "25A". With values given as multiples of the median absolute deviation, the 25A can be stated equivalently: a' = 1.686, b' = 3.035 c' = 6.408 as multiples of the standard deviation
 
 
-trim_mean, winsorize
---------------------
+Trimmed methods
+---------------
 
 There are 3 methods which first focus on outlier treatment, followed by taking the mean in a second stage: ``trim_mean``, ``winsorize`` and ``hampel``. 
 

@@ -70,3 +70,16 @@ This should print ~0.54 (days), or about 13 hours. To protect a transit that lon
     tdur = t14(R_s=1, M_s=1, P=365, small_planet=True)
     flatten_lc = flatten(time, flux, window_length=3 * tdur)
 
+
+
+Removing outliers after detrending
+--------------------------------------
+
+With robust detrending methods, the trend line (and thus the detrended data) may be unaffected by outliers. In the actual data, however, outliers are still present after detrending. For many purposes, it is acceptable to clip this:
+
+::
+
+    from wotan import t14, flatten
+
+from astropy.stats import sigma_clip
+flux = sigma_clip(flux, sigma_upper=3, sigma_lower=20)

@@ -64,6 +64,28 @@ def location_iter(data, cval, method_code):
 
 
 @jit(fastmath=True, nopython=True, cache=True)
+def tau(x, cval):
+    """Robust estimators of location and scale, with breakdown points of 50%.
+    Also referred to as: Tau measure of location by Yohai and Zamar
+    Source: Yohai and Zamar JASA, vol 83 (1988), pp 406-413 and 
+            Maronna and Zamar Technometrics, vol 44 (2002), pp. 307-317"""
+
+    med = median(x)
+    mad = median(numpy.abs(x - med))
+    zscore = 0.675  # Z-score of the 75th percentile of the normal distribution
+    s = zscore * mad
+    wnom = 0
+    wden = 0
+    for i in range(len(x)):
+        y = (x[i] - med) / s
+        temp = (1 - (y / cval)**2)**2
+        if abs(temp) <= cval:
+            wnom += temp * x[i]
+            wden += temp
+    return wnom / wden
+
+
+@jit(fastmath=True, nopython=True, cache=True)
 def huber_psi(x, cval):
     """One-step M-estimator of location using Huber's psi"""
     med = median(x)
@@ -77,7 +99,7 @@ def huber_psi(x, cval):
 
 
 @jit(fastmath=True, nopython=True, cache=True)
-def hampel(data, cval):
+def hampelfilt(data, cval):
     """Values beyond (cval * mad {=median absolute deviation}) are replaced with the 
     median. Source: Ronald K. Pearson, Moncef Gabbouj (p. 147), "Nonlinear Digital 
     Filtering with Python: An Introduction" recommend cval=3"""

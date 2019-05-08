@@ -202,11 +202,11 @@ def main():
         )
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18121.832133916843, decimal=2)
     
-    print("Detrending 21 (hampel)...")
-    flatten_lc, trend_lc1 = flatten(
+    print("Detrending 21 (hampelfilt)...")
+    flatten_lc, trend_lc5 = flatten(
         time,
         flux,
-        method='hampel',
+        method='hampelfilt',
         window_length=0.5,
         cval=3,
         return_trend=True
@@ -224,7 +224,7 @@ def main():
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.08085676265, decimal=2)
 
     print("Detrending 23 (huber_psi)...")
-    flatten_lc, trend_lc2 = flatten(
+    flatten_lc, trend_lc1 = flatten(
         time,
         flux,
         method='huber_psi',
@@ -233,16 +233,72 @@ def main():
         )
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.122065014355, decimal=2)
 
+    print("Detrending 24 (tau)...")
+    flatten_lc, trend_lc2 = flatten(
+        time,
+        flux,
+        method='tau',
+        window_length=0.5,
+        return_trend=True
+        )
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.02772621119, decimal=2)
+    
+
+    import numpy as np
+    points = 1000
+    time = np.linspace(0, 30, points)
+    flux = 1 + np.sin(time)  / points
+    noise = np.random.normal(0, 0.0001, points)
+    flux += noise
+
+    for i in range(points):  
+        if i % 75 == 0:
+            flux[i:i+5] -= 0.0004  # Add some transits
+            flux[i+50:i+52] += 0.0002  # and flares
+
+
+    print("Detrending 25a (hampel 17A)...")
+    flatten_lc, trend_lc1 = flatten(
+        time,
+        flux,
+        method='hampel',
+        cval=(1.7, 3.4, 8.5),
+        window_length=0.5,
+        return_trend=True
+        )
+
+    print("Detrending 25b (hampel 25A)...")
+    flatten_lc, trend_lc2 = flatten(
+        time,
+        flux,
+        method='hampel',
+        cval=(2.5, 4.5, 9.5),
+        window_length=0.5,
+        return_trend=True
+        )
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 997.9994362858843, decimal=2)
+
+    print("Detrending 26 (ramsay)...")
+    flatten_lc, trend_lc3 = flatten(
+        time,
+        flux,
+        method='ramsay',
+        cval=0.3,
+        window_length=0.5,
+        return_trend=True
+        )
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 997.9974021484584, decimal=2)
+
 
     """
     import matplotlib.pyplot as plt
     plt.scatter(time, flux, s=1, color='black')
-    plt.plot(time, trend_lc1, color='red', linewidth=2)
-    plt.plot(time, trend_lc2, color='blue', linewidth=2, linestyle='dashed')
+    plt.plot(time[:len(trend_lc1)], trend_lc1, color='blue', linewidth=2)
+    plt.plot(time[:len(trend_lc1)], trend_lc2, color='red', linewidth=2, linestyle='dashed')
     plt.show()
     plt.close()
-    plt.scatter(time, flatten_lc, s=1, color='black')
-    plt.show()
+    #plt.scatter(time, flatten_lc, s=1, color='black')
+    #plt.show()
     """
 
 
