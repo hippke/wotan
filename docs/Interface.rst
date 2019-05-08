@@ -79,7 +79,5 @@ With robust detrending methods, the trend line (and thus the detrended data) may
 
 ::
 
-    from wotan import t14, flatten
-
-from astropy.stats import sigma_clip
-flux = sigma_clip(flux, sigma_upper=3, sigma_lower=20)
+    from astropy.stats import sigma_clip
+    flux = sigma_clip(flux, sigma_upper=3, sigma_lower=20)
