@@ -9,7 +9,8 @@ matrix:
       dist: xenial
       sudo: true
 install:
-  - pip install astropy statsmodels sklearn scipy supersmoother untrendy pygam
+  - pip install astropy statsmodels  scipy supersmoother untrendy pygam
+  - pip install sklearn==0.20
 script:
   - python setup.py install
   - python wotan/tests.py

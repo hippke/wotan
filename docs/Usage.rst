@@ -23,7 +23,7 @@ As follows are usage example for all detrending methods offered by wotan. In all
 Robust estimators with tuning constant
 --------------------------------------
 
-Some robust estimators can be tuned: ``biweight``, ``andrewsinewave``, ``welsch``, ``huber``, ``huber_psi``, ``hampel``, ``hampelfilt``. The ``hodges`` can not be tuned.
+Some robust estimators can be tuned: ``biweight``, ``andrewsinewave``, ``welsch``, ``huber``, ``huber_psi``, ``hampel``, ``hampelfilt``, ``tau``. The ``hodges`` can not be tuned.
 
 
 Example usage:
