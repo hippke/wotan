@@ -77,7 +77,7 @@ Trimmed methods
 
 There are 3 methods which first focus on outlier treatment, followed by taking the mean in a second stage: ``trim_mean``, ``winsorize`` and ``hampelfilt``. 
 
-- The ``hampelfilt`` is already discussed in the previous section because its threshold is defined as ``cval`` times the median absolute deviation, beyond which it replaced values with the median.
+- The ``hampelfilt`` was already discussed in the previous section because its threshold is defined as ``cval`` times the median absolute deviation, beyond which it replaces values with the median.
 - The ``trim_mean`` deletes the fraction ``proportiontocut`` from both sides of the distribution.
 - The ``winsorize`` replaces the fraction ``proportiontocut`` from both sides of the distribution with the remaining values at the edges.
 
