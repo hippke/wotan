@@ -50,10 +50,12 @@ def main():
     )
     numpy.testing.assert_almost_equal(numpy.nansum(clipped), 948.9926368754939)
 
+    """
     import matplotlib.pyplot as plt
     plt.scatter(time, flux, s=3, color='black')
     plt.scatter(time, clipped, s=3, color='orange')
     plt.show()
+    """
 
     # TESS test
     print('Loading TESS data from archive.stsci.edu...')

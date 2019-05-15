@@ -72,8 +72,31 @@ This should print ~0.54 (days), or about 13 hours. To protect a transit that lon
 
 
 
-Removing outliers after detrending
---------------------------------------
+Removing outliers before the detrending
+----------------------------------------
+
+Despite robust detrending methods, it is sometimes preferable to remove outliers. Wotan offers a sliding time-windowed function to do this. The user can define an upper and lower threshold, in multiples of the *standard deviation* or the *median absolute deviation*. The middle point in each window can be calculated with the *mean* or the *median*. Outliers are replaced with ``NaN`` values.
+
+.. automodule:: slide_clipper.slide_clip
+
+Example:
+
+::
+
+    from wotan import slide_clip
+    clipped_flux = slide_clip(
+        time,
+        flux,
+        window_length=0.5,
+        low=3,
+        high=2,
+        method='mad',
+        center='median'
+        )
+
+
+Removing outliers after the detrending
+---------------------------------------
 
 With robust detrending methods, the trend line (and thus the detrended data) may be unaffected by outliers. In the actual data, however, outliers are still present after detrending. For many purposes, it is acceptable to clip this:
 
