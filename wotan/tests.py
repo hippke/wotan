@@ -1,5 +1,5 @@
 from __future__ import print_function, division
-from wotan import flatten, t14
+from wotan import flatten, t14, slide_clip
 import numpy
 from astropy.io import fits
 
@@ -26,6 +26,34 @@ def main():
     print("Transit duration correct.")
 
     numpy.random.seed(seed=0)  # reproducibility
+
+    print("Slide clipper...")
+    points = 1000
+    time = numpy.linspace(0, 30, points)
+    flux = 1 + numpy.sin(time)  / points
+    noise = numpy.random.normal(0, 0.0001, points)
+    flux += noise
+
+    for i in range(points):  
+        if i % 75 == 0:
+            flux[i:i+5] -= 0.0004  # Add some transits
+            flux[i+50:i+52] += 0.0002  # and flares
+
+    clipped = slide_clip(
+    time,
+    flux,
+    window_length=0.5,
+    low=3,
+    high=2,
+    method='mad',
+    center='median'
+    )
+    numpy.testing.assert_almost_equal(numpy.nansum(clipped), 948.9926368754939)
+
+    import matplotlib.pyplot as plt
+    plt.scatter(time, flux, s=3, color='black')
+    plt.scatter(time, clipped, s=3, color='orange')
+    plt.show()
 
     # TESS test
     print('Loading TESS data from archive.stsci.edu...')
