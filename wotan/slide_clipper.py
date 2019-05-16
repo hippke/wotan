@@ -48,7 +48,7 @@ def slide_clip(time, data, window_length, low=3, high=3, method=None, center=Non
     -------
 
     clipped : array-like
-        Input array with clipped elements removed.
+        Input array with clipped elements replaced by ``NaN`` values.
     """
 
     if method is None:
