@@ -74,6 +74,6 @@ def slide_clip(time, data, window_length, low=3, high=3, method=None, center=Non
             while time[idx_end] < time[i] + half_window and idx_end < size-1:
                 idx_end += 1
             # Clip the current sliding segment
-            f = data[idx_start:idx_end]
-            clipped_data[idx_start:idx_end] = clipit(f, low, high, method, center)
+            clipped_data[idx_start:idx_end] = clipit(
+                data[idx_start:idx_end], low, high, method, center)
     return clipped_data
