@@ -110,7 +110,20 @@ Attribution
 Please cite [Hippke et al. (2019, XXX)](https://XXX) if you find this code useful in your research. The BibTeX entry for the paper is:
 
 ```
-@ARTICLE{XXX,
+@ARTICLE{2019arXiv190600966H,
+       author = {{Hippke}, Michael and {David}, Trevor J. and {Mulders}, Gijs D. and
+         {Heller}, Ren{\'e}},
+        title = "{Wotan: Comprehensive time-series de-trending in Python}",
+      journal = {arXiv e-prints},
+     keywords = {Astrophysics - Earth and Planetary Astrophysics, Astrophysics - Instrumentation and Methods for Astrophysics},
+         year = "2019",
+        month = "Jun",
+          eid = {arXiv:1906.00966},
+        pages = {arXiv:1906.00966},
+archivePrefix = {arXiv},
+       eprint = {1906.00966},
+ primaryClass = {astro-ph.EP},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2019arXiv190600966H},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 ```
