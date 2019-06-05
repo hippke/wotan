@@ -9,7 +9,7 @@ matrix:
       dist: xenial
       sudo: true
 install:
-  - pip install astropy statsmodels scipy supersmoother untrendy pygam
+  - pip install astropy statsmodels scipy==1.2 supersmoother untrendy pygam
   - pip install scikit-learn==0.20  # later versions don't run on Python 2.7
 script:
   - python setup.py install
