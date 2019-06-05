@@ -31,6 +31,6 @@ setup(
     install_requires=[
         'numpy',
         'numba',
-        'scipy==1.2'
+        'scipy'
         ]
 )
