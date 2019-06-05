@@ -102,7 +102,7 @@ As all scientific work, wōtan is [*standing on the shoulders of giants*](https:
 - Robustified (iterative sigma-clipping) Gaussian processes
 - GP with a periodic kernel informed by a Lomb-Scargle periodogram pre-search
 - Bringing together many methods in one place in a common interface, with sensible defaults
-- Providing documentation, tutorials, and a [paper](www) which compares and benchmarks the methods
+- Providing documentation, tutorials, and a [paper](https://arxiv.org/abs/1906.00966) which compares and benchmarks the methods
 
 
 Attribution
