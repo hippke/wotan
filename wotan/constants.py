@@ -53,7 +53,7 @@ MAXITER_HUBER = 1000
 PROPORTIONTOCUT = 0.1
 
 # Maximum number of sines to be fit for COFIAM
-COFIAM_MAX_SINES = 100
+COFIAM_MAX_SINES = 30
 
 # Lomb-Scargle periodogram frequency search grid size
 LS_FREQS = 10000
