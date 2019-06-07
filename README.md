@@ -44,7 +44,7 @@ Available detrending algorithms
 - Splines:
    - ``rspline`` Spline with iterative sigma-clipping
    - ``hspline`` Spline with a robust Huber estimator ([Huber 1981](https://books.google.de/books?id=hVbhlwEACAAJ))
-   - ``pspline`` Penalized spline to automatically select the knot distance [(Eilers 1996)](https://pdfs.semanticscholar.org/5e3d/4cf7824be321af95ac098595957d8a87bf68.pdf), with iteratively sigma-clipping
+   - ``pspline`` Penalized spline to automatically select the knot distance [(Eilers 1996)](https://pdfs.semanticscholar.org/5e3d/4cf7824be321af95ac098595957d8a87bf68.pdf), with iterative sigma-clipping
 - Polynomials and others:
    - ``lowess`` Locally weighted scatterplot smoothing ([Cleveland 1979](https://doi.org/10.1080/01621459.1979.10481038))
    - ``cofiam`` Cosine Filtering with Autocorrelation Minimization ([Kipping et al. 2013](http://adsabs.harvard.edu/abs/2013ApJ...770..101K))
