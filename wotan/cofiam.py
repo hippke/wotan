@@ -23,7 +23,7 @@ def detrend_cosine(t, y, window_length, robust):
     degree = (int((max(t) - min(t)) / window_length))
     if not robust:
         matrix = matrix_gen(t, degree)
-        trend = np.matmul(matrix, np.linalg.lstsq(matrix, y, rcond=None)[0])
+        trend = np.matmul(matrix, np.linalg.lstsq(matrix, y, rcond=-1)[0])
 
     # robust version: sigma-clip flux from trend and iterate until convergence
     else:
@@ -36,7 +36,7 @@ def detrend_cosine(t, y, window_length, robust):
             # Solution from https://stackoverflow.com/questions/27128688/how-to-use-least-squares-with-weight-matrix
             Aw = matrix * weights[:,np.newaxis]  # if real weights: sqrt
             Bw = y * weights  # if real weights: sqrt
-            trend = np.matmul(matrix, np.linalg.lstsq(Aw, Bw, rcond=None)[0])
+            trend = np.matmul(matrix, np.linalg.lstsq(Aw, Bw, rcond=-1)[0])
             detrended_flux = y / trend
             mask_outliers = np.ma.where(
                 1-detrended_flux > constants.PSPLINES_STDEV_CUT*np.std(detrended_flux))
@@ -57,7 +57,7 @@ def detrend_cofiam(t, y, window_length):
     dw_mask = np.array([True] * len(t))
     for k_m in range(1, degree + 1):
         matrix = matrix_gen(t, degree)
-        trend = np.matmul(matrix, np.linalg.lstsq(matrix, y, rcond=None)[0])
+        trend = np.matmul(matrix, np.linalg.lstsq(matrix, y, rcond=-1)[0])
 
         # Durbin-Watson autocorrelation statistics
         dw_y = y[dw_mask] / trend[dw_mask] - 1
@@ -68,5 +68,5 @@ def detrend_cofiam(t, y, window_length):
             return trend
         dw_previous = dw
     matrix = matrix_gen(t, degree)
-    trend = np.matmul(matrix, np.linalg.lstsq(matrix, y, rcond=None)[0])
+    trend = np.matmul(matrix, np.linalg.lstsq(matrix, y, rcond=-1)[0])
     return trend
