@@ -9,7 +9,7 @@ from scipy.signal import savgol_filter, medfilt
 
 # wotan
 import wotan.constants as constants
-from wotan.cofiam import detrend_cofiam
+from wotan.cofiam import detrend_cofiam, detrend_cosine
 from wotan.gp import make_gp
 from wotan.huber_spline import detrend_huber_spline
 from wotan.slider import running_segment, running_segment_slow
@@ -37,12 +37,13 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         cadences (for cadence-based sliders ``savgol`` and ``medfilt``).
     method : string, default: ``biweight``
         Detrending method. Rime-windowed sliders: ``median``, ``biweight``, ``hodges``,
-        ``tau``, ``welsch``, ``huber``, ``huber_psi``, ``andrewsinewave``, ``mean``, 
+        ``tau``, ``welsch``, ``huber``, ``huber_psi``, ``andrewsinewave``, ``mean``,
         ``hampel``, ``ramsay``, ``trim_mean``, ``hampelfilt``, ``winsorize``. Cadence
         based slider: ``medfilt``. Splines: ``hspline``, ``rspline`, ``pspline``.
         Locally weighted scatterplot smoothing: ``lowess``. Savitzky-Golay filter:
-        ``savgol``. Gaussian processes: ``gp``. Cosine Filtering with Autocorrelation 
-        Minimization: ``cofiam``.  Friedman's Super-Smoother: ``supersmoother``.
+        ``savgol``. Gaussian processes: ``gp``. Cosine Filtering with Autocorrelation
+        Minimization: ``cofiam``.  Cosine fitting: 'cosine', Friedman's Super-Smoother:
+        ``supersmoother``.
     break_tolerance : float, default: window_length/2
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
@@ -75,9 +76,11 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         `periodic_auto`, for which it is determined automatically using a Lomb-Scargle
         periodogram pre-search.
     robust : bool, default: False
-        If `True`, the Gaussian Process kernels `squared_exp` and `matern` will be run
-        iteratively. In each iteration, 2-sigma outliers from the fitted trend will be 
-        clipped until convergence.
+        If `True`, the fitting process will be run iteratively. In each iteration,
+        2-sigma outliers from the fitted trend will be  clipped until convergence.
+        Supported by the Gaussian Process kernels `squared_exp` and `matern`, as well as
+        `cosine` fitting.
+
     return_trend : bool, default: False
         If `True`, the method will return a tuple of two elements
         (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend.
@@ -238,7 +241,11 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
                 ).fit(time_view, flux_view,).predict(time_view)
         elif method == 'cofiam':
             trend_segment = detrend_cofiam(
-                time_view, flux_view, ones(len(time_view)), window_length)
+                time_view, flux_view, window_length)
+
+        elif method == 'cosine':
+            trend_segment = detrend_cosine(
+                time_view, flux_view, window_length, robust)
         elif method == 'savgol':
             if window_length%2 == 0:
                 window_length += 1

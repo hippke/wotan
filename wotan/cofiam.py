@@ -1,81 +1,72 @@
 from __future__ import print_function, division
 from numba import jit
-from scipy.optimize import leastsq
-import numpy
-from numpy import (
-    mean,
-    array,
-    inf,
-    sin,
-    cos,
-    pi,
-    ones,
-    zeros,
-)
+import numpy as np
 import wotan.constants as constants
 
 
 @jit(fastmath=True, nopython=True, cache=True)
-def cofiam_detrend_curve(t, fact, D_max, k_max):
-    ph = 2 * pi * t / D_max
-    detr = ones(len(t)) * fact[0]
-    for k in range(1, k_max + 1):
-        detr += fact[2 * k - 1] * sin(ph * k) + fact[
-            2 * k
-        ] * cos(ph * k)
-    return detr
+def matrix_gen(t, degree):
+    dur = 2 * (np.max(t) - np.min(t))
+    rows = len(t)
+    cols = 2 * (degree + 1)
+    matrix = np.ones(shape=(rows, cols))
+    for x in range(rows):
+        for y in range(1, int(cols / 2)):
+            val = (2 * np.pi * t[x] * y) / dur
+            matrix[x, y * 2] = np.sin(val)
+            matrix[x, y * 2 + 1] = np.cos(val)
+        matrix[x, 1] = t[x]
+    return matrix 
 
 
-def find_detrending_for_region(t, y, ferr, k_max, D_max):
-    def fit_func(fact):
-        return (
-            y - cofiam_detrend_curve(t, fact, D_max, k_max)
-        ) / ferr
+def detrend_cosine(t, y, window_length, robust):
+    degree = (int((max(t) - min(t)) / window_length))
+    if not robust:
+        matrix = matrix_gen(t, degree)
+        trend = np.matmul(matrix, np.linalg.lstsq(matrix, y, rcond=None)[0])
 
-    def out_func(blub):
-        return cofiam_detrend_curve(
-            t, best_param, D_max, k_max
-        )
+    # robust version: sigma-clip flux from trend and iterate until convergence
+    else:
+        weights = np.ones(len(y))
+        no_clip_previous = np.inf
+        converged = False
+        for i in range(constants.PSPLINES_MAXITER):
+            matrix = matrix_gen(t, degree)
+            # Add weights in order to weight down the masked values
+            # Solution from https://stackoverflow.com/questions/27128688/how-to-use-least-squares-with-weight-matrix
+            Aw = matrix * weights[:,np.newaxis]  # if real weights: sqrt
+            Bw = y * weights  # if real weights: sqrt
+            trend = np.matmul(matrix, np.linalg.lstsq(Aw, Bw, rcond=None)[0])
+            detrended_flux = y / trend
+            mask_outliers = np.ma.where(
+                1-detrended_flux > constants.PSPLINES_STDEV_CUT*np.std(detrended_flux))
+            weights[mask_outliers] = 1e-10
+            print('Iteration:', i + 1, 'Rejected outliers (total):', len(mask_outliers[0]))
+            if no_clip_previous == len(mask_outliers[0]):
+                converged = True
+            no_clip_previous = len(mask_outliers[0])
+            if converged:
+                print('Converged.')
+                break
+    return trend
 
-    x0 = zeros(2 * k_max + 1)
-    x0[0] = mean(y)
-    best_param, param_fit_status = leastsq(
-        fit_func, x0, ftol=constants.FTOL
-    )
-    result = cofiam_detrend_curve(
-        t, best_param, D_max, k_max
-    )
-    return out_func
 
-
-def detrend_cofiam(t, y, ferr, window_length):
-    D_max = 2 * (max(t) - min(t))
-    k_max = max(
-        1,
-        min(
-            constants.COFIAM_MAX_SINES,
-            int(D_max / window_length),
-        ),
-    )
-    dw_previous = inf
-    dw_mask = array([True] * len(t))
-    for k_m in range(1, k_max + 1):
-        detrend_func_temp = find_detrending_for_region(
-            t, y, ferr, k_m, D_max
-        )
-        trend = detrend_func_temp(t)
+def detrend_cofiam(t, y, window_length):
+    degree = (int((max(t) - min(t)) / window_length))
+    dw_previous = np.inf
+    dw_mask = np.array([True] * len(t))
+    for k_m in range(1, degree + 1):
+        matrix = matrix_gen(t, degree)
+        trend = np.matmul(matrix, np.linalg.lstsq(matrix, y, rcond=None)[0])
 
         # Durbin-Watson autocorrelation statistics
         dw_y = y[dw_mask] / trend[dw_mask] - 1
-        dw = numpy.abs(
-            numpy.sum((dw_y[1:] - dw_y[:-1]) ** 2)
-            / (numpy.sum(dw_y ** 2))
-            - 2
-        )
+        dw = np.abs(np.sum((dw_y[1:] - dw_y[:-1]) ** 2) / (np.sum(dw_y ** 2)) - 2)
 
         # If Durbin-Watson *increased* this round: Previous was the best
         if dw > dw_previous:
             return trend
-        detrend_func = detrend_func_temp
         dw_previous = dw
-    return detrend_func(t)
+    matrix = matrix_gen(t, degree)
+    trend = np.matmul(matrix, np.linalg.lstsq(matrix, y, rcond=None)[0])
+    return trend

@@ -215,7 +215,25 @@ Cosine Filtering with Autocorrelation Minimization. Does not provide ``edge_cuto
         time,                 # Array of time values
         flux,                 # Array of flux values
         method='cofiam',
-        window_length=0.5,    # The knot distance in units of ``time``
+        window_length=0.5,    # Protected window span in units of ``time``
+        break_tolerance=0.5,  # Split into segments at breaks longer than that
+        return_trend=True,    # Return trend and flattened light curve
+        )
+
+
+Fitting of sines and cosines
+----------------------------
+
+Fits a sum of sines and cosines, where the highest order is determined by the protected window span ``window_length`` in units of ``time``. A robustification (iterative sigma-clipping of 2-sigma outliers until convergence) is available by setting the parameter ``robust=True``. Example usage:
+
+::
+
+    flatten_lc, trend_lc = flatten(
+        time,                 # Array of time values
+        flux,                 # Array of flux values
+        method='cosine',
+        robust='True',        # iterative sigma-clipping of 2-sigma outliers until convergence
+        window_length=0.5,    # Protected window span in units of ``time``
         break_tolerance=0.5,  # Split into segments at breaks longer than that
         return_trend=True,    # Return trend and flattened light curve
         )

@@ -25,7 +25,8 @@ methods = [
     "huber_psi",
     "hampel",
     "tau",
-    "ramsay"
+    "ramsay",
+    "cosine"
 ]
 
 # astrophysical constants
@@ -52,12 +53,8 @@ MAXITER_HUBER = 1000
 # ``trim_mean`` (or ``winsorize``)
 PROPORTIONTOCUT = 0.1
 
-# Maximum number of sines to be fit for COFIAM
-COFIAM_MAX_SINES = 30
-
 # Lomb-Scargle periodogram frequency search grid size
 LS_FREQS = 10000
-
 
 # SuperSmoother span constants
 # Similar to 
