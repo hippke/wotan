@@ -16,7 +16,7 @@ def matrix_gen(t, degree):
             matrix[x, y * 2] = np.sin(val)
             matrix[x, y * 2 + 1] = np.cos(val)
         matrix[x, 1] = t[x]
-    return matrix 
+    return matrix
 
 
 def detrend_cosine(t, y, window_length, robust):

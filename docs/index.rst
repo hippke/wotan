@@ -10,4 +10,4 @@ The documentation for: Wotan
    Usage
    Submit an issue <https://github.com/hippke/wotan/issues>
    Source at Github <https://github.com/hippke/wotan>
-   Read the paper <https://arxiv.org/abs/XXXX.XXXXX>
+   Read the paper <https://arxiv.org/abs/1906.00966>
