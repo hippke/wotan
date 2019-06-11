@@ -4,7 +4,7 @@ from light curves for exoplanet transit detection.
 
 from __future__ import print_function, division
 import numpy
-from numpy import array, isnan, float32, append, full, where, nan, ones, inf, median
+from numpy import array, isnan, float64, append, full, where, nan, ones, inf, median
 from scipy.signal import savgol_filter, medfilt
 
 # wotan
@@ -171,8 +171,8 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     # Therefore, we make new time-flux arrays with only the floating point values
     # All calculations are done within these arrays
     # Afterwards, the trend is transplanted into the original arrays (with the NaNs)
-    time = array(time, dtype=float32)
-    flux = array(flux, dtype=float32)
+    time = array(time, dtype=float64)
+    flux = array(flux, dtype=float64)
     mask = isnan(time * flux)
     time_compressed = numpy.ma.compressed(numpy.ma.masked_array(time, mask))
     flux_compressed = numpy.ma.compressed(numpy.ma.masked_array(flux, mask))
