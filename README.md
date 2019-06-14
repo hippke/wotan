@@ -52,6 +52,7 @@ Available detrending algorithms
 - Regressions:
    - ``lowess`` Locally weighted scatterplot smoothing ([Cleveland 1979](https://doi.org/10.1080/01621459.1979.10481038))
    - ``supersmoother`` [Friedman's (1984)](https://www.slac.stanford.edu/pubs/slacpubs/3250/slac-pub-3477.pdf) Super-Smoother, a local linear regression with adaptive bandwidth
+   Fitting a model that is a sum of Gaussian bases:
    - ``ridge`` Ridge regression (L2 loss, [Tikhonov regularization](https://en.wikipedia.org/wiki/Tikhonov_regularization)) on a sum of Gaussian bases
    - ``lasso`` LASSO regression 
    (L1 loss, [Least Absolute Shrinkage Selector Operator](https://en.wikipedia.org/wiki/Lasso_(statistics)), [Tibshirani (1996)](https://www.jstor.org/stable/2346178?seq=1#page_scan_tab_contents)) on a sum of Gaussian bases
