@@ -26,7 +26,10 @@ methods = [
     "hampel",
     "tau",
     "ramsay",
-    "cosine"
+    "cosine",
+    "ridge",
+    "lasso",
+    "elasticnet"
 ]
 
 # astrophysical constants
