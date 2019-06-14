@@ -338,6 +338,35 @@ def main():
         )
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 997.9974021484584, decimal=2)
 
+    print("Detrending 29 (ridge)...")
+    flatten_lc, trend_lc1 = flatten(
+        time,
+        flux,
+        window_length=0.5,
+        method='ridge',
+        return_trend=True,
+        cval=1)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 999.9999958887022, decimal=1)
+
+    print("Detrending 30 (lasso)...")
+    flatten_lc, trend_lc2 = flatten(
+        time,
+        flux,
+        window_length=0.5,
+        method='lasso',
+        return_trend=True,
+        cval=1)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 999.9999894829843, decimal=1)
+
+    print("Detrending 31 (elasticnet)...")
+    flatten_lc, trend_lc3 = flatten(
+        time,
+        flux,
+        window_length=0.5,
+        method='elasticnet',
+        return_trend=True,
+        cval=1)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 999.9999945063338, decimal=1)
 
     """
     import matplotlib.pyplot as plt
@@ -349,7 +378,6 @@ def main():
     #plt.scatter(time, flatten_lc, s=1, color='black')
     #plt.show()
     """
-
 
     print('All tests completed.')
 
