@@ -17,6 +17,7 @@ from wotan.gaps import get_gaps_indexes
 from wotan.t14 import t14
 from wotan.pspline import pspline
 from wotan.iter_spline import iter_spline
+from wotan.regression import regression
 
 
 def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
@@ -43,7 +44,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         Locally weighted scatterplot smoothing: ``lowess``. Savitzky-Golay filter:
         ``savgol``. Gaussian processes: ``gp``. Cosine Filtering with Autocorrelation
         Minimization: ``cofiam``.  Cosine fitting: 'cosine', Friedman's Super-Smoother:
-        ``supersmoother``.
+        ``supersmoother``. Gaussian regressions: ``ridge", ``lasso``, ``elasticnet``.
     break_tolerance : float, default: window_length/2
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
@@ -149,6 +150,8 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval = 0.3
         elif method == 'savgol':  # polyorder
             cval = 2  # int
+        elif method in 'ridge lasso elasticnet':
+            cval = 1
         else:
             cval = 0  # avoid numba type inference error: None type multi with float
 
@@ -268,6 +271,8 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         elif method == 'pspline':
             print('Segment', i + 1, 'of', len(gaps_indexes) - 1)
             trend_segment = pspline(time_view, flux_view)
+        elif method in "ridge lasso elasticnet":
+            trend_segment = regression(time_view, flux_view, method, window_length, cval)
 
         trend_flux = append(trend_flux, trend_segment)
 
