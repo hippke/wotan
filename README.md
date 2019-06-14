@@ -45,12 +45,21 @@ Available detrending algorithms
    - ``rspline`` Spline with iterative sigma-clipping
    - ``hspline`` Spline with a robust Huber estimator ([Huber 1981](https://books.google.de/books?id=hVbhlwEACAAJ))
    - ``pspline`` Penalized spline to automatically select the knot distance [(Eilers 1996)](https://pdfs.semanticscholar.org/5e3d/4cf7824be321af95ac098595957d8a87bf68.pdf), with iterative sigma-clipping
-- Polynomials and others:
-   - ``lowess`` Locally weighted scatterplot smoothing ([Cleveland 1979](https://doi.org/10.1080/01621459.1979.10481038))
+- Polynomials and sines:
    - ``cofiam`` Cosine Filtering with Autocorrelation Minimization ([Kipping et al. 2013](http://adsabs.harvard.edu/abs/2013ApJ...770..101K))
    - ``cosine`` Sum of sines and cosines, with option for iterative sigma-clipping
    - ``savgol`` Sliding segments are fit with polynomials ([Savitzky & Golay 1964](https://ui.adsabs.harvard.edu/#abs/1964AnaCh..36.1627S)), cadence-based
+- Regressions:
+   - ``lowess`` Locally weighted scatterplot smoothing ([Cleveland 1979](https://doi.org/10.1080/01621459.1979.10481038))
    - ``supersmoother`` [Friedman's (1984)](https://www.slac.stanford.edu/pubs/slacpubs/3250/slac-pub-3477.pdf) Super-Smoother, a local linear regression with adaptive bandwidth
+   - ``ridge`` Ridge regression (L2 loss, [Tikhonov regularization](https://en.wikipedia.org/wiki/Tikhonov_regularization)) on a sum of Gaussian bases
+   - ``lasso`` LASSO regression 
+   (L1 loss, [Least Absolute Shrinkage Selector Operator]https://en.wikipedia.org/wiki/Lasso_(statistics), [Tibshirani (1996)](https://www.jstor.org/stable/2346178?seq=1#page_scan_tab_contents)) on a sum of Gaussian bases
+   - ``elasticnet`` [Linear regression model](https://en.wikipedia.org/wiki/Elastic_net_regularization) trained with 50% L1 and 50% L2 norm regularization on a sum of Gaussian bases
+   
+   
+
+
 - ``gp`` Gaussian Processes offering:
    - ``squared_exp`` Squared-exponential kernel, with option for iterative sigma-clipping
    - ``matern`` Matern 3/2 kernel, with option for iterative sigma-clipping
