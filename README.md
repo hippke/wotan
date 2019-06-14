@@ -54,12 +54,8 @@ Available detrending algorithms
    - ``supersmoother`` [Friedman's (1984)](https://www.slac.stanford.edu/pubs/slacpubs/3250/slac-pub-3477.pdf) Super-Smoother, a local linear regression with adaptive bandwidth
    - ``ridge`` Ridge regression (L2 loss, [Tikhonov regularization](https://en.wikipedia.org/wiki/Tikhonov_regularization)) on a sum of Gaussian bases
    - ``lasso`` LASSO regression 
-   (L1 loss, [Least Absolute Shrinkage Selector Operator]https://en.wikipedia.org/wiki/Lasso_(statistics), [Tibshirani (1996)](https://www.jstor.org/stable/2346178?seq=1#page_scan_tab_contents)) on a sum of Gaussian bases
+   (L1 loss, [Least Absolute Shrinkage Selector Operator](https://en.wikipedia.org/wiki/Lasso_(statistics)), [Tibshirani (1996)](https://www.jstor.org/stable/2346178?seq=1#page_scan_tab_contents)) on a sum of Gaussian bases
    - ``elasticnet`` [Linear regression model](https://en.wikipedia.org/wiki/Elastic_net_regularization) trained with 50% L1 and 50% L2 norm regularization on a sum of Gaussian bases
-   
-   
-
-
 - ``gp`` Gaussian Processes offering:
    - ``squared_exp`` Squared-exponential kernel, with option for iterative sigma-clipping
    - ``matern`` Matern 3/2 kernel, with option for iterative sigma-clipping
