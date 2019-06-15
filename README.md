@@ -57,7 +57,7 @@ Available detrending algorithms
    - ``ridge`` Ridge regression (L2 loss, [Tikhonov regularization](https://en.wikipedia.org/wiki/Tikhonov_regularization))
    - ``lasso`` LASSO regression 
    (L1 loss, [Least Absolute Shrinkage Selector Operator](https://en.wikipedia.org/wiki/Lasso_(statistics)), [Tibshirani (1996)](https://www.jstor.org/stable/2346178?seq=1#page_scan_tab_contents))
-   - ``elasticnet`` [Linear regression model](https://en.wikipedia.org/wiki/Elastic_net_regularization) trained with 50% L1 and 50% L2 norm regularization
+   - ``elasticnet`` [Linear regression model](https://en.wikipedia.org/wiki/Elastic_net_regularization) with 50% L1 and 50% L2 norm regularization
 - ``gp`` Gaussian Processes offering:
    - ``squared_exp`` Squared-exponential kernel, with option for iterative sigma-clipping
    - ``matern`` Matern 3/2 kernel, with option for iterative sigma-clipping
