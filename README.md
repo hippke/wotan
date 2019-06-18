@@ -27,7 +27,7 @@ Available detrending algorithms
 ---------------------------------
 
 - Time-windowed sliders with location estimates:
-   - ``biweight`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) using [Tukey's biweight](https://books.google.de/books?id=pGlHAAAAMAAJ) [(📑Example)](https://wotan.readthedocs.io/en/latest/Usage.html)
+   - ``biweight`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) using [Tukey's biweight](https://books.google.de/books?id=pGlHAAAAMAAJ) [(📑Example)](https://github.com/hippke/wotan/blob/master/examples/biweight.ipynb)
    - ``huber`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) from  [Huber (1981)](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y) (iterative) [📑](https://github.com/hippke/wotan/blob/master/examples/biweight.ipynb)
    - ``huber_psi`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) based on [Huber's ψ](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y) (one-step)
    - ``hampel`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) based on [Hampel (1972)](https://www.tandfonline.com/doi/abs/10.1080/01621459.1974.10482962), 3-part descending, known as (a,b,c), 17A, 25A
