@@ -20,7 +20,7 @@ from wotan import flatten
 flatten_lc, trend_lc = flatten(time, flux, window_length=0.5, method='biweight', return_trend=True)
 ```
 
-For more details, have a look at the [interactive playground](https://colab.research.google.com/github/hippke/wotan/blob/master/tutorials/interactive.ipynb#scrollTo=spnftwRjefhQ), the [documentation](https://wotan.readthedocs.io) and [tutorials](https://github.com/hippke/wotan/tree/master/tutorials).
+For more details, have a look at the [interactive playground](https://colab.research.google.com/github/hippke/wotan/blob/master/tutorials/interactive.ipynb#scrollTo=spnftwRjefhQ), the [documentation](https://wotan.readthedocs.io) and [tutorials](https://github.com/hippke/wotan/tree/master/tutorials). We also have an easy example (symbol: 📑) for each method listed below.
 
 Available detrending algorithms
 ---------------------------------
