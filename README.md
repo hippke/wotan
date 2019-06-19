@@ -21,14 +21,14 @@ flatten_lc, trend_lc = flatten(time, flux, window_length=0.5, method='biweight',
 ```
 
 For more details, have a look at the [interactive playground](https://colab.research.google.com/github/hippke/wotan/blob/master/tutorials/interactive.ipynb#scrollTo=spnftwRjefhQ), the [documentation](https://wotan.readthedocs.io) and [tutorials](https://github.com/hippke/wotan/tree/master/tutorials).
-We also have an example (symbol: 📑) for each method listed below.
+We also have an example (symbol: 📑) for many method listed below.
 
 Available detrending algorithms
 ---------------------------------
 
 - Time-windowed sliders with location estimates:
    - ``biweight`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) using [Tukey's biweight](https://books.google.de/books?id=pGlHAAAAMAAJ) [(📑Example)](https://github.com/hippke/wotan/blob/master/examples/biweight.ipynb)
-   - ``huber`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) from  [Huber (1981)](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y) (iterative) [📑](https://github.com/hippke/wotan/blob/master/examples/biweight.ipynb)
+   - ``huber`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) from  [Huber (1981)](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y) (iterative)(https://github.com/hippke/wotan/blob/master/examples/biweight.ipynb)
    - ``huber_psi`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) based on [Huber's ψ](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y) (one-step)
    - ``hampel`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) based on [Hampel (1972)](https://www.tandfonline.com/doi/abs/10.1080/01621459.1974.10482962), 3-part descending, known as (a,b,c), 17A, 25A
    - ``andrewsinewave`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) using [Andrew's sine wave](http://www.jstor.org/stable/j.ctt13x12sw.3)
