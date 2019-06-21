@@ -42,7 +42,7 @@ Available detrending algorithms
    - ``trim_mean`` Trimmed mean (outliers are removed)
    - ``winsorize`` Trimmed mean (outliers are [*winsorized*](https://en.wikipedia.org/wiki/Winsorizing) to a specified percentile)
    - ``hampelfilt`` Trimmed mean (outliers are [replaced](https://link.springer.com/article/10.1186/s13634-016-0383-6) with the median)
-- Splines:
+- Splines: [(📑Example)](https://github.com/hippke/wotan/blob/master/examples/splines.ipynb)
    - ``rspline`` Spline with iterative sigma-clipping
    - ``hspline`` Spline with a robust Huber estimator ([Huber 1981](https://books.google.de/books?id=hVbhlwEACAAJ))
    - ``pspline`` Penalized spline to automatically select the knot distance [(Eilers 1996)](https://pdfs.semanticscholar.org/5e3d/4cf7824be321af95ac098595957d8a87bf68.pdf), with iterative sigma-clipping
