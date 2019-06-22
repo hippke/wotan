@@ -50,11 +50,11 @@ Available detrending algorithms
    - ``cofiam`` Cosine Filtering with Autocorrelation Minimization ([Kipping et al. 2013](http://adsabs.harvard.edu/abs/2013ApJ...770..101K))
    - ``cosine`` Sum of sines and cosines, with option for iterative sigma-clipping
    - ``savgol`` Sliding segments are fit with polynomials ([Savitzky & Golay 1964](https://ui.adsabs.harvard.edu/#abs/1964AnaCh..36.1627S)), cadence-based
-- Regressions: [(📑Example)](https://github.com/hippke/wotan/blob/master/examples/regressions.ipynb)
+- Regressions: [(📑Example)](https://github.com/hippke/wotan/blob/master/examples/regressions_lowess_supersmoother.ipynb)
    - ``lowess`` Locally weighted scatterplot smoothing ([Cleveland 1979](https://doi.org/10.1080/01621459.1979.10481038))
    - ``supersmoother`` [Friedman's (1984)](https://www.slac.stanford.edu/pubs/slacpubs/3250/slac-pub-3477.pdf) Super-Smoother, a local linear regression with adaptive bandwidth
 
-   Fitting a model that is a sum of Gaussian bases:
+   Fitting a model that is a sum of Gaussian bases: [(📑Example)](https://github.com/hippke/wotan/blob/master/examples/regressions_ridge_lasso_elasticnet.ipynb)
    - ``ridge`` Ridge regression (L2 loss, [Tikhonov regularization](https://en.wikipedia.org/wiki/Tikhonov_regularization))
    - ``lasso`` LASSO regression 
    (L1 loss, [Least Absolute Shrinkage Selector Operator](https://en.wikipedia.org/wiki/Lasso_(statistics)), [Tibshirani (1996)](https://www.jstor.org/stable/2346178?seq=1#page_scan_tab_contents))
