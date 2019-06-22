@@ -21,12 +21,12 @@ flatten_lc, trend_lc = flatten(time, flux, window_length=0.5, method='biweight',
 ```
 
 For more details, have a look at the [interactive playground](https://colab.research.google.com/github/hippke/wotan/blob/master/tutorials/interactive.ipynb#scrollTo=spnftwRjefhQ), the [documentation](https://wotan.readthedocs.io) and [tutorials](https://github.com/hippke/wotan/tree/master/tutorials).
-We also have an example (symbol: 📑) for many method listed below.
+We also have examples available, such as the [📑Example: Basic wotan functionality](https://github.com/hippke/wotan/blob/master/tutorials/01%20Basic%20functionality.ipynb)
 
 Available detrending algorithms
 ---------------------------------
 
-- Time-windowed sliders with location estimates:
+- Time-windowed sliders with location estimates: [(📑Example: Comparison of sliders)](https://github.com/hippke/wotan/blob/master/tutorials/02%20Sliders.ipynb)
    - ``biweight`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) using [Tukey's biweight](https://books.google.de/books?id=pGlHAAAAMAAJ) [(📑Example)](https://github.com/hippke/wotan/blob/master/examples/biweight.ipynb)
    - ``huber`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) from  [Huber (1981)](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y) (iterative)(https://github.com/hippke/wotan/blob/master/examples/biweight.ipynb)
    - ``huber_psi`` Robust [M-estimator](https://en.wikipedia.org/wiki/M-estimator) based on [Huber's ψ](https://books.google.de/books/about/Robust_Statistics.html?id=hVbhlwEACAAJ&redir_esc=y) (one-step)
@@ -59,7 +59,7 @@ Available detrending algorithms
    - ``lasso`` LASSO regression 
    (L1 loss, [Least Absolute Shrinkage Selector Operator](https://en.wikipedia.org/wiki/Lasso_(statistics)), [Tibshirani (1996)](https://www.jstor.org/stable/2346178?seq=1#page_scan_tab_contents))
    - ``elasticnet`` [Linear regression model](https://en.wikipedia.org/wiki/Elastic_net_regularization) with 50% L1 and 50% L2 norm regularization
-- ``gp`` Gaussian Processes offering:
+- ``gp`` Gaussian Processes offering: [(📑Example: GP Standard vs. robust)](https://github.com/hippke/wotan/blob/master/tutorials/03%20GPs%20-%20standard%20versus%20robust.ipynb), [(📑Example: GP periodic)](https://github.com/hippke/wotan/blob/master/tutorials/04%20GPs%20periodic.ipynb), 
    - ``squared_exp`` Squared-exponential kernel, with option for iterative sigma-clipping
    - ``matern`` Matern 3/2 kernel, with option for iterative sigma-clipping
    - ``periodic`` Periodic kernel informed by a user-specified period
