@@ -43,8 +43,8 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         based slider: ``medfilt``. Splines: ``hspline``, ``rspline`, ``pspline``.
         Locally weighted scatterplot smoothing: ``lowess``. Savitzky-Golay filter:
         ``savgol``. Gaussian processes: ``gp``. Cosine Filtering with Autocorrelation
-        Minimization: ``cofiam``.  Cosine fitting: 'cosine', Friedman's Super-Smoother:
-        ``supersmoother``. Gaussian regressions: ``ridge", ``lasso``, ``elasticnet``.
+        Minimization: ``cofiam``.  Cosine fitting: ``cosine``, Friedman's Super-Smoother:
+        ``supersmoother``. Gaussian regressions: ``ridge``, ``lasso``, ``elasticnet``.
     break_tolerance : float, default: window_length/2
         If there are large gaps in time (larger than ``window_length``/2), flatten will
         split the flux into several sub-lightcurves and apply the filter to each
