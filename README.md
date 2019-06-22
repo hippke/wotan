@@ -46,7 +46,7 @@ Available detrending algorithms
    - ``rspline`` Spline with iterative sigma-clipping
    - ``hspline`` Spline with a robust Huber estimator ([Huber 1981](https://books.google.de/books?id=hVbhlwEACAAJ))
    - ``pspline`` Penalized spline to automatically select the knot distance [(Eilers 1996)](https://pdfs.semanticscholar.org/5e3d/4cf7824be321af95ac098595957d8a87bf68.pdf), with iterative sigma-clipping
-- Polynomials and sines:
+- Polynomials and sines: [(📑Example)](https://github.com/hippke/wotan/blob/master/examples/polynomials_sines_cofiam_cosine_savgol.ipynb)
    - ``cofiam`` Cosine Filtering with Autocorrelation Minimization ([Kipping et al. 2013](http://adsabs.harvard.edu/abs/2013ApJ...770..101K))
    - ``cosine`` Sum of sines and cosines, with option for iterative sigma-clipping
    - ``savgol`` Sliding segments are fit with polynomials ([Savitzky & Golay 1964](https://ui.adsabs.harvard.edu/#abs/1964AnaCh..36.1627S)), cadence-based
