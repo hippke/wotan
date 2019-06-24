@@ -59,7 +59,7 @@ Available detrending algorithms
    - ``lasso`` LASSO regression 
    (L1 loss, [Least Absolute Shrinkage Selector Operator](https://en.wikipedia.org/wiki/Lasso_(statistics)), [Tibshirani (1996)](https://www.jstor.org/stable/2346178?seq=1#page_scan_tab_contents))
    - ``elasticnet`` [Linear regression model](https://en.wikipedia.org/wiki/Elastic_net_regularization) with 50% L1 and 50% L2 norm regularization
-- ``gp`` Gaussian Processes offering: [(📑Example: GP Standard vs. robust)](https://github.com/hippke/wotan/blob/master/tutorials/03%20GPs%20-%20standard%20versus%20robust.ipynb), 
+- ``gp`` Gaussian Processes offering: [(📑Example: GP Standard vs. robust)](https://github.com/hippke/wotan/blob/master/tutorials/03%20GPs%20-%20standard%20versus%20robust.ipynb)
    - ``squared_exp`` Squared-exponential kernel, with option for iterative sigma-clipping
    - ``matern`` Matern 3/2 kernel, with option for iterative sigma-clipping
    - ``periodic`` Periodic kernel informed by a user-specified period [(📑Example)](https://github.com/hippke/wotan/blob/master/tutorials/04%20GPs%20periodic.ipynb)
