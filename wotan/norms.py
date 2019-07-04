@@ -62,7 +62,10 @@ class Hampel(RobustNorm):
         return v
 
 
-def estimate_location(a, norm, maxiter=30, tol=1e-06):
+
+
+
+def estimate_location(data, norm, maxiter=30, tol=1e-6):
 
     if norm == "huber":
         norm = HuberT()
@@ -70,18 +73,106 @@ def estimate_location(a, norm, maxiter=30, tol=1e-06):
         norm = RamsayE()
     elif norm == "hampel":
         norm = Hampel()
-    location = np.median(a)  # Initial guess
-    print(location)
+    location = np.median(data)  # Initial guess
+    #print(location)
 
     for iter in range(maxiter):
-        W = norm.weights((a - location))
+        W = norm.weights((data - location))
         #print(W)
-        new_location = np.sum(W * a) / np.sum(W)
-        print(iter, new_location)
+        new_location = np.sum(W * data) / np.sum(W)
+        #print(iter, new_location)
         if np.alltrue(np.less(np.fabs(location - new_location), tol)):
             return new_location
         else:
             location = new_location
     # Did not converge
     print(norm, 'Not converged')
-    return np.median(a)
+    return np.median(data)
+
+
+
+def ramsay(data, maxiter=30, tol=1e-6):
+    
+    a = 0.3
+    location = np.median(data)  # Initial guess
+    for iter in range(maxiter):
+        z = data - location
+        W = np.exp(-a * np.fabs(z))
+        new_location = np.sum(W * data) / np.sum(W)
+        #print(iter, new_location)
+        if np.alltrue(np.less(np.fabs(location - new_location), tol)):
+            return new_location
+        else:
+            location = new_location
+    return np.median(data)
+
+
+
+def huber(data, maxiter=30, tol=1e-6):
+    
+    t = 1.5
+    location = np.median(data)  # Initial guess
+    for iter in range(maxiter):
+        z = data - location
+
+        test = np.less_equal(np.fabs(z), t)
+        absz = np.fabs(z)
+        absz[test] = 1
+        absz[absz==0] = 1e-100
+        W = test + (1 - test) * t / absz
+
+        new_location = np.sum(W * data) / np.sum(W)
+        #print(iter, new_location)
+        if np.alltrue(np.less(np.fabs(location - new_location), tol)):
+            return new_location
+        else:
+            location = new_location
+    return np.median(data)
+
+
+def hampel(data, maxiter=30, tol=1e-6):
+    
+    a=1.7
+    b=3.4
+    c=8.5
+
+    location = np.median(data)  # Initial guess
+    for iter in range(maxiter):
+        z = data - location
+
+        fabs = np.fabs(z)
+        fabs[fabs==0] = 1e-100
+        W = (
+            np.less_equal(z, a) + np.less_equal(z, b) * np.greater(z, a) * a / fabs
+            + np.less_equal(z, c) * np.greater(z, b) * a * (c - fabs) / (fabs * (c - b))
+            )
+        W[np.where(np.isnan(W))] = 1
+        
+
+        new_location = np.sum(W * data) / np.sum(W)
+        #print(iter, new_location)
+        if np.alltrue(np.less(np.fabs(location - new_location), tol)):
+            return new_location
+        else:
+            location = new_location
+    return np.median(data)
+
+
+
+
+data = [0, 1, 2, 3, 11, 11.5]
+
+print('ramsay old')
+print(estimate_location(data, norm="ramsay"))
+print('ramsay new')
+print(ramsay(data))
+
+print('huber old')
+print(estimate_location(data, norm="huber"))
+print('huber new')
+print(huber(data))
+
+print('hampel old')
+print(estimate_location(data, norm="hampel"))
+print('hampel new')
+print(hampel(data))

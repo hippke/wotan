@@ -41,7 +41,7 @@ M_sun = 1.989 * 10 ** 30  # mass of the Sun [kg]
 SECONDS_PER_DAY = 86400
 
 # Desired precision of the final location estimate of the `biweight`, `welsch`,
-# and `andrewsinewave`. All other methods use one-step estimates. The iterative
+# and `andrewsinewave`. The iterative
 # algorithm based on Newton-Raphson stops when the change in location becomes
 # smaller than ``FTOL``. Default: `1e-6`, or 1ppm. Higher precision comes at
 # greater computational expense.
