@@ -18,6 +18,7 @@ from wotan.t14 import t14
 from wotan.pspline import pspline
 from wotan.iter_spline import iter_spline
 from wotan.regression import regression
+from wotan.import lowess
 
 
 def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
@@ -209,17 +210,10 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
                 method
                 )
         elif method == 'lowess':
-            try:
-                import statsmodels.api
-            except:
-                raise ImportError('Could not import statsmodels')
-            duration = numpy.max(time_compressed) - numpy.min(time_compressed)
-            trend_segment = statsmodels.api.nonparametric.lowess(
-                endog=flux_view,
-                exog=time_view,
-                frac=window_length / duration,
-                missing='none',
-                return_sorted=False
+            trend_segment = lowess(
+                time_view,
+                flux_view,
+                window_length
                 )
         elif method == 'hspline':
             trend_segment = detrend_huber_spline(
