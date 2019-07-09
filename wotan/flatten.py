@@ -18,7 +18,7 @@ from wotan.t14 import t14
 from wotan.pspline import pspline
 from wotan.iter_spline import iter_spline
 from wotan.regression import regression
-from wotan.import lowess
+from wotan.lowess import lowess
 
 
 def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
