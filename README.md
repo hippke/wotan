@@ -74,6 +74,7 @@ Available features
 - ``edge_cutoff`` Trends near edges are less robust. Depending on the data, it may be beneficial to remove edges.
 - ``cval`` Tuning parameter for the robust estimators (see [documentation](https://wotan.readthedocs.io/en/latest/index.html))
 - ``return_trend`` If `True`, the method will return a tuple of two elements (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend. Otherwise, it will only return ``flattened_flux``.
+- ``transit_mask`` Mask known transits during detrending [(📑Example)](https://github.com/hippke/wotan/blob/master/examples/transit%20mask.ipynb)
 
 
 What method to choose?
