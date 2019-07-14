@@ -1,4 +1,11 @@
-from numpy import isnan, array, inf
+from __future__ import division, print_function
+import numpy as np
+
+
+def transit_mask(t, period, duration, T0):
+    half_period = 0.5 * period
+    with np.errstate(invalid='ignore'):  # ignore NaN values
+        return np.abs((t - T0 + half_period) % period - half_period) < 0.5 * duration
 
 
 def cleaned_array(t, y, dy=None):
@@ -8,8 +15,8 @@ def cleaned_array(t, y, dy=None):
     def isvalid(value):
         valid = False
         if value is not None:
-            if not isnan(value):
-                if value < inf:
+            if not np.isnan(value):
+                if value < np.inf:
                     valid = True
         return valid
 
@@ -37,11 +44,11 @@ def cleaned_array(t, y, dy=None):
                 clean_y.append(y[i])
                 clean_t.append(t[i])
 
-    clean_t = array(clean_t, dtype=float)
-    clean_y = array(clean_y, dtype=float)
+    clean_t = np.array(clean_t, dtype=float)
+    clean_y = np.array(clean_y, dtype=float)
 
     if dy is None:
         return clean_t, clean_y
     else:
-        clean_dy = array(clean_dy, dtype=float)
+        clean_dy = np.array(clean_dy, dtype=float)
         return clean_t, clean_y, clean_dy
