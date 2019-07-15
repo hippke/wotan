@@ -104,3 +104,32 @@ With robust detrending methods, the trend line (and thus the detrended data) may
 
     from astropy.stats import sigma_clip
     flux = sigma_clip(flux, sigma_upper=3, sigma_lower=20)
+
+
+Masking transits during detrending
+---------------------------------------
+
+If transits have already been discovered, it is best practice to mask them while detrending. This way, the in-transit data points can not influence the detrending. Example:
+
+.. automodule:: helpers.transit_mask
+
+Example:
+
+::
+
+from wotan import transit_mask
+mask = transit_mask(
+    t=time_array,
+    period=1.234,
+    duration=0.1,
+    T0=1234.123)
+weights = ~mask  # Use the tilde to invert: give zero weight to in-transit points
+flatten_lc, trend_lc = flatten(
+    time,
+    flux,
+    method='cosine',
+    window_length=0.5,
+    return_trend=True,
+    robust=True,
+    weights=weights
+    )
