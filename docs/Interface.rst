@@ -109,7 +109,11 @@ With robust detrending methods, the trend line (and thus the detrended data) may
 Masking transits during detrending
 ---------------------------------------
 
-If transits have already been discovered, it is best practice to mask them while detrending. This way, the in-transit data points can not influence the detrending. Example:
+If transits have already been discovered, it is best practice to mask them while detrending. This way, the in-transit data points can not influence the detrending. 
+
+The current version only supports the ``cosine`` method. Additional methods are planned for future releases.
+
+Example:
 
 .. automodule:: helpers.transit_mask
 
