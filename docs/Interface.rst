@@ -117,7 +117,7 @@ Example:
 
 ::
 
-    from wotan import transit_mask
+    from wotan import transit_mask, flatten
     mask = transit_mask(
         t=time_array,
         period=1.234,
