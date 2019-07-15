@@ -90,8 +90,8 @@ Example:
         window_length=0.5,
         low=3,
         high=2,
-        method='mad',
-        center='median'
+        method='mad',  # mad or std
+        center='median'  # median or mean
         )
 
 
