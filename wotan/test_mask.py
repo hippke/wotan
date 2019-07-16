@@ -20,7 +20,7 @@ from wotan import flatten, transit_mask
 flatten_lc1, trend_lc1 = flatten(
     time,
     flux,
-    method='cosine',
+    method='lowess',
     window_length=0.4,
     return_trend=True,
     robust=True,
@@ -34,34 +34,51 @@ plt.close()
 plt.scatter(time, flatten_lc1, s=3, color='black')
 plt.show()
 plt.close()
-
+"""
 from transitleastsquares import transitleastsquares
 model = transitleastsquares(time, flatten_lc1)
 results = model.power(period_min=10, n_transits_min=1)
 print('Period', format(results.period, '.5f'), 'd')
 print('Duration (days)', format(results.duration, '.5f'))
 print('T0', results.T0)
-
+"""
+mask = transit_mask(
+    time=time,
+    period=14.77338,
+    duration=0.21060,
+    T0=1336.141095
+    )
+"""
 mask = transit_mask(
     t=time,
     period=results.period,
-    duration=results.duration,
+    duration=2*results.duration,
     T0=results.T0)
-weights = ~mask
-
+print(mask)
+"""
 plt.scatter(time[~mask], flux[~mask], s=3, color='black')
 plt.scatter(time[mask], flux[mask], s=3, color='orange')
 plt.show()
 plt.close()
 
-flatten_lc2, trend_lc2 = flatten(
+flatten_lc1, trend_lc1 = flatten(
     time,
     flux,
     method='cosine',
     window_length=0.4,
     return_trend=True,
     robust=True,
-    weights=weights
+    mask=mask
+    )
+
+flatten_lc2, trend_lc2 = flatten(
+    time,
+    flux,
+    method='lowess',
+    window_length=0.4,
+    return_trend=True,
+    robust=True,
+    mask=mask
     )
 
 plt.scatter(time, flux, s=1, color='black')

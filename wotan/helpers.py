@@ -2,29 +2,10 @@ from __future__ import division, print_function
 import numpy as np
 
 
-def transit_mask(t, period, duration, T0):
-    """Calculates in-transit mask of time array for a given planet ephemeris
-
-    Parameters
-    ----------
-    time : array-like
-        Time values
-    period : float
-        Period of the planet (in units of time)
-    duration : float
-        Transit duration of the planet (in units of time)
-    T0 : float
-        Mid-transit time  (in units of time)
-
-    Returns
-    -------
-    mask : array-like
-        Boolean array of True/False values, where in-transit points are True
-    """
-    
+def transit_mask(time, period, duration, T0):
     half_period = 0.5 * period
     with np.errstate(invalid='ignore'):  # ignore NaN values
-        return np.abs((t - T0 + half_period) % period - half_period) < 0.5 * duration
+        return np.abs((time - T0 + half_period) % period - half_period) < 0.5 * duration
 
 
 def cleaned_array(t, y, dy=None):

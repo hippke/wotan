@@ -19,7 +19,7 @@ def matrix_gen(t, degree):
     return matrix
 
 
-def detrend_cosine(t, y, window_length, robust, weights):
+def detrend_cosine(t, y, window_length, robust, mask):
     degree = (int((max(t) - min(t)) / window_length))
     #if not robust:
     #    constants.PSPLINES_MAXITER = 0
@@ -36,13 +36,13 @@ def detrend_cosine(t, y, window_length, robust, weights):
         matrix = matrix_gen(t, degree)
         # Add weights in order to weight down the masked values
         # Solution from https://stackoverflow.com/questions/27128688/how-to-use-least-squares-with-weight-matrix
-        Aw = matrix * weights[:,np.newaxis]  # if real weights: sqrt
-        Bw = y * weights  # if real weights: sqrt
-        trend = np.matmul(matrix, np.linalg.lstsq(Aw, Bw, rcond=-1)[0])
+        Aw = matrix * mask[:,np.newaxis]  # if real weights: sqrt
+        Bw = y * mask  # if real weights: sqrt
+        trend = np.matmul(matrix, np.linalg.lstsq(Aw, Bw, rcond=None)[0])
         detrended_flux = y / trend
         mask_outliers = np.ma.where(
             1-detrended_flux > constants.PSPLINES_STDEV_CUT*np.std(detrended_flux))
-        weights[mask_outliers] = 1e-10
+        mask[mask_outliers] = 1e-10
         if no_clip_previous == len(mask_outliers[0]):
             converged = True
         no_clip_previous = len(mask_outliers[0])

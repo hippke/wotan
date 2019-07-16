@@ -25,7 +25,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             cval=None, return_trend=False, method='biweight', kernel=None,
             kernel_size=None, kernel_period=None,
             proportiontocut=constants.PROPORTIONTOCUT, robust=False, 
-            weights=None
+            mask=None
             ):
     """
     ``flatten`` removes low frequency trends in time-series data.
@@ -177,15 +177,17 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     # Therefore, we make new time-flux arrays with only the floating point values
     # All calculations are done within these arrays
     # Afterwards, the trend is transplanted into the original arrays (with the NaNs)
-    if weights is None:
-        weights = np.ones(len(time))
+    if mask is None:
+        mask = np.ones(len(time))
+    else:
+        mask = array(~mask, dtype=float64)  # Invert to stay consistent with TLS
     time = array(time, dtype=float64)
     flux = array(flux, dtype=float64)
-    weights = array(weights, dtype=float64)
+    
     mask_nans = isnan(time * flux)
     time_compressed = np.ma.compressed(np.ma.masked_array(time, mask_nans))
     flux_compressed = np.ma.compressed(np.ma.masked_array(flux, mask_nans))
-    weights_compressed = np.ma.compressed(np.ma.masked_array(weights, mask_nans))
+    mask_compressed = np.ma.compressed(np.ma.masked_array(mask, mask_nans))
 
     # Get the indexes of the gaps
     gaps_indexes = get_gaps_indexes(time_compressed, break_tolerance=break_tolerance)
@@ -196,7 +198,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     for i in range(len(gaps_indexes) - 1):
         time_view = time_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         flux_view = flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
-        weights_view = weights_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
+        mask_view = mask_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
         methods = ["biweight", "andrewsinewave", "welsch", "hodges", "median", "mean",
             "trim_mean", "winsorize", "huber_psi", "hampelfilt", "tau"]
         if method in methods:
@@ -220,7 +222,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             trend_segment = lowess(
                 time_view,
                 flux_view,
-                weights_view,
+                mask_view,
                 window_length
                 )
         elif method == 'hspline':
@@ -249,7 +251,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
                 time_view, flux_view, window_length)
         elif method == 'cosine':
             trend_segment = detrend_cosine(
-                time_view, flux_view, window_length, robust, weights_view)
+                time_view, flux_view, window_length, robust, mask_view)
         elif method == 'savgol':
             if window_length%2 == 0:
                 window_length += 1

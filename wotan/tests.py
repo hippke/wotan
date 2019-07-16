@@ -295,9 +295,9 @@ def main():
 
     import numpy as np
     points = 1000
-    time = np.linspace(0, 30, points)
-    flux = 1 + np.sin(time)  / points
-    noise = np.random.normal(0, 0.0001, points)
+    time = numpy.linspace(0, 30, points)
+    flux = 1 + numpy.sin(time)  / points
+    noise = numpy.random.normal(0, 0.0001, points)
     flux += noise
 
     for i in range(points):  
@@ -368,16 +368,56 @@ def main():
         cval=1)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 999.9999945063338, decimal=1)
 
+
+
+    # Test of transit mask
+    print('Testing transit_mask')
+    path = 'https://archive.stsci.edu/hlsps/tess-data-alerts/'
+    filename = 'hlsp_tess-data-alerts_tess_phot_00207081058-s01_tess_v1_lc.fits'
+    time, flux = load_file(path + filename)
+
+    from wotan import transit_mask
+    mask = transit_mask(
+        time=time,
+        period=14.77338,
+        duration=0.21060,
+        T0=1336.141095
+        )
+    numpy.testing.assert_almost_equal(numpy.sum(mask), 302, decimal=1)
+
+    print('Detrending 32 (transit_mask cosine)')
+    flatten_lc1, trend_lc1 = flatten(
+        time,
+        flux,
+        method='cosine',
+        window_length=0.4,
+        return_trend=True,
+        robust=True,
+        mask=mask
+        )
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc1), 18119.281265446625, decimal=1)
+
+    print('Detrending 33 (transit_mask lowess)')
+    flatten_lc2, trend_lc2 = flatten(
+        time,
+        flux,
+        method='lowess',
+        window_length=0.8,
+        return_trend=True,
+        robust=True,
+        mask=mask
+        )
+    print(numpy.nansum(flatten_lc2))
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc2), 18119.30865711536, decimal=1)
     """
     import matplotlib.pyplot as plt
     plt.scatter(time, flux, s=1, color='black')
-    plt.plot(time[:len(trend_lc1)], trend_lc1, color='blue', linewidth=2)
-    plt.plot(time[:len(trend_lc1)], trend_lc2, color='red', linewidth=2, linestyle='dashed')
+    plt.plot(time, trend_lc1, color='blue', linewidth=2)
+    plt.plot(time, trend_lc2, color='red', linewidth=2, linestyle='dashed')
     plt.show()
     plt.close()
-    #plt.scatter(time, flatten_lc, s=1, color='black')
-    #plt.show()
     """
+
 
     print('All tests completed.')
 

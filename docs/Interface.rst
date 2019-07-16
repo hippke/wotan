@@ -111,7 +111,7 @@ Masking transits during detrending
 
 If transits have already been discovered, it is best practice to mask them while detrending. This way, the in-transit data points can not influence the detrending. 
 
-The current version only supports the ``cosine`` method. Additional methods are planned for future releases.
+The current version only supports the ``cosine`` and ``lowess`` methods. Additional methods are planned for future releases.
 
 Example:
 
@@ -123,11 +123,10 @@ Example:
 
     from wotan import transit_mask, flatten
     mask = transit_mask(
-        t=time_array,
+        time=time_array,
         period=1.234,
         duration=0.1,
         T0=1234.123)
-    weights = ~mask  # Use the tilde to invert: give zero weight to in-transit points
     flatten_lc, trend_lc = flatten(
         time,
         flux,
@@ -135,5 +134,5 @@ Example:
         window_length=0.5,
         return_trend=True,
         robust=True,
-        weights=weights
+        mask=mask
         )
