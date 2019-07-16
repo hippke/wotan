@@ -220,6 +220,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             trend_segment = lowess(
                 time_view,
                 flux_view,
+                weights_view,
                 window_length
                 )
         elif method == 'hspline':
