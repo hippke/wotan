@@ -4,7 +4,7 @@ from numba import jit
 
 
 @jit(fastmath=True, nopython=True, cache=True)
-def lowess(x, y, window_length, maxiter=30, ftol=1e-6):
+def lowess(x, y, mask_weights, window_length, maxiter=30, ftol=1e-6):
 
     def calc_x_weights(x, xi, y_weights):
         radius = max(xi - x[0], x[-2] - xi)
@@ -13,11 +13,13 @@ def lowess(x, y, window_length, maxiter=30, ftol=1e-6):
             x_weights = x_weights * y_weights
         return x_weights / np.sum(x_weights)
 
-    def calc_y_weights(y, trend):
+    def calc_y_weights(y, mask_weights, trend):
         diff = np.abs(y - trend)
         diff /= 6 * np.median(diff) + 1e-100  # avoid division by zero if median == 0
         diff[diff > 1] = 1
-        return (1 - diff**2)**2  # bisquare
+        y_weights = (1 - diff**2)**2
+        y_weights[mask_weights == 0] = 0
+        return y_weights  # bisquare
 
     def calc_y_fit(x, y, xi, weights):  # "projection vector" as in statsmodels
         w1 = np.sum(weights * x)  #
@@ -37,7 +39,7 @@ def lowess(x, y, window_length, maxiter=30, ftol=1e-6):
                 right += 1
             x_weights = calc_x_weights(x[left:right], x[i], y_weights[left:right])
             trend[i] = calc_y_fit(x[left:right], y[left:right], x[i], x_weights)
-        y_weights = calc_y_weights(y, trend)
+        y_weights = calc_y_weights(y, mask_weights, trend)
         if np.max(np.abs(y_fit_previous - trend)) < ftol:  # Check convergence
             break
         y_fit_previous = trend
