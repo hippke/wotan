@@ -59,7 +59,7 @@ def main():
 
     # TESS test
     print('Loading TESS data from archive.stsci.edu...')
-    #path = 'https://archive.stsci.edu/hlsps/tess-data-alerts/'
+    path = 'https://archive.stsci.edu/hlsps/tess-data-alerts/'
     #path = 'P:/P/Dok/tess_alarm/'
     filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
     time, flux = load_file(path + filename)
