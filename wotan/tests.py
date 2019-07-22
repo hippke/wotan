@@ -59,12 +59,9 @@ def main():
 
     # TESS test
     print('Loading TESS data from archive.stsci.edu...')
-    path = 'https://archive.stsci.edu/hlsps/tess-data-alerts/'
-    filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
+    #path = 'https://archive.stsci.edu/hlsps/tess-data-alerts/'
     #path = 'P:/P/Dok/tess_alarm/'
-    #filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
-    #filename = 'P:/P/Dok/tess_alarm/hlsp_tess-data-alerts_tess_phot_00077031414-s02_tess_v1_lc.fits'
-    #filename = 'tess2018206045859-s0001-0000000201248411-111-s_llc.fits'
+    filename = "hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits"
     time, flux = load_file(path + filename)
 
     window_length = 0.5
@@ -141,7 +138,7 @@ def main():
         kernel='squared_exp',
         kernel_size=10,
         return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.99958552324, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.9672036416687, decimal=2)
 
     print("Detrending 13 (gp squared_exp robust)...")
     flatten_lc, trend_lc1 = flatten(
@@ -162,7 +159,7 @@ def main():
         kernel='matern',
         kernel_size=10,
         return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1949.0001583058202, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.9672464898367, decimal=2)
 
     print("Detrending 15 (gp periodic)...")
     flatten_lc, trend_lc2 = flatten(
@@ -173,6 +170,7 @@ def main():
         kernel_size=1,
         kernel_period=10,
         return_trend=True)
+
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 1948.9999708985608, decimal=2)
 
     time_synth = numpy.linspace(0, 30, 200)
@@ -220,6 +218,7 @@ def main():
         proportiontocut=0.1,
         return_trend=True)
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.064587196448, decimal=2)
+    
     
     print("Detrending 20 (pspline)...")
     flatten_lc, trend_lc = flatten(
@@ -369,10 +368,8 @@ def main():
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 999.9999945063338, decimal=1)
 
 
-
     # Test of transit mask
     print('Testing transit_mask')
-    path = 'https://archive.stsci.edu/hlsps/tess-data-alerts/'
     filename = 'hlsp_tess-data-alerts_tess_phot_00207081058-s01_tess_v1_lc.fits'
     time, flux = load_file(path + filename)
 
@@ -407,17 +404,36 @@ def main():
         robust=True,
         mask=mask
         )
-    print(numpy.nansum(flatten_lc2))
+    #print(numpy.nansum(flatten_lc2))
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc2), 18119.30865711536, decimal=1)
+
+    print('Detrending 34 (transit_mask GP)')
+    mask = transit_mask(
+        time=time[:2000],
+        period=100,
+        duration=0.3,
+        T0=1327.4
+        )
+    flatten_lc2, trend_lc2 = flatten(
+        time[:2000],
+        flux[:2000],
+        method='gp',
+        kernel='matern',
+        kernel_size=0.8,
+        return_trend=True,
+        robust=True,
+        mask=mask
+        )
+    #print(numpy.nansum(flatten_lc2))
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc2), 1948.9000170463796, decimal=1)
+    
     """
     import matplotlib.pyplot as plt
-    plt.scatter(time, flux, s=1, color='black')
-    plt.plot(time, trend_lc1, color='blue', linewidth=2)
-    plt.plot(time, trend_lc2, color='red', linewidth=2, linestyle='dashed')
+    plt.scatter(time[:2000], flux[:2000], s=1, color='black')
+    plt.plot(time[:2000], trend_lc2, color='red', linewidth=2, linestyle='dashed')
     plt.show()
     plt.close()
     """
-
 
     print('All tests completed.')
 
