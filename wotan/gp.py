@@ -80,10 +80,10 @@ def make_gp(time, flux, mask, kernel, kernel_size, kernel_period, robust):
     if 'periodic' in kernel:
         # Determine most significant period
         if kernel == 'periodic_auto':
-            time_span = numpy.max(time) - numpy.min(time)
-            cadence = numpy.nanmedian(numpy.diff(time))
+            time_span = numpy.max(masked_time) - numpy.min(masked_time)
+            cadence = numpy.nanmedian(numpy.diff(masked_time))
             freqs = numpy.geomspace(1/time_span, 1/cadence, constants.LS_FREQS)
-            pgram = lombscargle(time, flux, freqs)
+            pgram = lombscargle(masked_time, masked_flux, freqs)
             kernel_period = 1 / freqs[numpy.argmax(pgram)] * 2 * numpy.pi
         else:
             if kernel_period is None:
@@ -103,6 +103,6 @@ def make_gp(time, flux, mask, kernel, kernel_size, kernel_period, robust):
         # For additional trends
         use_kernel2 = RBF(kernel_size, kernel_size_bounds)  
         trend_segment = GaussianProcessRegressor(
-            use_kernel + use_kernel2).fit(grid, flux).predict(grid)
+            use_kernel + use_kernel2).fit(grid, masked_flux).predict(time.reshape(-1, 1))
 
     return (trend_segment + offset)
