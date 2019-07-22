@@ -263,6 +263,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             trend_segment = make_gp(
                 time_view,
                 flux_view,
+                mask_view,
                 kernel,
                 kernel_size,
                 kernel_period,
