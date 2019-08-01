@@ -11,11 +11,11 @@ def lowess(x, y, mask, window_length, maxiter=30, ftol=1e-6):
         x_weights = (1 - (np.abs(x - xi) / radius) ** 3) ** 3  # tricube
         if np.any(y_weights):
             x_weights = x_weights * y_weights
-        return x_weights / np.sum(x_weights)
+        return x_weights / np.nansum(x_weights)
 
     def calc_y_weights(y, mask, trend):
         diff = np.abs(y - trend)
-        diff /= 6 * np.median(diff) + 1e-100  # avoid division by zero if median == 0
+        diff /= 6 * np.nanmedian(diff) + 1e-100  # avoid division by zero if median == 0
         diff[diff > 1] = 1
         y_weights = (1 - diff**2)**2
         y_weights[mask == 0] = 0
@@ -24,13 +24,18 @@ def lowess(x, y, mask, window_length, maxiter=30, ftol=1e-6):
     def calc_y_fit(x, y, xi, weights):  # "projection vector" as in statsmodels
         w1 = np.sum(weights * x)  #
         w2 = np.sum(weights * (x - w1)**2)
-        return np.sum(weights * ((1 + (xi - w1) * (x - w1) / w2) * y))
+        if w2 == 0:
+            return np.nan
+        else:
+            return np.sum(weights * ((1 + (xi - w1) * (x - w1) / w2) * y))
 
     points = len(x)
     y_fit_previous = np.ones(points)
     y_weights = np.zeros(points)
     for iter in range(maxiter):
         left = 0
+        if (np.max(x) - np.min(x)) == 0:
+            return np.full(len(x), np.nan)
         right = int((window_length / (np.max(x) - np.min(x))) * points)
         trend = np.zeros(points)
         for i in range(points):

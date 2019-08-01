@@ -35,9 +35,17 @@ def detrend_huber_spline(time, flux, mask, knot_distance):
 
     masked_flux = flux[mask==1]
     masked_time = time[mask==1]
-    duration = np.max(masked_time) - np.min(masked_time)
-    no_knots = int(duration / knot_distance)
-    knots = np.linspace(np.min(masked_time), np.max(masked_time), no_knots)
-    pipeline = make_pipeline(BSplineFeatures(knots), HuberRegressor())
-    trend = pipeline.fit(masked_time[:, np.newaxis], masked_flux)
-    return trend.predict(time[:, None])
+
+    if len(masked_time) == 0:
+        return np.full(len(time), np.nan)
+    else:
+        duration = np.max(masked_time) - np.min(masked_time)
+        no_knots = int(duration / knot_distance)
+        knots = np.linspace(np.min(masked_time), np.max(masked_time), no_knots)
+
+    if len(knots) < 4:
+        return np.full(len(time), np.nan)
+    else:
+        pipeline = make_pipeline(BSplineFeatures(knots), HuberRegressor())
+        trend = pipeline.fit(masked_time[:, np.newaxis], masked_flux)
+        return trend.predict(time[:, None])

@@ -287,7 +287,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     mask_nans = where(~mask_nans)[0]
     for idx in range(len(mask_nans)):
         trend_lc[mask_nans[idx]] = trend_flux[idx]
-
+    trend_lc[trend_lc==0] = np.nan  # avoid division by zero
     flatten_lc = flux / trend_lc
     if return_trend:
         return flatten_lc, trend_lc
