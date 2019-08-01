@@ -229,6 +229,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             trend_segment = detrend_huber_spline(
                 time_view,
                 flux_view,
+                mask_view,
                 knot_distance=window_length)
         elif method == 'supersmoother':
             try:
