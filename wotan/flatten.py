@@ -205,6 +205,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             trend_segment = running_segment(
                 time_view,
                 flux_view,
+                mask_view,
                 window_length,
                 edge_cutoff,
                 cval,
@@ -213,6 +214,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             trend_segment = running_segment_slow(
                 time_view,
                 flux_view,
+                mask_view,
                 window_length,
                 edge_cutoff,
                 cval,
@@ -260,7 +262,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         elif method == 'medfilt':
             trend_segment = medfilt(flux_view, window_length)
         elif method == 'gp':
-            print('Segment', i + 1, 'of', len(gaps_indexes) - 1)
+            #print('Segment', i + 1, 'of', len(gaps_indexes) - 1)
             trend_segment = make_gp(
                 time_view,
                 flux_view,
