@@ -271,8 +271,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
                 robust
                 )
         elif method == 'rspline':
-            print('Segment', i + 1, 'of', len(gaps_indexes) - 1)
-            trend_segment = iter_spline(time_view, flux_view, window_length)
+            trend_segment = iter_spline(time_view, flux_view, mask_view, window_length)
         elif method == 'pspline':
             print('Segment', i + 1, 'of', len(gaps_indexes) - 1)
             trend_segment = pspline(time_view, flux_view)
