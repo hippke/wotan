@@ -1,9 +1,9 @@
 from __future__ import print_function, division
-import numpy
+import numpy as np
 import scipy.interpolate
 
 
-def detrend_huber_spline(time, flux, knot_distance):
+def detrend_huber_spline(time, flux, mask, knot_distance):
     """Robust B-Spline regression with scikit-learn"""
     try:
         from sklearn.base import TransformerMixin
@@ -13,59 +13,31 @@ def detrend_huber_spline(time, flux, knot_distance):
         raise ImportError('Could not import sklearn')
 
     class BSplineFeatures(TransformerMixin):
-        def __init__(self, knots, degree=3, periodic=False):
-            self.bsplines = self.get_bspline_basis(
-                knots, degree, periodic=periodic
-            )
-            self.nsplines = len(self.bsplines)
+        def __init__(self, knots):
+            self.bsplines = self.get_bspline_basis(knots)
 
         def fit(self, X, y=None):
             return self
 
         def transform(self, X):
-            nsamples, nfeatures = X.shape
-            features = numpy.zeros(
-                (nsamples, nfeatures * self.nsplines)
-            )
+            features = np.zeros((len(X), len(self.bsplines)))
             for ispline, spline in enumerate(self.bsplines):
-                istart = ispline * nfeatures
-                iend = (ispline + 1) * nfeatures
-                features[
-                    :, istart:iend
-                ] = scipy.interpolate.splev(X, spline)
+                features[:, ispline:ispline+1] = scipy.interpolate.splev(X, spline)
             return features
 
-        def get_bspline_basis(
-            self, knots, degree=3, periodic=False
-        ):
-            """Get spline coefficients for each basis spline"""
-            knots, coeffs, degree = scipy.interpolate.splrep(
-                knots,
-                numpy.zeros(len(knots)),
-                k=degree,
-                per=periodic,
-            )
-            ncoeffs = len(coeffs)
+        def get_bspline_basis(self, knots):
+            knots, coeffs, degree = scipy.interpolate.splrep(knots, np.zeros(len(knots)))
             bsplines = []
             for ispline in range(len(knots)):
-                coeffs = [
-                    1.0 if ispl == ispline else 0.0
-                    for ispl in range(ncoeffs)
-                ]
+                coeffs = [1 if ispl == ispline else 0 for ispl in range(len(coeffs))]
                 bsplines.append((knots, coeffs, degree))
             return bsplines
 
-    duration = numpy.max(time) - numpy.min(time)
+    masked_flux = flux[mask==1]
+    masked_time = time[mask==1]
+    duration = np.max(masked_time) - np.min(masked_time)
     no_knots = int(duration / knot_distance)
-    knots = numpy.linspace(
-        numpy.min(time), numpy.max(time), no_knots
-    )
-
-    trend = (
-        make_pipeline(
-            BSplineFeatures(knots), HuberRegressor()
-        )
-        .fit(time[:, numpy.newaxis], flux)
-        .predict(time[:, None])
-    )
-    return trend
+    knots = np.linspace(np.min(masked_time), np.max(masked_time), no_knots)
+    pipeline = make_pipeline(BSplineFeatures(knots), HuberRegressor())
+    trend = pipeline.fit(masked_time[:, np.newaxis], masked_flux)
+    return trend.predict(time[:, None])
