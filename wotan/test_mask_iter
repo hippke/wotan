@@ -1,0 +1,84 @@
+from wotan import flatten, t14, slide_clip, transit_mask
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def main():
+    print("Generating synthetic data...")
+
+    points = 1000
+    time = np.linspace(0, 30, points)
+    flux = 1 + np.sin(time)  / points
+    noise = np.random.normal(0, 0.0001, points)
+    flux += noise
+
+    for i in range(points):
+        if i % 75 == 0:
+            flux[i-3:i+3] -= 0.0003  # Add some transits
+            #flux[i+50:i+52] += 0.0002  # and flares
+
+    print("Making mask...")
+    
+    mask = transit_mask(
+        time=time,
+        period=2.25,
+        duration=0.57,
+        T0=0
+        )
+
+    print("Detrending with hspline...")
+    flatten_lc1, trend_lc1 = flatten(
+        time,
+        flux,
+        method='rspline',
+        window_length=0.5,
+        edge_cutoff=0,
+        break_tolerance=0.4,
+        return_trend=True)
+
+    flatten_lc2, trend_lc2 = flatten(
+        time,
+        flux,
+        mask=mask,
+        method='rspline',
+        window_length=0.5,
+        edge_cutoff=0,
+        break_tolerance=0.4,
+        return_trend=True)
+    
+    print("Detrending with biweight...")
+    flatten_lc3, trend_lc3 = flatten(
+        time,
+        flux,
+        method='hampel',
+        window_length=0.5,
+        edge_cutoff=0,
+        break_tolerance=0.4,
+        return_trend=True)
+
+    flatten_lc4, trend_lc4 = flatten(
+        time,
+        flux,
+        mask=mask,
+        method='hampel',
+        window_length=0.5,
+        edge_cutoff=0,
+        break_tolerance=0.4,
+        return_trend=True)
+    
+    print("Plotting...")
+
+    #print(trend_lc4-trend_lc3)
+    #print(trend_lc4)
+
+    plt.scatter(time[mask], flux[mask], s=1, color='orange')
+    plt.scatter(time[~mask], flux[~mask], s=1, color='black')
+    plt.plot(time, trend_lc1, color='red', linewidth=2)
+    plt.plot(time, trend_lc2, color='red', linewidth=2, linestyle='dashed')
+    plt.plot(time, trend_lc3, color='blue', linewidth=2)
+    plt.plot(time, trend_lc4, color='blue', linewidth=2, linestyle='dashed')
+    plt.show()
+    
+
+if __name__ == '__main__':
+    main()
