@@ -117,7 +117,7 @@ As all scientific work, wōtan is [*standing on the shoulders of giants*](https:
 
 Attribution
 ----------------
-Please cite [Hippke et al. (2019)](https://arxiv.org/abs/1906.00966) if you find this code useful in your research. The BibTeX entry for the paper is:
+Please cite [Hippke et al. (2019, AJ in press)](https://arxiv.org/abs/1906.00966) if you find this code useful in your research. The BibTeX entry for the paper is:
 
 ```
 @ARTICLE{2019arXiv190600966H,
