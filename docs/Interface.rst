@@ -111,7 +111,7 @@ Masking transits during detrending
 
 If transits have already been discovered, it is best practice to mask them while detrending. This way, the in-transit data points can not influence the detrending. 
 
-The current version only supports the ``cosine`` and ``lowess`` methods. Additional methods are planned for future releases.
+The current version supports this feature in the ``cosine`` and ``lowess`` methods. It is implemented but experimental in most other methods (give it a try...)
 
 Example:
 
