@@ -65,7 +65,6 @@ def main():
     time, flux = load_file(path + filename)
 
     window_length = 0.5
-    
     print("Detrending 1 (biweight)...")
     flatten_lc, trend_lc = flatten(
         time,
@@ -88,27 +87,27 @@ def main():
 
     print("Detrending 2 (andrewsinewave)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='andrewsinewave', return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.15471987987, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.15456308313, decimal=2)
 
     print("Detrending 3 (welsch)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='welsch', return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.16764691235, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.16770590837, decimal=2)
 
     print("Detrending 4 (hodges)...")
     flatten_lc, trend_lc = flatten(time[:1000], flux[:1000], window_length, method='hodges', return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 994.0110525909206, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 996.0113241694287, decimal=2)
 
     print("Detrending 5 (median)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='median', return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.122065014355, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.12166552401, decimal=2)
 
     print("Detrending 6 (mean)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='mean', return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.032473037714, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.032058753546, decimal=2)
 
     print("Detrending 7 (trim_mean)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='trim_mean', return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.095164910334, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.094751124332, decimal=2)
 
     print("Detrending 8 (supersmoother)...")
     flatten_lc, trend_lc = flatten(time, flux, window_length, method='supersmoother', return_trend=True)
@@ -205,7 +204,7 @@ def main():
         edge_cutoff=0,
         break_tolerance=0.4,
         return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 994.01102, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 996.0112964009066, decimal=2)
     
     print("Detrending 19 (winsorize)...")
     flatten_lc, trend_lc2 = flatten(
@@ -217,7 +216,7 @@ def main():
         break_tolerance=0.4,
         proportiontocut=0.1,
         return_trend=True)
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.064587196448, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.064149766662, decimal=2)
     
     
     print("Detrending 20 (pspline)...")
@@ -238,7 +237,7 @@ def main():
         cval=3,
         return_trend=True
         )
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.158072498867, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.157973016467, decimal=2)
     
     print("Detrending 22 (lowess)...")
     flatten_lc, trend_lc1 = flatten(
@@ -249,7 +248,7 @@ def main():
         return_trend=True
         )
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.039744125545, decimal=2)
-
+    
     print("Detrending 23 (huber_psi)...")
     flatten_lc, trend_lc1 = flatten(
         time,
@@ -258,7 +257,7 @@ def main():
         window_length=0.5,
         return_trend=True
         )
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.122065014355, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.110893063527, decimal=2)
 
     print("Detrending 24 (tau)...")
     flatten_lc, trend_lc2 = flatten(
@@ -268,7 +267,7 @@ def main():
         window_length=0.5,
         return_trend=True
         )
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18119.02772621119, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18123.026005725977, decimal=2)
     
     print("Detrending 25 (cosine)...")
     flatten_lc, trend_lc2 = flatten(
@@ -324,7 +323,7 @@ def main():
         window_length=0.5,
         return_trend=True
         )
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 997.9994362858843, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 999.9992212031945, decimal=2)
 
     print("Detrending 28 (ramsay)...")
     flatten_lc, trend_lc3 = flatten(
@@ -335,7 +334,7 @@ def main():
         window_length=0.5,
         return_trend=True
         )
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 997.9974021484584, decimal=2)
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 999.9970566765148, decimal=2)
 
     print("Detrending 29 (ridge)...")
     flatten_lc, trend_lc1 = flatten(
