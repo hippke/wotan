@@ -43,8 +43,8 @@ def running_segment(time, flux, mask, window_length, edge_cutoff, cval, method_c
     mask[mask==0] = -1
     masked_flux = flux * mask
 
-    for i in range(size-1):
-        if time[i] > low_index and time[i] < hi_index:
+    for i in range(size):
+        if time[i] >= low_index and time[i] <= hi_index:
             # Nice style would be:
             #   idx_start = np.argmax(time > time[i] - window_length/2)
             #   idx_end = np.argmax(time > time[i] + window_length/2)
@@ -72,6 +72,7 @@ def running_segment(time, flux, mask, window_length, edge_cutoff, cval, method_c
                 # mean
                 elif method_code == 6:
                     mean_all[i] = mean(f)
+                    #print(i, mean_all[i])
                 # trim_mean
                 elif method_code == 7:
                     mean_all[i] = trim_mean(f, proportiontocut=cval)
@@ -116,8 +117,8 @@ def running_segment_slow(time, flux, mask, window_length, edge_cutoff, cval, met
     mask[mask==0] = np.nan
     masked_flux = (flux * mask)
 
-    for i in range(size-1):
-        if time[i] > low_index and time[i] < hi_index:
+    for i in range(size):
+        if time[i] >= low_index and time[i] <= hi_index:
             # Nice style would be:
             #   idx_start = np.argmax(time > time[i] - window_length/2)
             #   idx_end = np.argmax(time > time[i] + window_length/2)
