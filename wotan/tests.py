@@ -226,7 +226,11 @@ def main():
         method='pspline',
         return_trend=True
         )
-    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18121.832133916843, decimal=2)
+    #import matplotlib.pyplot as plt
+    #plt.scatter(time, flux, s=3, color='black')
+    #plt.plot(time, trend_lc)
+    #plt.show()
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 18122.637930343473, decimal=2)
     
     print("Detrending 21 (hampelfilt)...")
     flatten_lc, trend_lc5 = flatten(
