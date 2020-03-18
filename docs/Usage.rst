@@ -183,6 +183,7 @@ In each iteration, ``PyGAM`` is used to determine the optimal number of splines 
 The ``edge_cutoff`` functionality is provided. The method benefits greatly from using a sensible ``break_tolerance``. Example usage:
 
 ::
+
     flatten_lc, trend_lc, nsplines = flatten(
         time,                   # Array of time values
         flux,                   # Array of flux values
@@ -196,12 +197,14 @@ The ``edge_cutoff`` functionality is provided. The method benefits greatly from 
 which returns the usual flattened light curve and the actual trend. In addition, when choosing ``return_nsplines=True``, the chosen spline value (number of knots) is returned. This is done separately for each segment, in case ``break_tolerance>0`` resulted in segmentation. Check this with:
 
 ::
+
     print('lightcurve was split into', len(nsplines), 'segments')
     print('chosen number of splines', nsplines)
 
 which returns something like:
 
 ::
+
     lightcurve was split into 2 segments
     nsplines [19. 26.]
 
