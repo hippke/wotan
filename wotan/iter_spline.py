@@ -8,7 +8,7 @@ from scipy.interpolate import LSQUnivariateSpline
 def iter_spline(time, flux, mask, window_length):
     masked_flux = flux[mask==1]
     masked_time = time[mask==1]
-    no_knots = (max(time) - min(time)) / window_length
+    no_knots = int((max(time) - min(time)) / window_length)
     newflux = masked_flux.copy()
     newtime = masked_time.copy()
     newtime, newflux = cleaned_array(newtime, newflux)
