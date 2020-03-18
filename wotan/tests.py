@@ -443,8 +443,8 @@ def main():
         )
 
     print('lightcurve was split into', len(nsplines), 'segments')
-    print('nsplines', nsplines)
-
+    print('chosen number of splines', nsplines)
+    """
     import matplotlib.pyplot as plt
     plt.scatter(time, flux, s=3, color='black')
     plt.plot(time, trend_lc)
@@ -452,7 +452,7 @@ def main():
 
     plt.scatter(time, flatten_lc, s=3, color='black')
     plt.show()
-
+    """
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 16678.312693036027, decimal=1)
 
 

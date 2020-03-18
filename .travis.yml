@@ -9,8 +9,14 @@ matrix:
       dist: xenial
       sudo: true
 install:
-  - pip install astropy statsmodels scipy==1.2 supersmoother untrendy pygam  # scipy 1.3 and statsmodel 0.9 are incompatible, fix to be expected in June 2019
+  - pip install astropy
+  - pip install statsmodels
+  - pip install scipy  #==1.2  # scipy 1.3 and statsmodel 0.9 are incompatible, fix to be expected in June 2019
+  - pip install supersmoother
+  - pip install untrendy
+  - pip install pygam  
   - pip install scikit-learn==0.20  # later versions don't run on Python 2.7
+  - pip install statsmodels
   - pip install numba
 script:
   - python setup.py install
