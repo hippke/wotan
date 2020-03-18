@@ -178,9 +178,9 @@ Major update with version 1.6.
 
 Robust spline through iterative sigma-clipping. The iterations (as printed during the runtime) make the spline fit robust against outliers. In each iteration, data points more than ``PSPLINES_STDEV_CUT=2`` standard deviations away from the fit are removed. Remaining data are fit again. The iteration cycle stops when zero outliers remain, or (at the latest) after ``PSPLINES_MAXITER=10`` iterations are completed.
 
-In each iteration, ``PyGAM`` is used to determine the optimal number of splines (with equidistantly spaced knots). It ``tests n=[1,..max_splines]`` knots. In each test, the sum of the squared residuals is noted. Afterwards, a "penalty calculation" is performed. More knots make a smoother fit, i.e. smaller residuals. But more knots are "bad" due to the risk of overfitting. Both measures are weighted against each other, i.e. the number of knots is penalized. Per default, the L2 norm (ridge smoothing) is used. 
+In each iteration, ``PyGAM`` is used to determine the optimal number of splines (with equidistantly spaced knots). It tests ``n=[1,..max_splines]`` knots. In each test, the sum of the squared residuals is noted. Afterwards, a "penalty calculation" is performed. More knots make a smoother fit, i.e. smaller residuals. But more knots are "bad" due to the risk of overfitting. Both measures are weighted against each other, i.e. the number of knots is penalized. Per default, the L2 norm (ridge smoothing) is used. 
 
-The ``edge_cutoff`` functionality is provided. The method benefits greatly from using a sensible ``break_tolerance``. Example usage:
+The ``edge_cutoff`` functionality is provided. The penalized spline method benefits greatly from using a sensible ``break_tolerance``. Example usage:
 
 ::
 
