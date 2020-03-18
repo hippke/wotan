@@ -21,10 +21,21 @@ from wotan.regression import regression
 from wotan.lowess import lowess
 
 
-def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
-            cval=None, return_trend=False, method='biweight', kernel=None,
-            kernel_size=None, kernel_period=None,
-            proportiontocut=constants.PROPORTIONTOCUT, robust=False, 
+def flatten(time, 
+            flux,
+            window_length=None,
+            edge_cutoff=0,
+            break_tolerance=None,
+            cval=None,
+            return_trend=False,
+            method='biweight',
+            kernel=None,
+            kernel_size=None,
+            kernel_period=None,
+            proportiontocut=constants.PROPORTIONTOCUT,
+            robust=False, 
+            max_splines=constants.PSPLINES_MAX_SPLINES,
+            return_nsplines=False,
             mask=None
             ):
     """
@@ -193,6 +204,7 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
     gaps_indexes = get_gaps_indexes(time_compressed, break_tolerance=break_tolerance)
     trend_flux = array([])
     trend_segment = array([])
+    nsplines = array([])  # Chosen number of splines per segment for method "pspline"
 
     # Iterate over all segments
     for i in range(len(gaps_indexes) - 1):
@@ -275,11 +287,12 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
             trend_segment = iter_spline(time_view, flux_view, mask_view, window_length)
         elif method == 'pspline':
             print('Segment', i + 1, 'of', len(gaps_indexes) - 1)
-            trend_segment = pspline(time_view, flux_view)
+            trend_segment, nsplines_segment = pspline(time_view, flux_view, edge_cutoff, max_splines, return_nsplines)
+            nsplines = append(nsplines, nsplines_segment)
         elif method in "ridge lasso elasticnet":
             trend_segment = regression(time_view, flux_view, method, window_length, cval)
 
-        trend_flux = append(trend_flux, trend_segment)
+        trend_flux = append(trend_flux, trend_segment)            
 
     # Insert results of non-NaNs into original data stream
     trend_lc = full(len(time), nan)
@@ -288,6 +301,10 @@ def flatten(time, flux, window_length=None, edge_cutoff=0, break_tolerance=None,
         trend_lc[mask_nans[idx]] = trend_flux[idx]
     trend_lc[trend_lc==0] = np.nan  # avoid division by zero
     flatten_lc = flux / trend_lc
-    if return_trend:
+
+    if return_trend and return_nsplines:
+        return flatten_lc, trend_lc, nsplines
+    if return_trend and not return_nsplines:
         return flatten_lc, trend_lc
-    return flatten_lc
+    if not return_trend and not return_nsplines:
+        return flatten_lc

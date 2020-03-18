@@ -430,6 +430,34 @@ def main():
     #print(numpy.nansum(flatten_lc2))
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc2), 1948.9000170463796, decimal=1)
     
+
+
+    flatten_lc, trend_lc, nsplines = flatten(
+        time,
+        flux,
+        method='pspline',
+        max_splines=100,
+        edge_cutoff=0.5,
+        return_trend=True,
+        return_nsplines=True
+        )
+
+    print('lightcurve was split into', len(nsplines), 'segments')
+    print('nsplines', nsplines)
+
+    import matplotlib.pyplot as plt
+    plt.scatter(time, flux, s=3, color='black')
+    plt.plot(time, trend_lc)
+    plt.show()
+
+    plt.scatter(time, flatten_lc, s=3, color='black')
+    plt.show()
+
+    numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc), 16678.312693036027, decimal=1)
+
+
+
+
     """
     import matplotlib.pyplot as plt
     plt.scatter(time[:2000], flux[:2000], s=1, color='black')

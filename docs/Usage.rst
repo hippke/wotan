@@ -174,17 +174,37 @@ Spline with robust Huber-estimator (linear and quadratic loss). It does not prov
 Spline: robust penalized pspline
 --------------------------------
 
-Spline with iterative sigma-clipping. Auto-determination of ``window_length``. It does not provide ``edge_cutoff``, but benefits greatly from using a sensible ``break_tolerance``. Example usage:
+Major update with version 1.6.
+
+Robust spline through iterative sigma-clipping. The iterations (as printed during the runtime) make the spline fit robust against outliers. In each iteration, data points more than ``PSPLINES_STDEV_CUT=2`` standard deviations away from the fit are removed. Remaining data are fit again. The iteration cycle stops when zero outliers remain, or (at the latest) after ``PSPLINES_MAXITER=10`` iterations are completed.
+
+In each iteration, ``PyGAM`` is used to determine the optimal number of splines (with equidistantly spaced knots). It ``tests n=[1,..max_splines]`` knots. In each test, the sum of the squared residuals is noted. Afterwards, a "penalty calculation" is performed. More knots make a smoother fit, i.e. smaller residuals. But more knots are "bad" due to the risk of overfitting. Both measures are weighted against each other, i.e. the number of knots is penalized. Per default, the L2 norm (ridge smoothing) is used. 
+
+The ``edge_cutoff`` functionality is provided. The method benefits greatly from using a sensible ``break_tolerance``. Example usage:
 
 ::
-
-    flatten_lc, trend_lc = flatten(
-        time,                 # Array of time values
-        flux,                 # Array of flux values
+    flatten_lc, trend_lc, nsplines = flatten(
+        time,                   # Array of time values
+        flux,                   # Array of flux values
         method='pspline',
-        break_tolerance=0.5,  # Split into segments at breaks longer than that
-        return_trend=True,    # Return trend and flattened light curve
+        max_splines=100,        # The maximum number of knots to be tested
+        edge_cutoff=0.5,        # Remove edges
+        return_trend=True,      # Return trend and flattened light curve
+        return_nsplines=True    # Return chosen number of knots
         )
+
+which returns the usual flattened light curve and the actual trend. In addition, when choosing ``return_nsplines=True``, the chosen spline value (number of knots) is returned. This is done separately for each segment, in case ``break_tolerance>0`` resulted in segmentation. Check this with:
+
+::
+    print('lightcurve was split into', len(nsplines), 'segments')
+    print('chosen number of splines', nsplines)
+
+which returns something like:
+
+::
+    lightcurve was split into 2 segments
+    nsplines [19. 26.]
+
 
 
 Lowess / Loess
