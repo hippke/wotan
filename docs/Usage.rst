@@ -191,7 +191,8 @@ The ``edge_cutoff`` functionality is provided. The penalized spline method benef
         max_splines=100,        # The maximum number of knots to be tested
         edge_cutoff=0.5,        # Remove edges
         return_trend=True,      # Return trend and flattened light curve
-        return_nsplines=True    # Return chosen number of knots
+        return_nsplines=True,   # Return chosen number of knots
+        verbose=False           # If true, prints status during runtime
         )
 
 which returns the usual flattened light curve and the actual trend. In addition, when choosing ``return_nsplines=True``, the chosen spline value (number of knots) is returned. This is done separately for each segment, in case ``break_tolerance>0`` resulted in segmentation. Check this with:
