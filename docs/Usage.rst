@@ -209,6 +209,30 @@ which returns something like:
     lightcurve was split into 2 segments
     nsplines [19. 26.]
 
+To determine the distance between the knots in each segment, you can run
+
+::
+
+    from wotan.gaps import get_gaps_indexes
+    segs = get_gaps_indexes(time, break_tolerance=break_tolerance)
+    segs[-1] -= 2  # remove endpoint padding
+    durations = []
+    for seg in range(len(segs)-1):
+        start = time[segs[seg]]
+        stop = time[segs[seg+1]-1]
+        duration = stop - start
+        durations.append(duration)
+        print(start, stop, duration)
+    print('Segment durations', durations)
+    print('Time between knots', durations / nsplines)
+
+which prints something like:
+
+::
+
+    Segment durations [7.54, 12.25, 12.14, 12.33]
+    Time between knots [0.25 0.27 0.21 0.16]
+
 
 
 Lowess / Loess
