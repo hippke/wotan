@@ -4,7 +4,7 @@ import wotan.constants as constants
 from wotan.helpers import cleaned_array
 
 
-def pspline(time, flux, edge_cutoff, max_splines, return_nsplines):
+def pspline(time, flux, edge_cutoff, max_splines, return_nsplines, verbose):
     try:
         from pygam import LinearGAM, s
     except:
@@ -25,11 +25,12 @@ def pspline(time, flux, edge_cutoff, max_splines, return_nsplines):
         stdev = np.std(detrended_flux)
         mask_outliers = np.ma.where(
             np.abs(1-detrended_flux) > constants.PSPLINES_STDEV_CUT*np.std(detrended_flux))
-        print('Iteration:', i + 1, 'Rejected outliers:', len(mask_outliers[0]))
-        # Check convergence
-        if len(mask_outliers[0]) == 0:
-            print('Converged.')
-            break
+        if verbose:
+            print('Iteration:', i + 1, 'Rejected outliers:', len(mask_outliers[0]))
+            # Check convergence
+            if len(mask_outliers[0]) == 0:
+                print('Converged.')
+                break
 
     # Final iteration, applied to unclipped time series (interpolated over clipped values)
     mask_outliers = np.ma.where(np.abs(1-detrended_flux) < constants.PSPLINES_STDEV_CUT*stdev)

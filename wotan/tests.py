@@ -431,7 +431,7 @@ def main():
     numpy.testing.assert_almost_equal(numpy.nansum(flatten_lc2), 1948.9000170463796, decimal=1)
     
 
-
+    print('Detrending 35 (pspline full features)')
     flatten_lc, trend_lc, nsplines = flatten(
         time,
         flux,
@@ -439,11 +439,12 @@ def main():
         max_splines=100,
         edge_cutoff=0.5,
         return_trend=True,
-        return_nsplines=True
+        return_nsplines=True,
+        verbose=True
         )
 
-    print('lightcurve was split into', len(nsplines), 'segments')
-    print('chosen number of splines', nsplines)
+    #print('lightcurve was split into', len(nsplines), 'segments')
+    #print('chosen number of splines', nsplines)
     """
     import matplotlib.pyplot as plt
     plt.scatter(time, flux, s=3, color='black')

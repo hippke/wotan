@@ -36,7 +36,8 @@ def flatten(time,
             robust=False, 
             max_splines=constants.PSPLINES_MAX_SPLINES,
             return_nsplines=False,
-            mask=None
+            mask=None,
+            verbose=False
             ):
     """
     ``flatten`` removes low frequency trends in time-series data.
@@ -286,8 +287,11 @@ def flatten(time,
         elif method == 'rspline':
             trend_segment = iter_spline(time_view, flux_view, mask_view, window_length)
         elif method == 'pspline':
-            print('Segment', i + 1, 'of', len(gaps_indexes) - 1)
-            trend_segment, nsplines_segment = pspline(time_view, flux_view, edge_cutoff, max_splines, return_nsplines)
+            if verbose:
+                print('Segment', i + 1, 'of', len(gaps_indexes) - 1)
+            trend_segment, nsplines_segment = pspline(
+                time_view, flux_view, edge_cutoff, max_splines, return_nsplines, verbose
+                )
             nsplines = append(nsplines, nsplines_segment)
         elif method in "ridge lasso elasticnet":
             trend_segment = regression(time_view, flux_view, method, window_length, cval)
