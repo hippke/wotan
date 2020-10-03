@@ -17,7 +17,8 @@ def pspline(time, flux, edge_cutoff, max_splines, return_nsplines, verbose):
     for i in range(constants.PSPLINES_MAXITER):
         mask_outliers = np.ma.where(
             np.abs(1-detrended_flux) < constants.PSPLINES_STDEV_CUT*np.std(detrended_flux))
-        newtime, newflux = cleaned_array(newtime[mask_outliers], newflux[mask_outliers])
+        if len(mask_outliers[0]) != 0:  # Do not cut if zero points remain
+            newtime, newflux = cleaned_array(newtime[mask_outliers], newflux[mask_outliers])
         gam = LinearGAM(s(0, n_splines=max_splines))
         search_gam = gam.gridsearch(newtime[:, np.newaxis], newflux, progress=False)
         trend = search_gam.predict(newtime)
@@ -34,7 +35,9 @@ def pspline(time, flux, edge_cutoff, max_splines, return_nsplines, verbose):
 
     # Final iteration, applied to unclipped time series (interpolated over clipped values)
     mask_outliers = np.ma.where(np.abs(1-detrended_flux) < constants.PSPLINES_STDEV_CUT*stdev)
-    newtime, newflux = cleaned_array(newtime[mask_outliers], newflux[mask_outliers])
+    if len(mask_outliers[0]) != 0:  # Do not cut if zero points remain
+        newtime, newflux = cleaned_array(newtime[mask_outliers], newflux[mask_outliers])
+    print(newflux)
     gam = LinearGAM(s(0, n_splines=max_splines))
     search_gam = gam.gridsearch(newtime[:, np.newaxis], newflux, progress=False)
     trend = search_gam.predict(time)
