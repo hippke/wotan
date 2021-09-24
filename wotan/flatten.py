@@ -21,27 +21,29 @@ from wotan.regression import regression
 from wotan.lowess import lowess
 
 
-def flatten(time, 
-            flux,
-            window_length=None,
-            edge_cutoff=0,
-            break_tolerance=None,
-            cval=None,
-            return_trend=False,
-            method='biweight',
-            kernel=None,
-            kernel_size=None,
-            kernel_period=None,
-            proportiontocut=constants.PROPORTIONTOCUT,
-            robust=False, 
-            max_splines=constants.PSPLINES_MAX_SPLINES,
-            return_nsplines=False,
-            mask=None,
-            verbose=False
-            ):
+def flatten(
+    time,
+    flux,
+    window_length=None,
+    edge_cutoff=0,
+    break_tolerance=None,
+    cval=None,
+    return_trend=False,
+    method="biweight",
+    kernel=None,
+    kernel_size=None,
+    kernel_period=None,
+    proportiontocut=constants.PROPORTIONTOCUT,
+    robust=False,
+    max_splines=constants.PSPLINES_MAX_SPLINES,
+    stdev_cut=constants.PSPLINES_STDEV_CUT,
+    return_nsplines=False,
+    mask=None,
+    verbose=False,
+):
     """
     ``flatten`` removes low frequency trends in time-series data.
-        
+
     Parameters
     ----------
     time : array-like
@@ -73,10 +75,10 @@ def flatten(time,
         cut off each edge. Default: Zero. Cut off is maximally ``window_length``/2, as
         this fills the window completely. Applicable only for time-windowed sliders.
     cval : float or int
-        Tuning parameter for the robust estimators. See documentation for defaults. 
-        Larger values for make the estimate more efficient but less robust. For the 
-        super-smoother, cval determines the bass enhancement (smoothness) and can be 
-        `None` or in the range 0 < ``cval`` < 10. For the ``savgol``, ``cval`` 
+        Tuning parameter for the robust estimators. See documentation for defaults.
+        Larger values for make the estimate more efficient but less robust. For the
+        super-smoother, cval determines the bass enhancement (smoothness) and can be
+        `None` or in the range 0 < ``cval`` < 10. For the ``savgol``, ``cval``
         determines the (integer) polynomial order (default: 2).
     proportiontocut : float, default: 0.1
         Fraction to cut off (or filled) of both tails of the distribution using methods
@@ -109,33 +111,33 @@ def flatten(time,
         Trend in the flux. Only returned if ``return_trend`` is `True`.
     """
     if method not in constants.methods:
-        raise ValueError('Unknown detrending method')
+        raise ValueError("Unknown detrending method")
 
     # Numba can't handle strings, so we're passing the location estimator as an int:
-    if method == 'biweight':
+    if method == "biweight":
         method_code = 1
-    elif method == 'andrewsinewave':
+    elif method == "andrewsinewave":
         method_code = 2
-    elif method == 'welsch':
+    elif method == "welsch":
         method_code = 3
-    elif method == 'hodges':
+    elif method == "hodges":
         method_code = 4
-    elif method == 'median':
+    elif method == "median":
         method_code = 5
-    elif method == 'mean':
+    elif method == "mean":
         method_code = 6
-    elif method == 'trim_mean':
+    elif method == "trim_mean":
         method_code = 7
-    elif method == 'winsorize':
+    elif method == "winsorize":
         method_code = 8
-    elif method == 'hampelfilt':
+    elif method == "hampelfilt":
         method_code = 9
-    elif method == 'huber_psi':
+    elif method == "huber_psi":
         method_code = 10
-    elif method == 'tau':
+    elif method == "tau":
         method_code = 11
 
-    error_text = 'proportiontocut must be >0 and <0.5'
+    error_text = "proportiontocut must be >0 and <0.5"
     if not isinstance(proportiontocut, float):
         raise ValueError(error_text)
     if proportiontocut >= 0.5 or proportiontocut <= 0:
@@ -143,34 +145,34 @@ def flatten(time,
 
     # Default cval values for robust location estimators
     if cval is None:
-        if method == 'biweight':
+        if method == "biweight":
             cval = 5
-        elif method == 'andrewsinewave':
+        elif method == "andrewsinewave":
             cval = 1.339
-        elif method == 'welsch':
+        elif method == "welsch":
             cval = 2.11
-        elif method == 'huber':
+        elif method == "huber":
             cval = 1.5
-        elif method == 'huber_psi':
+        elif method == "huber_psi":
             cval = 1.28
-        elif method in ['trim_mean', 'winsorize']:
+        elif method in ["trim_mean", "winsorize"]:
             cval = proportiontocut
-        elif method == 'hampelfilt':
+        elif method == "hampelfilt":
             cval = 3
-        elif method == 'tau':
+        elif method == "tau":
             cval = 4.5
-        elif method == 'hampel':
+        elif method == "hampel":
             cval = (1.7, 3.4, 8.5)
-        elif method == 'ramsay':
+        elif method == "ramsay":
             cval = 0.3
-        elif method == 'savgol':  # polyorder
+        elif method == "savgol":  # polyorder
             cval = 2  # int
-        elif method in 'ridge lasso elasticnet':
+        elif method in "ridge lasso elasticnet":
             cval = 1
         else:
             cval = 0  # avoid numba type inference error: None type multi with float
 
-    if cval is not None and method == 'supersmoother':
+    if cval is not None and method == "supersmoother":
         if cval > 0 and cval < 10:
             supersmoother_alpha = cval
         else:
@@ -195,7 +197,7 @@ def flatten(time,
         mask = array(~mask, dtype=float64)  # Invert to stay consistent with TLS
     time = array(time, dtype=float64)
     flux = array(flux, dtype=float64)
-    
+
     mask_nans = isnan(time * flux)
     time_compressed = np.ma.compressed(np.ma.masked_array(time, mask_nans))
     flux_compressed = np.ma.compressed(np.ma.masked_array(flux, mask_nans))
@@ -209,11 +211,22 @@ def flatten(time,
 
     # Iterate over all segments
     for i in range(len(gaps_indexes) - 1):
-        time_view = time_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
-        flux_view = flux_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
-        mask_view = mask_compressed[gaps_indexes[i]:gaps_indexes[i+1]]
-        methods = ["biweight", "andrewsinewave", "welsch", "hodges", "median", "mean",
-            "trim_mean", "winsorize", "huber_psi", "hampelfilt", "tau"]
+        time_view = time_compressed[gaps_indexes[i] : gaps_indexes[i + 1]]
+        flux_view = flux_compressed[gaps_indexes[i] : gaps_indexes[i + 1]]
+        mask_view = mask_compressed[gaps_indexes[i] : gaps_indexes[i + 1]]
+        methods = [
+            "biweight",
+            "andrewsinewave",
+            "welsch",
+            "hodges",
+            "median",
+            "mean",
+            "trim_mean",
+            "winsorize",
+            "huber_psi",
+            "hampelfilt",
+            "tau",
+        ]
         if method in methods:
             trend_segment = running_segment(
                 time_view,
@@ -222,7 +235,8 @@ def flatten(time,
                 window_length,
                 edge_cutoff,
                 cval,
-                method_code)
+                method_code,
+            )
         elif method in ["huber", "hampel", "ramsay"]:
             trend_segment = running_segment_slow(
                 time_view,
@@ -231,50 +245,50 @@ def flatten(time,
                 window_length,
                 edge_cutoff,
                 cval,
-                method
-                )
-        elif method == 'lowess':
-            trend_segment = lowess(
-                time_view,
-                flux_view,
-                mask_view,
-                window_length
-                )
-        elif method == 'hspline':
+                method,
+            )
+        elif method == "lowess":
+            trend_segment = lowess(time_view, flux_view, mask_view, window_length)
+        elif method == "hspline":
             trend_segment = detrend_huber_spline(
-                time_view,
-                flux_view,
-                mask_view,
-                knot_distance=window_length)
-        elif method == 'supersmoother':
+                time_view, flux_view, mask_view, knot_distance=window_length
+            )
+        elif method == "supersmoother":
             try:
                 from supersmoother import SuperSmoother as supersmoother
             except:
-                raise ImportError('Could not import supersmoother')
-            win = window_length / (max(time)-min(time))
-            trend_segment = supersmoother(
-                alpha=supersmoother_alpha,
-                primary_spans=(
-                    constants.primary_span_lower * win, 
-                    win,
-                    constants.primary_span_upper * win
+                raise ImportError("Could not import supersmoother")
+            win = window_length / (max(time) - min(time))
+            trend_segment = (
+                supersmoother(
+                    alpha=supersmoother_alpha,
+                    primary_spans=(
+                        constants.primary_span_lower * win,
+                        win,
+                        constants.primary_span_upper * win,
                     ),
-                middle_span=constants.middle_span * win,
-                final_span=constants.upper_span * win
-                ).fit(time_view, flux_view,).predict(time_view)
-        elif method == 'cofiam':
-            trend_segment = detrend_cofiam(
-                time_view, flux_view, window_length)
-        elif method == 'cosine':
+                    middle_span=constants.middle_span * win,
+                    final_span=constants.upper_span * win,
+                )
+                .fit(
+                    time_view,
+                    flux_view,
+                )
+                .predict(time_view)
+            )
+        elif method == "cofiam":
+            trend_segment = detrend_cofiam(time_view, flux_view, window_length)
+        elif method == "cosine":
             trend_segment = detrend_cosine(
-                time_view, flux_view, window_length, robust, mask_view)
-        elif method == 'savgol':
-            if window_length%2 == 0:
+                time_view, flux_view, window_length, robust, mask_view
+            )
+        elif method == "savgol":
+            if window_length % 2 == 0:
                 window_length += 1
             trend_segment = savgol_filter(flux_view, window_length, polyorder=int(cval))
-        elif method == 'medfilt':
+        elif method == "medfilt":
             trend_segment = medfilt(flux_view, window_length)
-        elif method == 'gp':
+        elif method == "gp":
             trend_segment = make_gp(
                 time_view,
                 flux_view,
@@ -282,28 +296,36 @@ def flatten(time,
                 kernel,
                 kernel_size,
                 kernel_period,
-                robust
-                )
-        elif method == 'rspline':
+                robust,
+            )
+        elif method == "rspline":
             trend_segment = iter_spline(time_view, flux_view, mask_view, window_length)
-        elif method == 'pspline':
+        elif method == "pspline":
             if verbose:
-                print('Segment', i + 1, 'of', len(gaps_indexes) - 1)
+                print("Segment", i + 1, "of", len(gaps_indexes) - 1)
             trend_segment, nsplines_segment = pspline(
-                time_view, flux_view, edge_cutoff, max_splines, return_nsplines, verbose
-                )
+                time_view,
+                flux_view,
+                edge_cutoff,
+                max_splines,
+                stdev_cut,
+                return_nsplines,
+                verbose,
+            )
             nsplines = append(nsplines, nsplines_segment)
         elif method in "ridge lasso elasticnet":
-            trend_segment = regression(time_view, flux_view, method, window_length, cval)
+            trend_segment = regression(
+                time_view, flux_view, method, window_length, cval
+            )
 
-        trend_flux = append(trend_flux, trend_segment)            
+        trend_flux = append(trend_flux, trend_segment)
 
     # Insert results of non-NaNs into original data stream
     trend_lc = full(len(time), nan)
     mask_nans = where(~mask_nans)[0]
     for idx in range(len(mask_nans)):
         trend_lc[mask_nans[idx]] = trend_flux[idx]
-    trend_lc[trend_lc==0] = np.nan  # avoid division by zero
+    trend_lc[trend_lc == 0] = np.nan  # avoid division by zero
     flatten_lc = flux / trend_lc
 
     if return_trend and return_nsplines:

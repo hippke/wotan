@@ -190,6 +190,7 @@ The ``edge_cutoff`` functionality is provided. The penalized spline method benef
         method='pspline',
         max_splines=100,        # The maximum number of knots to be tested
         edge_cutoff=0.5,        # Remove edges
+        stdev_cut=2             # Larger outliers are removed in each iteration
         return_trend=True,      # Return trend and flattened light curve
         return_nsplines=True,   # Return chosen number of knots
         verbose=False           # If true, prints status during runtime
