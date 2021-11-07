@@ -22,7 +22,7 @@ def pspline(
     newtime = time.copy()
     detrended_flux = flux.copy() / np.nanmedian(newflux)
 
-    for i in range(stdev_cut):
+    for i in range(constants.PSPLINES_MAXITER):
         mask_outliers = np.ma.where(
             np.abs(1 - detrended_flux) < stdev_cut * np.std(detrended_flux)
         )
