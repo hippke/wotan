@@ -27,22 +27,22 @@ def lowess(x, y, mask, window_length, maxiter=30, ftol=1e-6):
         else:
             return np.sum(weights * ((1 + (xi - w1) * (x - w1) / w2) * y))
 
+    indices_l = np.searchsorted(x, x - window_length / 2)
+    indices_r = np.searchsorted(x, x + window_length / 2)
+
     points = len(x)
     y_fit_previous = np.ones(points)
     y_weights = np.ones(points)
     y_weights[mask == 0] = 0
     for iter in range(maxiter):
-        left = 0
         if (np.max(x) - np.min(x)) == 0:
             return np.full(len(x), np.nan)
-        right = int((window_length / (np.max(x) - np.min(x))) * points)
         trend = np.zeros(points)
         for i in range(points):
-            while right < points and (x[i] > (x[left] + x[right]) / 2):
-                left += 1  # move the window forward
-                right += 1
-            x_weights = calc_x_weights(x[left:right], x[i], y_weights[left:right])
-            trend[i] = calc_y_fit(x[left:right], y[left:right], x[i], x_weights)
+            imin = indices_l[i]
+            imax = indices_r[i]
+            x_weights = calc_x_weights(x[imin:imax], x[i], y_weights[imin:imax])
+            trend[i] = calc_y_fit(x[imin:imax], y[imin:imax], x[i], x_weights)
         y_weights = calc_y_weights(y, mask, trend)
         if np.max(np.abs(y_fit_previous - trend)) < ftol:  # Check convergence
             break
