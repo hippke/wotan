@@ -252,10 +252,10 @@ def flatten(
                 method,
             )
         elif method == "lowess":
-            trend_segment = lowess(time_view, flux_view, mask_view, window_length)
+            trend_segment = lowess(time_view, flux_view, mask_view, window_length, cval)
         elif method == "hspline":
             trend_segment = detrend_huber_spline(
-                time_view, flux_view, mask_view, knot_distance=window_length
+                time_view, flux_view, mask_view, window_length, cval
             )
         elif method == "supersmoother":
             try:
