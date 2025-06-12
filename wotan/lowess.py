@@ -4,7 +4,7 @@ from numba import jit
 
 
 @jit(fastmath=True, nopython=True, cache=True)
-def lowess(x, y, mask, window_length, maxiter=30, ftol=1e-6):
+def lowess(x, y, mask, window_length, cval, maxiter=30, ftol=1e-6):
 
     def calc_x_weights(x, xi, y_weights, window_length):
         radius = window_length/2
@@ -13,7 +13,7 @@ def lowess(x, y, mask, window_length, maxiter=30, ftol=1e-6):
 
     def calc_y_weights(y, mask, trend):
         diff = np.abs(y - trend)
-        diff /= 6 * np.nanmedian(diff) + 1e-100  # avoid division by zero if median == 0
+        diff /= cval * 1.4826 * np.nanmedian(diff) + 1e-100  # avoid division by zero if median == 0
         diff[diff > 1] = 1
         y_weights = (1 - diff**2)**2
         y_weights[mask == 0] = 0

@@ -167,6 +167,10 @@ def flatten(
             cval = 0.3
         elif method == "savgol":  # polyorder
             cval = 2  # int
+        elif method == 'hspline':
+            cval = 1.35
+        elif method == 'lowess':
+            cval = 6/1.4826
         elif method in "ridge lasso elasticnet":
             cval = 1
         else:
