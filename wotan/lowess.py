@@ -6,8 +6,8 @@ from numba import jit
 @jit(fastmath=True, nopython=True, cache=True)
 def lowess(x, y, mask, window_length, maxiter=30, ftol=1e-6):
 
-    def calc_x_weights(x, xi, y_weights):
-        radius = max(xi - x[0], x[-2] - xi)
+    def calc_x_weights(x, xi, y_weights, window_length):
+        radius = window_length/2
         x_weights = y_weights * (1 - (np.abs(x - xi) / radius) ** 3) ** 3  # tricube
         return x_weights / np.nansum(x_weights)
 
@@ -41,7 +41,7 @@ def lowess(x, y, mask, window_length, maxiter=30, ftol=1e-6):
         for i in range(points):
             imin = indices_l[i]
             imax = indices_r[i]
-            x_weights = calc_x_weights(x[imin:imax], x[i], y_weights[imin:imax])
+            x_weights = calc_x_weights(x[imin:imax], x[i], y_weights[imin:imax], window_length)
             trend[i] = calc_y_fit(x[imin:imax], y[imin:imax], x[i], x_weights)
         y_weights = calc_y_weights(y, mask, trend)
         if np.max(np.abs(y_fit_previous - trend)) < ftol:  # Check convergence
