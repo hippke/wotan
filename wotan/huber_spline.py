@@ -9,6 +9,7 @@ def detrend_huber_spline(time, flux, mask, knot_distance):
         from sklearn.base import TransformerMixin
         from sklearn.pipeline import make_pipeline
         from sklearn.linear_model import HuberRegressor
+        from sklearn.preprocessing import StandardScaler
     except:
         raise ImportError('Could not import sklearn')
 
@@ -46,6 +47,6 @@ def detrend_huber_spline(time, flux, mask, knot_distance):
     if len(knots) < 4:
         return np.full(len(time), np.nan)
     else:
-        pipeline = make_pipeline(BSplineFeatures(knots), HuberRegressor())
+        pipeline = make_pipeline(BSplineFeatures(knots), StandardScaler(), HuberRegressor(max_iter=1000, epsilon=3))
         trend = pipeline.fit(masked_time[:, np.newaxis], masked_flux)
         return trend.predict(time[:, None])
