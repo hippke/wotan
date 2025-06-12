@@ -8,9 +8,7 @@ def lowess(x, y, mask, window_length, maxiter=30, ftol=1e-6):
 
     def calc_x_weights(x, xi, y_weights):
         radius = max(xi - x[0], x[-2] - xi)
-        x_weights = (1 - (np.abs(x - xi) / radius) ** 3) ** 3  # tricube
-        if np.any(y_weights):
-            x_weights = x_weights * y_weights
+        x_weights = y_weights * (1 - (np.abs(x - xi) / radius) ** 3) ** 3  # tricube
         return x_weights / np.nansum(x_weights)
 
     def calc_y_weights(y, mask, trend):
@@ -31,7 +29,8 @@ def lowess(x, y, mask, window_length, maxiter=30, ftol=1e-6):
 
     points = len(x)
     y_fit_previous = np.ones(points)
-    y_weights = np.zeros(points)
+    y_weights = np.ones(points)
+    y_weights[mask == 0] = 0
     for iter in range(maxiter):
         left = 0
         if (np.max(x) - np.min(x)) == 0:
