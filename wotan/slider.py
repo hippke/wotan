@@ -216,6 +216,23 @@ def running_segment(time, flux, mask, window_length, edge_cutoff, cval, method_c
                            hi_index, cval, method_code, buf, mean_all)
         return mean_all
 
+    # mean: running sums (prefix sums of the unmasked flux and of the counts), O(1)
+    # per point. Sums relative to a reference value keep the round-off small.
+    if method_code == 6:
+        ref = flux[0]
+        csum = np.zeros(size + 1)
+        ccount = np.zeros(size + 1)
+        for j in range(size):
+            use = mask[j] > 0
+            csum[j + 1] = csum[j] + (flux[j] - ref if use else 0.0)
+            ccount[j + 1] = ccount[j] + (1.0 if use else 0.0)
+        for i in prange(size):
+            if time[i] >= low_index and time[i] <= hi_index:
+                count = ccount[idx_end[i]] - ccount[idx_start[i]]
+                if count > 0:
+                    mean_all[i] = ref + (csum[idx_end[i]] - csum[idx_start[i]]) / count
+        return mean_all
+
     for i in prange(size):
         if time[i] >= low_index and time[i] <= hi_index:
             lo = idx_start[i]

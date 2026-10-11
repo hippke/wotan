@@ -13,6 +13,9 @@ def reference(t, f, mask, w, cval, method):
         d = f[sel]
         if len(d) == 0:
             continue
+        if method == "mean":
+            out[i] = np.mean(d)
+            continue
         med = np.median(d)
         if method == "median":
             out[i] = med
@@ -44,7 +47,8 @@ def reference(t, f, mask, w, cval, method):
 
 
 @pytest.mark.parametrize("method,cval", [("biweight", 5), ("welsch", 2.11),
-                                         ("andrewsinewave", 1.339), ("median", None)])
+                                         ("andrewsinewave", 1.339), ("median", None),
+                                         ("mean", None)])
 @pytest.mark.parametrize("masked", [False, True])
 def test_sliding_window_matches_reference(method, cval, masked):
     rng = np.random.default_rng(7)
