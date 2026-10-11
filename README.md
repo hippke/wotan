@@ -24,7 +24,7 @@ What's new in 2.0
 
 Speed in millions of data points per second for the Kepler-10 light curve (all 15 long-cadence quarters, 52k points), `window_length=0.5` d, default parameters, 2 CPU cores (the parallel methods scale with the number of cores). Speed-up: geometric mean over the benchmark datasets, compared to 1.x. Reproduce with `python benchmarks/bench.py --method <name>`; details in [benchmarks/RESULTS.md](https://github.com/hippke/wotan/blob/master/benchmarks/RESULTS.md).
 
-| Method | Speed | Speed-up |
+| Method | Speed (million points per sec) | Speed-up |
 |---|---|---|
 | `mean` | 34 | 19x |
 | `median` | 11 | 21x |
