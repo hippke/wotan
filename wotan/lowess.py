@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 import numpy as np
-from numba import jit
+from numba import jit, prange
 
 
 @jit(fastmath=True, nopython=True, cache=True, error_model="numpy")
@@ -31,7 +31,7 @@ def _local_linear_fit(x, y, y_weights, imin, imax, xi, radius):
     return fit
 
 
-@jit(fastmath=True, nopython=True, cache=True)
+@jit(fastmath=True, nopython=True, cache=True, parallel=True)
 def lowess(x, y, mask, window_length, cval=6.0, maxiter=30, ftol=1e-6):
     """Locally weighted linear regression (Cleveland 1979) with a window in units of
     ``x``: the trend at ``x[i]`` uses all points with ``|x - x[i]| < window_length/2``,
@@ -63,10 +63,9 @@ def lowess(x, y, mask, window_length, cval=6.0, maxiter=30, ftol=1e-6):
     trend = np.zeros(points)
     for iter in range(maxiter):
         trend = np.zeros(points)
-        for i in range(points):
-            imin = indices_l[i]
-            imax = indices_r[i]
-            trend[i] = _local_linear_fit(x, y, y_weights, imin, imax, x[i], radius)
+        for i in prange(points):  # the points are independent: parallel threads
+            trend[i] = _local_linear_fit(
+                x, y, y_weights, indices_l[i], indices_r[i], x[i], radius)
         y_weights = calc_y_weights(y, mask, trend)
         if np.max(np.abs(y_fit_previous - trend)) < ftol:  # Check convergence
             break
