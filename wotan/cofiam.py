@@ -14,10 +14,17 @@ def matrix_gen(t, degree):
     cols = 2 * (degree + 1)
     matrix = np.ones(shape=(rows, cols))
     for x in range(rows):
+        # sin/cos of y * val1 for y = 1, 2, ... by the angle-addition recurrence
+        # (one sin and cos per row instead of one per element)
+        val1 = (2 * np.pi * (t[x] - t0)) / dur
+        s1 = np.sin(val1)
+        c1 = np.cos(val1)
+        s = s1
+        c = c1
         for y in range(1, int(cols / 2)):
-            val = (2 * np.pi * (t[x] - t0) * y) / dur
-            matrix[x, y * 2] = np.sin(val)
-            matrix[x, y * 2 + 1] = np.cos(val)
+            matrix[x, y * 2] = s
+            matrix[x, y * 2 + 1] = c
+            s, c = s * c1 + c * s1, c * c1 - s * s1
         matrix[x, 1] = t[x] - t0
     return matrix
 
