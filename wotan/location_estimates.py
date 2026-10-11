@@ -35,33 +35,35 @@ def location_iter(data, cval, method_code):
 
     # Newton-Raphson iteration, where each result is taken as the initial value of the
     # next iteration. Stops when the difference of a round is below ``FTOL`` threshold
+    # One fused pass per iteration (no temporary arrays): accumulate sum(d*w) and sum(w)
+    n = len(data)
     while numpy.abs(delta_center) > tol and n_iter < 1000:
         n_iter += 1
-        distance = data - center
-        dmad = distance * cmad
-
-        # Inlier weights
-        # biweight
-        if method_code == 1:
-            weight = (1 - dmad ** 2) ** 2
-        # andrewsinewave
-        if method_code == 2:
-            # avoid division by zero
-            dmad[dmad == 0] = 1e-10
-            weight = sin(dmad) / dmad
-        # welsch
-        if method_code == 3:
-            weight = exp(-(dmad**2) / 2)
-
-        # Outliers with weight zero
-        # biweight or welsch
-        if method_code == 1 or method_code == 3:
-            weight[(numpy.abs(dmad) >= 1)] = 0
-        # andrewsinewave
-        else:
-            weight[(numpy.abs(dmad) >= pi)] = 0
-
-        center += numpy.sum(distance * weight) / numpy.sum(weight)
+        sum_dw = 0.0
+        sum_w = 0.0
+        for j in range(n):
+            distance = data[j] - center
+            dmad = distance * cmad
+            # biweight
+            if method_code == 1:
+                if numpy.abs(dmad) >= 1:
+                    continue
+                weight = (1 - dmad ** 2) ** 2
+            # andrewsinewave
+            elif method_code == 2:
+                if dmad == 0:
+                    dmad = 1e-10  # avoid division by zero
+                if numpy.abs(dmad) >= pi:
+                    continue
+                weight = sin(dmad) / dmad
+            # welsch
+            else:
+                if numpy.abs(dmad) >= 1:
+                    continue
+                weight = exp(-(dmad ** 2) / 2)
+            sum_dw += distance * weight
+            sum_w += weight
+        center += sum_dw / sum_w
 
         # Calculate how much center moved to check convergence threshold
         delta_center = center_old - center

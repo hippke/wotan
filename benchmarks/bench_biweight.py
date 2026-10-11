@@ -83,7 +83,17 @@ def run(t, f):
     return flatten(t, f, method="biweight", window_length=WINDOW, return_trend=True)[1]
 
 
+def clear_numba_cache():
+    """numba's ``cache=True`` does not track dependencies across files: a cached
+    ``running_segment`` keeps using the old ``location_iter``. Start from scratch."""
+    for dirpath, _, files in os.walk(os.path.join(ROOT, "wotan")):
+        for fn in files:
+            if fn.endswith((".nbi", ".nbc")):
+                os.remove(os.path.join(dirpath, fn))
+
+
 def main():
+    clear_numba_cache()
     p = argparse.ArgumentParser()
     p.add_argument("--save-ref", action="store_true")
     p.add_argument("--repeat", type=int, default=3)
