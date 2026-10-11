@@ -401,9 +401,7 @@ def flatten(
     # Insert results of valid points into original data stream
     invalid_input = mask_nans
     trend_lc = full(len(time), nan)
-    mask_nans = where(~mask_nans)[0]
-    for idx in range(len(mask_nans)):
-        trend_lc[mask_nans[idx]] = trend_flux[idx]
+    trend_lc[~mask_nans] = trend_flux
     if np.any(trend_lc <= 0):
         warnings.warn(
             "The trend is zero or negative at %d points. flatten divides the flux by "

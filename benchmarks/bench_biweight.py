@@ -106,11 +106,13 @@ def main():
     for name, (t, f, kind) in data.items():
         if args.only and name != args.only:
             continue
-        best = np.inf
-        for _ in range(args.repeat):
+        best, k, total = np.inf, 0, 0.0
+        # at least ``repeat`` runs; fast datasets are repeated for >= 1 s (less noise)
+        while k < args.repeat or (total < 1.0 and k < 200):
             s = _time.perf_counter()
             trend = run(t, f)
-            best = min(best, _time.perf_counter() - s)
+            dt = _time.perf_counter() - s
+            best, k, total = min(best, dt), k + 1, total + dt
         ref_file = os.path.join(REF_DIR, name + ".npy")
         if args.save_ref:
             np.save(ref_file, trend)
@@ -125,7 +127,7 @@ def main():
         times.append(best)
         report[name] = dict(n=len(t), kind=kind, seconds=best, max_abs_diff=diff,
                             ok=bool(diff <= TOL))
-        print("%-12s n=%8d  %8.3f s  max|diff|=%.2e  %s  [%s]"
+        print("%-12s n=%8d  %9.4f s  max|diff|=%.2e  %s  [%s]"
               % (name, len(t), best, diff, "OK" if diff <= TOL else "FAIL", kind))
     gm = float(np.exp(np.mean(np.log(times))))
     print("geomean: %.4f s" % gm)

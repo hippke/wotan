@@ -2,23 +2,23 @@
  "kepler_full": {
   "n": 51973,
   "kind": "real (15 files)",
-  "seconds": 0.09505919100001847,
+  "seconds": 0.02610652300018046,
   "max_abs_diff": 1.1102230246251565e-16,
   "ok": true
  },
  "kepler_seg": {
   "n": 1925,
   "kind": "real (15 files)",
-  "seconds": 0.003988018999962151,
+  "seconds": 0.0010126619999937247,
   "max_abs_diff": 0.0,
   "ok": true
  },
  "white_1m": {
   "n": 1000000,
   "kind": "synthetic",
-  "seconds": 7.944280547000062,
+  "seconds": 2.0770472599997447,
   "max_abs_diff": 2.220446049250313e-16,
   "ok": true
  },
- "geomean": 0.1444115629760406
+ "geomean": 0.03800901735614903
 }
