@@ -292,7 +292,7 @@ Lines 163-178 execute and print at import time; `np.alltrue` was removed in NumP
 ---
 
 ## BUG-025
-**`flatten` divides by the trend: zero-crossing flux gives wild ratios without a warning** — Medium · `flatten.py` (formerly BUG-025) · issue #64
+**`flatten` divides by the trend: zero-crossing flux gives wild ratios without a warning** — Medium · `flatten.py` (formerly N-1) · issue #64
 
 `flatten_lc = flux / trend`. For flux that crosses or approaches zero (mean-subtracted flux, magnitudes, ΔT) the ratio explodes; a trend of exactly 0 becomes NaN (documented in the source). The Huber spline itself is fine (`test_hspline_trend_is_not_forced_to_zero_issue_64`); the surprise is the division. Example: `0.01*sin(t)` with `biweight` returns values up to ~100 (together with BUG-003 dropping the negative samples), and nothing warns.
 **Fix:** warn when the trend has non-positive or near-zero values, document it, and/or offer an additive mode (`flux - trend`). See also #56, #60. **Test:** `test_bug025_*`.
