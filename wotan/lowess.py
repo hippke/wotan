@@ -11,23 +11,23 @@ def _local_linear_fit(x, y, y_weights, imin, imax, xi, radius):
         sum(w * (1 + (xi - w1) * (x - w1) / w2) * y),
     with w1 = sum(w * x) and w2 = sum(w * (x - w1)^2). Computed in passes over the
     window without temporary arrays, term by term as before."""
+    n = imax - imin
+    k = np.empty(n)  # kernel weights, computed once
     sw = 0.0
-    for j in range(imin, imax):
-        sw += y_weights[j] * (1 - (np.abs(x[j] - xi) / radius) ** 3) ** 3  # tricube
+    for j in range(n):
+        k[j] = y_weights[imin + j] * (1 - (np.abs(x[imin + j] - xi) / radius) ** 3) ** 3
+        sw += k[j]
     w1 = 0.0
-    for j in range(imin, imax):
-        w = y_weights[j] * (1 - (np.abs(x[j] - xi) / radius) ** 3) ** 3 / sw
-        w1 += w * x[j]
+    for j in range(n):
+        w1 += k[j] / sw * x[imin + j]
     w2 = 0.0
-    for j in range(imin, imax):
-        w = y_weights[j] * (1 - (np.abs(x[j] - xi) / radius) ** 3) ** 3 / sw
-        w2 += w * (x[j] - w1) ** 2
+    for j in range(n):
+        w2 += k[j] / sw * (x[imin + j] - w1) ** 2
     if w2 == 0:
         return np.nan
     fit = 0.0
-    for j in range(imin, imax):
-        w = y_weights[j] * (1 - (np.abs(x[j] - xi) / radius) ** 3) ** 3 / sw
-        fit += w * ((1 + (xi - w1) * (x[j] - w1) / w2) * y[j])
+    for j in range(n):
+        fit += k[j] / sw * ((1 + (xi - w1) * (x[imin + j] - w1) / w2) * y[imin + j])
     return fit
 
 
