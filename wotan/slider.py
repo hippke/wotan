@@ -48,6 +48,28 @@ def _location(f, cval, method_code):
 
 
 @jit(fastmath=True, nopython=True, cache=True)
+def _window_bounds(time, half_window):
+    """First indexes with time >= time[i] - half_window and >= time[i] + half_window,
+    as np.searchsorted(time, time -/+ half_window), by one linear sweep (the queries
+    are sorted as well)"""
+    size = len(time)
+    idx_start = np.empty(size, dtype=np.int64)
+    idx_end = np.empty(size, dtype=np.int64)
+    lo = 0
+    hi = 0
+    for i in range(size):
+        t_lo = time[i] - half_window
+        t_hi = time[i] + half_window
+        while lo < size and time[lo] < t_lo:
+            lo += 1
+        while hi < size and time[hi] < t_hi:
+            hi += 1
+        idx_start[i] = lo
+        idx_end[i] = hi
+    return idx_start, idx_end
+
+
+@jit(fastmath=True, nopython=True, cache=True)
 def _insert(buf, n, value):
     """Insert ``value`` into the sorted ``buf[:n]``; returns the new length"""
     pos = np.searchsorted(buf[:n], value)
@@ -194,8 +216,7 @@ def running_segment(time, flux, mask, window_length, edge_cutoff, cval, method_c
 
     # Window of point i: time[i] - half_window <= time < time[i] + half_window
     # (``time`` is sorted, so these are the first indexes at/above the window edges)
-    idx_start = np.searchsorted(time, time - half_window)
-    idx_end = np.searchsorted(time, time + half_window)
+    idx_start, idx_end = _window_bounds(time, half_window)
 
     # ``mask`` holds 1 for usable and 0 for masked samples. It is applied by selecting
     # (not by manipulating the flux), so any flux value, including <= 0, is valid.
