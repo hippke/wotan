@@ -5,7 +5,7 @@ import wotan.constants as constants
 
 
 @jit(fastmath=True, nopython=True, cache=True)
-def matrix_gen(t, degree):
+def matrix_gen_recurrence(t, degree):
     dur = 2 * (np.max(t) - np.min(t))
     # Work with time relative to the first point: keeps the design matrix well
     # conditioned for large time offsets (e.g. BJD)
@@ -29,6 +29,28 @@ def matrix_gen(t, degree):
     return matrix
 
 
+@jit(fastmath=True, nopython=True, cache=True)
+def matrix_gen(t, degree):
+    """Design matrix [1, t, sin, cos, ...] with sin and cos evaluated for every
+    element (used by cofiam: it selects the model by the Durbin-Watson statistic, a
+    discontinuous choice, so round-off level changes such as those of
+    ``matrix_gen_recurrence`` can change the selected model)."""
+    dur = 2 * (np.max(t) - np.min(t))
+    # Work with time relative to the first point: keeps the design matrix well
+    # conditioned for large time offsets (e.g. BJD)
+    t0 = np.min(t)
+    rows = len(t)
+    cols = 2 * (degree + 1)
+    matrix = np.ones(shape=(rows, cols))
+    for x in range(rows):
+        for y in range(1, int(cols / 2)):
+            val = (2 * np.pi * (t[x] - t0) * y) / dur
+            matrix[x, y * 2] = np.sin(val)
+            matrix[x, y * 2 + 1] = np.cos(val)
+        matrix[x, 1] = t[x] - t0
+    return matrix
+
+
 def detrend_cosine(t, y, window_length, robust, mask, verbose=False):
     degree = (int((max(t) - min(t)) / window_length))
 
@@ -38,7 +60,7 @@ def detrend_cosine(t, y, window_length, robust, mask, verbose=False):
         converged = True
     else:
         converged = False
-    matrix = matrix_gen(t, degree)
+    matrix = matrix_gen_recurrence(t, degree)
     for i in range(constants.PSPLINES_MAXITER):
         # Add weights in order to weight down the masked values
         # Solution from https://stackoverflow.com/questions/27128688/how-to-use-least-squares-with-weight-matrix
