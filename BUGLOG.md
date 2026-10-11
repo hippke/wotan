@@ -22,6 +22,8 @@ red the moment the bug is fixed so the marker (and this entry) get removed.
 
 ## Summary
 
+GitHub issues: BUG-001 … BUG-031 are issues [#70](https://github.com/hippke/wotan/issues/70) … [#100](https://github.com/hippke/wotan/issues/100) (issue number = 69 + bug number). Demonstration figures: `docs/bug_figures/`.
+
 | ID | Sev | Where | One-line summary |
 |----|-----|-------|------------------|
 | [BUG-001](#bug-001) | High | `regression.py:39` | `ridge`/`lasso`/`elasticnet` crash on current scikit-learn (`max_iter=1e5` is a float) |
