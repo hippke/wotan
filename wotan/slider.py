@@ -74,34 +74,33 @@ def _median_mad_sorted(s):
         med = s[n // 2]
     else:
         med = (s[n // 2 - 1] + s[n // 2]) / 2
-    # |s - med| are two ascending runs (left of med, reversed, and right of med).
-    # Merge them up to the middle element(s).
+    # |s - med| are two ascending runs: A[i] = med - s[r-1-i] (left of the median,
+    # walking outward) and B[j] = s[r+j] - med (right). The MAD is the median of their
+    # union: find the K smallest by binary search over how many come from A (O(log n))
     r = np.searchsorted(s, med)
-    l = r - 1
-    k1 = (n - 1) // 2
-    k2 = n // 2
+    na = r
+    nb = n - r
+    K = (n - 1) // 2 + 1  # count up to the (lower) middle element
+    lo = max(0, K - nb)
+    hi = min(K, na)
+    inf = np.inf
     v1 = 0.0
     v2 = 0.0
-    for k in range(k2 + 1):
-        if l < 0:
-            d = s[r] - med
-            r += 1
-        elif r >= n:
-            d = med - s[l]
-            l -= 1
+    while lo <= hi:
+        i = (lo + hi) // 2
+        j = K - i
+        a_left = med - s[r - i] if i > 0 else -inf  # A[i-1]
+        a_right = med - s[r - 1 - i] if i < na else inf  # A[i]
+        b_left = s[r + j - 1] - med if j > 0 else -inf  # B[j-1]
+        b_right = s[r + j] - med if j < nb else inf  # B[j]
+        if a_left > b_right:
+            hi = i - 1
+        elif b_left > a_right:
+            lo = i + 1
         else:
-            dl = med - s[l]
-            dr = s[r] - med
-            if dl <= dr:
-                d = dl
-                l -= 1
-            else:
-                d = dr
-                r += 1
-        if k == k1:
-            v1 = d
-        if k == k2:
-            v2 = d
+            v1 = max(a_left, b_left)  # K-th smallest
+            v2 = min(a_right, b_right) if n % 2 == 0 else v1  # (K+1)-th for even n
+            break
     return med, (v1 + v2) / 2
 
 

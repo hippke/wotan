@@ -77,3 +77,13 @@ def test_sliding_window_with_edge_cutoff_and_gaps():
         r[~keep] = np.nan
         ref[seg] = r
     np.testing.assert_allclose(a, ref, atol=1e-8, rtol=0)
+
+
+def test_median_mad_of_sorted_array_matches_numpy():
+    from wotan.slider import _median_mad_sorted
+    rng = np.random.default_rng(0)
+    for n in list(range(1, 40)) * 50 + [360, 361]:
+        x = np.sort(np.round(rng.normal(0, 1, n), rng.integers(0, 4)))  # with ties
+        med, mad = _median_mad_sorted(x)
+        assert med == pytest.approx(np.median(x), abs=1e-12)
+        assert mad == pytest.approx(np.median(np.abs(x - np.median(x))), abs=1e-12)
