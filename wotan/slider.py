@@ -1,9 +1,10 @@
 from __future__ import print_function, division
+import numba
 from numba import jit, prange
 import numpy as np
 from numpy import mean, median, full, nan
 from wotan.location_estimates import (
-    location_iter, hodges, trim_mean, winsorize_mean, hampelfilt, huber_psi, tau
+    location_iter, location_iter_core, hodges, trim_mean, winsorize_mean, hampelfilt, huber_psi, tau
     )
 import wotan.constants as constants
 
@@ -47,6 +48,104 @@ def _location(f, cval, method_code):
     return np.nan
 
 
+@jit(fastmath=True, nopython=True, cache=True)
+def _insert(buf, n, value):
+    """Insert ``value`` into the sorted ``buf[:n]``; returns the new length"""
+    pos = np.searchsorted(buf[:n], value)
+    for k in range(n, pos, -1):
+        buf[k] = buf[k - 1]
+    buf[pos] = value
+    return n + 1
+
+
+@jit(fastmath=True, nopython=True, cache=True)
+def _remove(buf, n, value):
+    """Remove one occurrence of ``value`` from the sorted ``buf[:n]``; returns new length"""
+    pos = np.searchsorted(buf[:n], value)
+    for k in range(pos, n - 1):
+        buf[k] = buf[k + 1]
+    return n - 1
+
+
+@jit(fastmath=True, nopython=True, cache=True)
+def _median_mad_sorted(s):
+    """Median and median absolute deviation of the sorted array ``s`` in O(n)"""
+    n = len(s)
+    if n % 2 == 1:
+        med = s[n // 2]
+    else:
+        med = (s[n // 2 - 1] + s[n // 2]) / 2
+    # |s - med| are two ascending runs (left of med, reversed, and right of med).
+    # Merge them up to the middle element(s).
+    r = np.searchsorted(s, med)
+    l = r - 1
+    k1 = (n - 1) // 2
+    k2 = n // 2
+    v1 = 0.0
+    v2 = 0.0
+    for k in range(k2 + 1):
+        if l < 0:
+            d = s[r] - med
+            r += 1
+        elif r >= n:
+            d = med - s[l]
+            l -= 1
+        else:
+            dl = med - s[l]
+            dr = s[r] - med
+            if dl <= dr:
+                d = dl
+                l -= 1
+            else:
+                d = dr
+                r += 1
+        if k == k1:
+            v1 = d
+        if k == k2:
+            v2 = d
+    return med, (v1 + v2) / 2
+
+
+@jit(fastmath=True, nopython=True, cache=True)
+def _sliding_chunk(time, flux, mask, idx_start, idx_end, i0, i1, low_index, hi_index,
+                   cval, method_code, buf, out):
+    """Points i0..i1-1 with a sorted window buffer that is updated as the window slides
+    (instead of copying and partially sorting every window twice for median and MAD)"""
+    n = 0
+    cur_lo = -1
+    cur_hi = -1
+    for i in range(i0, i1):
+        if not (time[i] >= low_index and time[i] <= hi_index):
+            continue
+        lo = idx_start[i]
+        hi = idx_end[i]
+        if cur_lo < 0 or lo >= cur_hi:  # (re)build the buffer from scratch
+            n = 0
+            for j in range(lo, hi):
+                if mask[j] > 0:
+                    buf[n] = flux[j]
+                    n += 1
+            buf[:n].sort()
+        else:  # windows only move forward: drop leaving, add entering values
+            for j in range(cur_lo, lo):
+                if mask[j] > 0:
+                    n = _remove(buf, n, flux[j])
+            for j in range(cur_hi, hi):
+                if mask[j] > 0:
+                    n = _insert(buf, n, flux[j])
+        cur_lo = lo
+        cur_hi = hi
+        if n == 0:
+            continue  # stays NaN
+        med, mad = _median_mad_sorted(buf[:n])
+        if method_code == 5:
+            out[i] = med
+        elif mad == 0:
+            out[i] = med
+        else:
+            out[i] = location_iter_core(buf[:n], med, mad, cval, method_code)
+
+
 @jit(fastmath=True, nopython=True, cache=True, parallel=True)
 def running_segment(time, flux, mask, window_length, edge_cutoff, cval, method_code):
     """Iterator for a single time-series segment using time-series window sliders.
@@ -69,6 +168,21 @@ def running_segment(time, flux, mask, window_length, edge_cutoff, cval, method_c
 
     # ``mask`` holds 1 for usable and 0 for masked samples. It is applied by selecting
     # (not by manipulating the flux), so any flux value, including <= 0, is valid.
+
+    # biweight, andrewsinewave, welsch, median: sliding sorted window, in parallel chunks
+    if method_code == 1 or method_code == 2 or method_code == 3 or method_code == 5:
+        max_window = 1
+        for i in range(size):
+            max_window = max(max_window, idx_end[i] - idx_start[i])
+        n_chunks = min(size, 8 * numba.get_num_threads())
+        for c in prange(n_chunks):
+            i0 = c * size // n_chunks
+            i1 = (c + 1) * size // n_chunks
+            buf = np.empty(max_window)
+            _sliding_chunk(time, flux, mask, idx_start, idx_end, i0, i1, low_index,
+                           hi_index, cval, method_code, buf, mean_all)
+        return mean_all
+
     for i in prange(size):
         if time[i] >= low_index and time[i] <= hi_index:
             lo = idx_start[i]

@@ -15,10 +15,16 @@ def location_iter(data, cval, method_code):
     # 3 : welsch
     # (the others are not relevant for location_iter)
 
-    # Initial estimate for the central location
-    delta_center = inf
     median_data = median(data)
     mad = median(numpy.abs(data - median_data))
+    return location_iter_core(data, median_data, mad, cval, method_code)
+
+
+@jit(fastmath=True, nopython=True, cache=True)
+def location_iter_core(data, median_data, mad, cval, method_code):
+    """Iteration of ``location_iter`` for a given median and MAD of ``data``"""
+    # Initial estimate for the central location
+    delta_center = inf
     center = center_old = median_data
 
     # Neglecting this case was a bug in scikit-learn
