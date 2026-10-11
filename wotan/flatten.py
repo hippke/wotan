@@ -402,18 +402,23 @@ def flatten(
         trend_parts.append(np.asarray(trend_segment, dtype=float64).ravel())
 
     # Insert results of valid points into original data stream
-    invalid_input = mask_nans
-    trend_lc = full(len(time), nan)
-    trend_lc[~mask_nans] = np.concatenate(trend_parts)
-    if np.any(trend_lc <= 0):
+    if mask_nans.any():
+        trend_lc = full(len(time), nan)
+        trend_lc[~mask_nans] = np.concatenate(trend_parts)
+    else:  # all points valid: the joined segment trends are the trend
+        trend_lc = np.concatenate(trend_parts) if len(trend_parts) > 1 else trend_parts[0]
+    n_nonpositive = np.count_nonzero(trend_lc <= 0)
+    # invalid input points always have a NaN trend; count the others
+    n_no_trend = np.count_nonzero(isnan(trend_lc)) - np.count_nonzero(mask_nans)
+    if n_nonpositive > 0:
         warnings.warn(
             "The trend is zero or negative at %d points. flatten divides the flux by "
             "the trend, so the flux must be positive and roughly normalised "
             "(e.g. divided by its median); the flattened flux is not meaningful here."
-            % np.sum(trend_lc <= 0),
+            % n_nonpositive,
             UserWarning,
         )
-    n_no_trend = int(np.sum(~invalid_input & isnan(trend_lc)))
+        trend_lc[trend_lc == 0] = np.nan  # avoid division by zero
     if n_no_trend > 0 and edge_cutoff == 0:
         warnings.warn(
             "%d points with valid flux received a NaN trend (their window contains "
@@ -421,7 +426,6 @@ def flatten(
             "or window_length too large for the method)." % n_no_trend,
             UserWarning,
         )
-    trend_lc[trend_lc == 0] = np.nan  # avoid division by zero
     flatten_lc = flux / trend_lc
 
     if order is not None:  # restore the order of the input
