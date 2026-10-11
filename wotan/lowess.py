@@ -3,33 +3,32 @@ import numpy as np
 from numba import jit
 
 
-@jit(fastmath=True, nopython=True, cache=True)
+@jit(fastmath=True, nopython=True, cache=True, error_model="numpy")
 def _local_linear_fit(x, y, y_weights, imin, imax, xi, radius):
     """Weighted linear fit of y(x) over x[imin:imax], evaluated at ``xi``, with the
-    weights y_weights * tricube(|x - xi| / radius). One pass over the window (no
-    temporary arrays); the fit is centred on the weighted mean of x for accuracy.
-    Equals the "projection vector" form of statsmodels."""
-    # first pass: weighted mean of x (the normalisation of the weights)
+    normalised weights w = y_weights * tricube(|x - xi| / radius) / sum(...): the
+    "projection vector" form of statsmodels,
+        sum(w * (1 + (xi - w1) * (x - w1) / w2) * y),
+    with w1 = sum(w * x) and w2 = sum(w * (x - w1)^2). Computed in passes over the
+    window without temporary arrays, term by term as before."""
     sw = 0.0
-    swx = 0.0
     for j in range(imin, imax):
-        w = y_weights[j] * (1 - (np.abs(x[j] - xi) / radius) ** 3) ** 3  # tricube
-        sw += w
-        swx += w * x[j]
-    xm = swx / sw
-    # second pass: weighted variance of x and covariance of x and y, about xm
-    sxx = 0.0
-    sxy = 0.0
-    sy = 0.0
+        sw += y_weights[j] * (1 - (np.abs(x[j] - xi) / radius) ** 3) ** 3  # tricube
+    w1 = 0.0
     for j in range(imin, imax):
-        w = y_weights[j] * (1 - (np.abs(x[j] - xi) / radius) ** 3) ** 3
-        dx = x[j] - xm
-        sxx += w * dx * dx
-        sxy += w * dx * y[j]
-        sy += w * y[j]
-    if sxx == 0:
+        w = y_weights[j] * (1 - (np.abs(x[j] - xi) / radius) ** 3) ** 3 / sw
+        w1 += w * x[j]
+    w2 = 0.0
+    for j in range(imin, imax):
+        w = y_weights[j] * (1 - (np.abs(x[j] - xi) / radius) ** 3) ** 3 / sw
+        w2 += w * (x[j] - w1) ** 2
+    if w2 == 0:
         return np.nan
-    return sy / sw + (xi - xm) * sxy / sxx
+    fit = 0.0
+    for j in range(imin, imax):
+        w = y_weights[j] * (1 - (np.abs(x[j] - xi) / radius) ** 3) ** 3 / sw
+        fit += w * ((1 + (xi - w1) * (x[j] - w1) / w2) * y[j])
+    return fit
 
 
 @jit(fastmath=True, nopython=True, cache=True)
