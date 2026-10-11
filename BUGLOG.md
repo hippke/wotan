@@ -48,6 +48,13 @@ red the moment the bug is fixed so the marker (and this entry) get removed.
 | [BUG-022](#bug-022) | Low | `lowess.py:10` | Tricube radius uses `x[-2]`: last window point gets non-zero weight at the left edge |
 | [BUG-023](#bug-023) | Low | `norms.py` | Module runs demo code on import and uses `np.alltrue` (removed in NumPy 2.0) |
 | [BUG-024](#bug-024) | Medium | `flatten.py` | `mask` is silently ignored by `pspline`, `cofiam`, `supersmoother`, `savgol`, `medfilt` (+ regressions) |
+| [BUG-025](#bug-025) | Medium | `flatten.py` | `flatten` divides by the trend: zero-crossing / mean-subtracted flux gives wild ratios, no warning (issue #64) |
+| [BUG-026](#bug-026) | Low | `cofiam.py:matrix_gen` | `cosine`/`cofiam` are not invariant to a time offset (BJD): ill-conditioned basis |
+| [BUG-027](#bug-027) | Low | `huber_spline.py` | `hspline` precision depends on the flux offset (absolute optimiser tolerance) |
+| [BUG-028](#bug-028) | Medium | `cofiam.py`, `iter_spline.py` | Robust clipping is one-sided: flares are not rejected, only dips |
+| [BUG-029](#bug-029) | Low | `slider.py` | An isolated one-sample segment silently gets a NaN trend (confidence: low) |
+| [BUG-030](#bug-030) | Low | 8 places | Bare `except:` swallows `KeyboardInterrupt`/`SystemExit` |
+| [BUG-031](#bug-031) | Medium | `flatten.py` | `inf` in the flux is not treated as invalid and corrupts the trend |
 
 ## Scorecard for the priority detrenders
 
@@ -57,9 +64,9 @@ What the new tests verified to be **correct**, and which bugs touch each method.
 |---|---|---|
 | **biweight** | Matches an independent iterate-to-convergence M-estimator to 3e-6 (= `FTOL`) for c = 4.685/5/6; within 0.02 of astropy's one-step biweight; window semantics equal a brute-force `abs(t-tᵢ)<w/2` reference; translation/scale (moderate)/reflection equivariance; large `cval` → mean; flare/outlier rejection; **paper Sect. 4.6: window 3×T14 keeps ≥95 % of an injected depth, 0.5×T14 destroys it**; transit mask rescues short windows | 002, 003, 009, 013, 018 |
 | **median** | Equals `np.median` of the window on even and irregular grids; step edges preserved; isolated spikes rejected exactly; linear ramp reproduced | 002, 003, 013 |
-| **cosine** | Exact least squares: recovers any signal in the basis span to 1e-9, residuals orthogonal to all basis columns, degree 0 = straight line, `mask` = weighted LS on the kept points, `robust` clipping removes dip bias, user mask not mutated | 019 (prints), note N-2 |
+| **cosine** | Exact least squares: recovers any signal in the basis span to 1e-9, residuals orthogonal to all basis columns, degree 0 = straight line, `mask` = weighted LS on the kept points, `robust` clipping removes dip bias, user mask not mutated | 019 (prints), 026, 028 |
 | **huber** | Equals `statsmodels…Huber(c=cval)` on every window to 1e-10; masked points ignored; falls back to the window median on non-convergence (issues #6/#19) | 002 |
-| **splines** | `rspline` reproduces cubics to 1e-10, clips dips, mask ≡ dropping the points; `hspline` tracks the trend, scale-equivariant at realistic flux, issue #64 not reproducible as an hspline bug; `pspline` tracks, `nsplines` grows with wiggliness, `edge_cutoff` exact, issue #57 fixed | 011, 012, 017, 020, 024 |
+| **splines** | `rspline` reproduces cubics to 1e-10, clips dips, mask ≡ dropping the points; `hspline` tracks the trend, scale-equivariant at realistic flux, issue #64 not reproducible as an hspline bug; `pspline` tracks, `nsplines` grows with wiggliness, `edge_cutoff` exact, issue #57 fixed | 011, 012, 017, 020, 024, 027, 028 |
 | **lowess** | Reproduces constants and straight lines to 1e-9, affine equivariant, agrees with `statsmodels` lowess to 4.6e-5 (interior), mask removes wide-dip bias, 3×T14 keeps the transit | 009, 022 |
 
 ---
@@ -256,7 +263,7 @@ The paper does not define this estimator (Sect. 2.4 only gives a pseudo-Huber lo
 ## BUG-020
 **`rspline` convergence check is dead code** — Low · `iter_spline.py:30-33`
 
-The second `outliers = ...` is computed and never used, and `np.ma.where(mask_outliers)` is applied to a tuple of index arrays (so index 0 counts as "false"). Result: all `PSPLINES_MAXITER` (10) spline fits always run, observed 10 `LSQUnivariateSpline` calls on clean data. Also, only *downward* outliers are clipped, so flares are not rejected (see N-4).
+The second `outliers = ...` is computed and never used, and `np.ma.where(mask_outliers)` is applied to a tuple of index arrays (so index 0 counts as "false"). Result: all `PSPLINES_MAXITER` (10) spline fits always run, observed 10 `LSQUnivariateSpline` calls on flat flux + noise, where the set of retained points is already constant (577 points) from the 5th fit on. Also, only *downward* outliers are clipped, so flares are not rejected (see BUG-028).
 **Fix:** test the clip count of the current iteration. **Test:** `test_bug020_*`.
 
 ## BUG-021
@@ -284,32 +291,71 @@ Lines 163-178 execute and print at import time; `np.alltrue` was removed in NumP
 
 ---
 
-## Notes (not bugs, but worth knowing / documenting)
+## BUG-025
+**`flatten` divides by the trend: zero-crossing flux gives wild ratios without a warning** — Medium · `flatten.py` (formerly BUG-025) · issue #64
 
-* **N-1 — `flatten` divides.** The trend must be positive and away from zero. Zero-crossing or mean-subtracted flux gives wild ratios (this is issue #64; the Huber spline itself tracks the level correctly - `test_hspline_trend_is_not_forced_to_zero_issue_64`). A trend of exactly 0 becomes NaN (documented in the source, tested). Consider an additive mode or a docstring warning (see also #56, #60).
-* **N-2 — BJD-like time offsets.** Sliders and splines are offset-invariant to 1e-9 or better (issue #51 is fixed), but `cosine`/`cofiam` (columns `1` and `t`) and `lowess` differ by 1.3e-5 / 1.7e-5 at t ≈ 2.457e6 (ill-conditioning). Subtracting `min(time)` internally would remove it.
-* **N-3 — `hspline` precision when signal ≪ level.** A +1000 offset on a 0.01-amplitude signal gives trend errors up to 0.026 (2.6e-5 relative): the Huber regressor's optimiser tolerance is absolute. Realistic flux levels (×1e3, ×28000 with 1 % variation) are fine to < 1e-4. Same family as BUG-009.
-* **N-4 — robust clipping is one-sided.** `cosine(robust=True)` and `rspline` clip only points *below* the trend (transits), not flares, although the docstring says "2-sigma outliers".
+`flatten_lc = flux / trend`. For flux that crosses or approaches zero (mean-subtracted flux, magnitudes, ΔT) the ratio explodes; a trend of exactly 0 becomes NaN (documented in the source). The Huber spline itself is fine (`test_hspline_trend_is_not_forced_to_zero_issue_64`); the surprise is the division. Example: `0.01*sin(t)` with `biweight` returns values up to ~100 (together with BUG-003 dropping the negative samples), and nothing warns.
+**Fix:** warn when the trend has non-positive or near-zero values, document it, and/or offer an additive mode (`flux - trend`). See also #56, #60. **Test:** `test_bug025_*`.
+
+## BUG-026
+**`cosine`/`cofiam` are not invariant to a time offset** — Low · `cofiam.py:matrix_gen` (formerly N-2) · issue #51
+
+The basis uses the raw `t` (columns `1` and `t`, plus sin/cos of `t`), so at `t ≈ 2.457e6` (BJD) the least-squares problem is ill-conditioned. On a 1500-point, 30 d light curve `cosine` changes by up to 1.7e-4 when `t` is shifted by 2457000 d (sliders: exactly 0). In an earlier setup `lowess` changed by 1.7e-5; with the current test data it is 3e-9, so only `cosine`/`cofiam` are logged.
+**Fix:** subtract `min(t)` inside `matrix_gen`/`detrend_cosine`. **Test:** `test_bug026_*`.
+
+## BUG-027
+**`hspline` precision depends on the flux offset** — Low · `huber_spline.py` (formerly N-3) · same family as BUG-009
+
+The scikit-learn `HuberRegressor` tolerance is absolute. On a 1500-point, 30 d light curve with a 0.01 amplitude signal, adding +1000 to the flux changes the trend by 4.5e-4 (+5: 1.7e-7). Other configurations tried were fine (< 3e-7), so this only bites for large offsets with long light curves. Realistic normalised flux (≈1) is unaffected.
+**Fix:** normalise the flux (divide by its median) inside the regression, or use a relative tolerance. **Test:** `test_bug027_*`.
+
+## BUG-028
+**Robust clipping is one-sided: flares are not rejected** — Medium · `cofiam.py` (`detrend_cosine`), `iter_spline.py` (formerly N-4)
+
+`1 - detrended_flux > c*std` flags only points *below* the trend (transits) but the docstring says "2-sigma outliers". A 0.03 flare of 0.4 d changes the robust cosine trend by 4.8e-3 and the `rspline` trend by 6.4e-3, while the equally large *dip* barely moves them. Flares in the baseline therefore leave a bump in the trend and a negative dent in the flattened curve.
+**Fix:** clip with `abs(1 - detrended) > c*std` (optionally with a separate upper threshold). **Test:** `test_bug028_*` (2).
+
+## BUG-029
+**An isolated one-sample segment silently gets a NaN trend** — Low · `slider.py` (formerly N-6) · *confidence: low*
+
+With `break_tolerance` a segment of one sample has no neighbours and its trend is NaN, with no warning. (A 2-sample segment returns `trend[1] == flux[0]`, a consequence of BUG-002.) The intended behaviour is not documented: it could be the sample itself, or NaN plus a warning.
+**Test:** `test_bug029_*`.
+
+## BUG-030
+**Bare `except:` clauses** — Low · `slider.py:98,147`, `iter_spline.py:26`, `flatten.py:259`, `gp.py:12`, `huber_spline.py:12`, `pspline.py:18`, `regression.py:12` (formerly N-7)
+
+They also swallow `KeyboardInterrupt` and `SystemExit`. The `huber` fallback loop (`slider.py:147`) eats Ctrl-C once per window — possibly related to the "can't Ctrl-C" remark in issue #30 (which used `biweight`, so not the whole story).
+**Fix:** `except Exception:`; for the Huber fallback catch the specific errors. **Test:** `test_bug030_*` (AST scan).
+
+## BUG-031
+**`inf` in the flux is not treated as invalid** — Medium · `flatten.py` (formerly N-8)
+
+Only NaN is removed. With one `+inf` sample the `biweight` trend is non-finite for 29 of 300 samples (the NaN equivalent: 1), and `inf*0` under `fastmath=True` is not something to rely on. `median` happened to survive.
+**Fix:** drop non-finite values (`np.isfinite`) instead of `isnan`. **Test:** `test_bug031_*`.
+
+---
+
+## Notes (not bugs)
+
 * **N-5 — existing `wotan/tests.py`.** The repo does have a 519-line script of that name (run by `.travis.yml`), but it is not a pytest suite: it downloads a TESS file from `archive.stsci.edu`, needs astropy, uses hard-coded regression numbers that bake in the bugs above (e.g. the `slide_clip` sum, BUG-006), and CI pins Python 3.6/3.7 and scikit-learn 0.20, so BUG-001 was invisible. The new `tests/` suite is offline, deterministic (fixed seeds) and does not replace those TESS regression numbers.
-* **N-6 — tiny segments.** A segment with one sample gets NaN (no neighbours); with BUG-002 a 2-sample segment returns `trend[1] == flux[0]`.
-* **N-7 — bare `except:`** in `slider.py:98,147`, `iter_spline.py:26`, `flatten.py:259`, `gp.py:12`, `huber_spline.py:12`, `pspline.py:18`, `regression.py:12` also swallow `KeyboardInterrupt`. The `huber` fallback loop (`slider.py:147`) means Ctrl-C is eaten once per window — possibly related to the "can't Ctrl-C" remark in issue #30 (which used `biweight`, so not the whole story). Use `except Exception:` and, for the Huber fallback, catch the specific errors.
-* **N-8 — inf in flux** is not treated as invalid (only NaN is removed). The tested sliders happened to return finite trends, but `inf*0` under `fastmath=True` is not something to rely on.
+
+Notes N-1…N-4 and N-6…N-8 of earlier drafts are now BUG-025…BUG-031.
 
 ## Open/closed upstream issues checked against the code
 
 | Issue | Verdict | Where covered |
 |---|---|---|
-| #6, #19 huber non-convergence | Handled by design (median fallback); bare `except` noted (N-7) | `test_huber.py::test_falls_back_to_the_median…` |
+| #6, #19 huber non-convergence | Handled by design (median fallback); bare `except` noted (BUG-030) | `test_huber.py::test_falls_back_to_the_median…` |
 | #18 andrewsinewave ≡ biweight | Fixed: the estimators differ | `test_location_estimates.py` |
 | #30 memory growth | Not reproduced (numba 0.68: 0 MB growth over 60 calls) | `test_flatten_api.py::test_memory_does_not_grow…` |
 | #31 / #35 masking | Works for sliders, lowess, cosine, gp, hspline, rspline; **silently ignored elsewhere → BUG-024** | `test_slider.py`, `test_known_bugs.py` |
-| #51 BJD offset | Fixed for sliders/splines; small numerical effect in cosine/lowess (N-2) | `test_slider.py`, `test_cosine.py`, `test_lowess.py` |
+| #51 BJD offset | Fixed for sliders/splines; cosine still affected (BUG-026) | `test_slider.py`, `test_cosine.py`, `test_lowess.py` |
 | #54 finance example NaN | Plausibly the `(n, 1)` array → **BUG-018** (could not run the user's data) | `test_known_bugs.py` |
 | #55 `mask` undocumented | Confirmed → **BUG-021** | `test_known_bugs.py` |
-| #56 zeros → NaN; vectorise | Zero *trend* → NaN is intended (N-1); non-positive flux → **BUG-003** | `test_flatten_api.py` |
+| #56 zeros → NaN; vectorise | Zero *trend* → NaN is intended (BUG-025); non-positive flux → **BUG-003** | `test_flatten_api.py` |
 | #57 pspline small gaps | Fixed (regression test passes) | `test_splines.py` |
 | #61 numba/numpy dtype error | Not reproduced (robust cosine + mask runs) | `test_cosine.py` |
-| #64 huber spline zero-crossing | Not an hspline bug; division in `flatten` (N-1) | `test_splines.py` |
+| #64 huber spline zero-crossing | Not an hspline bug; division in `flatten` (BUG-025) | `test_splines.py` |
 | #66 small cadence removes transits | User error (time not in days); window-vs-T14 behaviour matches the paper | `test_biweight.py` |
 | #50, #53, #33, #62, #65, #67 | Usage / dependency / feature questions; not testable | — |
 

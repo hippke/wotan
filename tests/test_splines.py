@@ -94,8 +94,8 @@ def test_hspline_follows_the_trend(lc):
 def test_hspline_trend_is_not_forced_to_zero_issue_64():
     # Issue #64 reported trends "centred on 0". The spline itself tracks whatever
     # level the data have; it is the *division* in flatten() that explodes when the
-    # flux crosses zero (flux must be positive, normalised ~1 - see BUGLOG N-1).
-    # (An offset >> signal, e.g. +1000 on a 0.01 signal, loses precision: BUGLOG N-3.)
+    # flux crosses zero (flux must be positive, normalised ~1 - see BUGLOG BUG-025).
+    # (An offset >> signal, e.g. +1000 on a 0.01 signal, loses precision: BUGLOG BUG-027.)
     t, f, true = make_lc(n=1500, span=30.0, level=1.0)
     for offset in (0.0, 5.0):
         tr = flatten(t, f - 1.0 + offset, window_length=1.0, method="hspline",

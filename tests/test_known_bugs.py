@@ -394,7 +394,10 @@ def test_bug020_rspline_stops_when_no_more_points_are_clipped(monkeypatch):
     orig = its.LSQUnivariateSpline
     monkeypatch.setattr(its, "LSQUnivariateSpline",
                         lambda *a, **k: (calls.append(1), orig(*a, **k))[1])
-    t, f, _ = make_lc(n=600, span=20.0)
+    # flat flux + white noise: the clipped set stops changing after ~5 fits
+    # (a sinusoidal trend keeps shedding points, so it never converges in 10)
+    t = np.linspace(0, 20, 600)
+    f = 1 + np.random.default_rng(1).normal(0, 1e-4, 600)
     flatten(t, f, window_length=3.0, method="rspline")
     assert len(calls) < constants.PSPLINES_MAXITER
 
@@ -463,3 +466,99 @@ def test_bug024_mask_is_honoured_or_the_user_is_told(method, kwargs):
     changed = not np.array_equal(plain, masked, equal_nan=True)
     warned = any("mask" in str(w.message).lower() for w in caught)
     assert changed or warned
+
+
+# ---------------------------------------------------------------------- BUG-025
+@bug("BUG-025", "flatten divides by the trend: zero-crossing flux gives ratios of ~100 "
+                "(and, via BUG-003, silently dropped samples) with no warning")
+def test_bug025_zero_crossing_flux_warns_or_is_rejected():
+    t = np.linspace(0, 10, 300)
+    f = 0.01 * np.sin(t)  # e.g. mean-subtracted flux (issue #64)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        try:
+            out = flatten(t, f, window_length=1.0, method="biweight")
+        except ValueError:
+            return
+    assert any(issubclass(w.category, UserWarning) for w in caught) or np.nanmax(np.abs(out)) < 10
+
+
+# ---------------------------------------------------------------------- BUG-026
+@bug("BUG-026", "cosine builds its basis from raw t (columns 1, t, sin, cos): BJD-sized time "
+                "offsets change the trend (ill-conditioning)")
+def test_bug026_cosine_is_invariant_to_a_time_offset():
+    t, f, _ = make_lc(n=1500, span=30.0)
+    a = flatten(t, f, window_length=3.0, method="cosine", return_trend=True)[1]
+    b = flatten(t + 2457000.0, f, window_length=3.0, method="cosine", return_trend=True)[1]
+    np.testing.assert_allclose(b, a, atol=1e-6)
+
+
+# ---------------------------------------------------------------------- BUG-027
+@bug("BUG-027", "hspline's Huber regressor uses an absolute tolerance: a +1000 offset on a "
+                "0.01-amplitude signal changes the trend by 4.5e-4 (biweight: exactly 0)")
+def test_bug027_hspline_is_invariant_to_a_flux_offset():
+    pytest.importorskip("sklearn")
+    t, f, _ = make_lc(n=1500, span=30.0)
+    a = flatten(t, f, window_length=3.0, method="hspline", return_trend=True)[1]
+    b = flatten(t, f + 1000.0, window_length=3.0, method="hspline", return_trend=True)[1] - 1000.0
+    np.testing.assert_allclose(b, a, atol=1e-5)
+
+
+# ---------------------------------------------------------------------- BUG-028
+@pytest.mark.parametrize("method,kwargs", [("cosine", dict(window_length=4.0, robust=True)),
+                                           ("rspline", dict(window_length=4.0))])
+@bug("BUG-028", "robust clipping is one-sided: a dip is ignored, an equally large flare "
+                "pulls the trend (docstring: '2-sigma outliers')")
+def test_bug028_flares_are_clipped_as_well_as_dips(method, kwargs):
+    t, f, _ = make_lc(n=1000, span=20.0, noise=5e-4)
+    bump = (t > 9.9) & (t < 10.3)
+    up, down = f.copy(), f.copy()
+    up[bump] += 0.03
+    down[bump] -= 0.03
+    base = flatten(t, f, method=method, return_trend=True, **kwargs)[1]
+    eff_up = np.nanmax(np.abs(flatten(t, up, method=method, return_trend=True, **kwargs)[1] - base))
+    eff_down = np.nanmax(np.abs(flatten(t, down, method=method, return_trend=True, **kwargs)[1] - base))
+    assert eff_up < 2 * eff_down + 1e-4
+
+
+# ---------------------------------------------------------------------- BUG-029
+@bug("BUG-029", "an isolated one-sample segment gets a NaN trend with no warning "
+                "(confidence: low, intended behaviour is not documented)")
+def test_bug029_single_sample_segment_is_not_silently_nan():
+    t = np.array([0, 0.01, 0.02, 5.0, 10, 10.01, 10.02])
+    f = np.ones(7)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        tr = flatten(t, f, window_length=0.5, break_tolerance=1.0, method="median",
+                     return_trend=True)[1]
+    assert np.isfinite(tr).all() or any(issubclass(w.category, UserWarning) for w in caught)
+
+
+# ---------------------------------------------------------------------- BUG-030
+@bug("BUG-030", "bare `except:` clauses also swallow KeyboardInterrupt / SystemExit")
+def test_bug030_no_bare_except_in_the_package():
+    import ast
+    import pathlib
+
+    import wotan
+
+    offenders = []
+    for path in pathlib.Path(wotan.__file__).parent.glob("*.py"):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, ast.ExceptHandler) and node.type is None:
+                offenders.append("%s:%d" % (path.name, node.lineno))
+    assert not offenders, offenders
+
+
+# ---------------------------------------------------------------------- BUG-031
+@bug("BUG-031", "only NaN is removed as invalid: +-inf in the flux corrupts neighbouring "
+                "biweight trend values")
+def test_bug031_inf_in_flux_is_treated_like_nan():
+    t = np.linspace(0, 10, 300)
+    f = 1 + 0.001 * np.sin(t)
+    with_inf, with_nan = f.copy(), f.copy()
+    with_inf[100] = np.inf
+    with_nan[100] = np.nan
+    a = flatten(t, with_inf, window_length=1.0, method="biweight", return_trend=True)[1]
+    b = flatten(t, with_nan, window_length=1.0, method="biweight", return_trend=True)[1]
+    np.testing.assert_allclose(a, b, equal_nan=True)

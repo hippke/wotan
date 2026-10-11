@@ -42,7 +42,7 @@ Tolerances are derived, not tuned: e.g. a sliding window of length *w* attenuate
 by `sinc(w/P)`, so the allowed trend error is `A(1 - sinc(w/P))` plus the averaging noise
 (`helpers.sliding_mean_sine_bias`). Quantities such as "trend goes to infinity" are not
 asserted anywhere: `flatten` divides by the trend, so behaviour near a zero trend is a
-property of the definition (see `BUGLOG.md` N-1).
+property of the definition (see `BUGLOG.md` BUG-025).
 
 ## Known bugs
 
