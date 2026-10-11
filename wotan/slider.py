@@ -164,10 +164,14 @@ def _sliding_chunk(time, flux, mask, idx_start, idx_end, i0, i1, low_index, hi_i
         cur_hi = hi
         if n == 0:
             continue  # stays NaN
+        if method_code == 5:  # median: a lookup in the sorted buffer, no MAD needed
+            if n % 2 == 1:
+                out[i] = buf[n // 2]
+            else:
+                out[i] = (buf[n // 2 - 1] + buf[n // 2]) / 2
+            continue
         med, mad = _median_mad_sorted(buf[:n])
-        if method_code == 5:
-            out[i] = med
-        elif mad == 0:
+        if mad == 0:
             out[i] = med
         else:
             out[i] = location_iter_core(buf[:n], med, mad, cval, method_code)
