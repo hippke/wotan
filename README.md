@@ -13,30 +13,6 @@ Wōtan...
 
 > In Germanic mythology, Odin (/ˈoːðinː/ Old High German: Wōtan) is a widely revered god. He gave one of his eyes to Mimir in return for wisdom. Thus, in order to achieve a goal, one sometimes has to turn a blind eye. In Richard Wagner's "Der Ring des Nibelungen", Wotan is the King of the Gods (god of light, air, and wind) and a bass-baritone. According to Wagner, he is the "pinnacle of intelligence".
 
-What's new in 2.0
------------------
-
-- **Bugfixes:** 31 bugs fixed ([#70](https://github.com/hippke/wotan/issues/70)–[#100](https://github.com/hippke/wotan/issues/100)), see [BUGLOG.md](https://github.com/hippke/wotan/blob/master/BUGLOG.md). Highlights: the slider windows now include their last sample, masks work with any flux value, robust clipping is two-sided, `lowess` uses a window in time units, `cosine`/`cofiam` work for any time offset, `pspline` and `rspline` converge properly, and NaN/inf, unsorted time and invalid arguments are handled (with warnings instead of silent NaN trends).
-- **Performance:** all commonly used methods are faster, most of them by an order of magnitude (table below).
-- **Test coverage:** a pytest suite of 563 tests covers all detrending methods, the API, edge cases, a regression test for every fixed bug, checks against independent reference implementations, and the trends of a real Kepler light curve against stored references. Run it with `pytest tests`.
-
-### Speed
-
-Speed in millions of data points per second for the Kepler-10 light curve (all 15 long-cadence quarters, 52k points), `window_length=0.5` d, default parameters, 2 CPU cores (the parallel methods scale with the number of cores). Speed-up: geometric mean over the benchmark datasets, compared to 1.x. Reproduce with `python benchmarks/bench.py --method <name>`; details in [benchmarks/RESULTS.md](https://github.com/hippke/wotan/blob/master/benchmarks/RESULTS.md).
-
-| Method | Speed (million points per sec) | Speed-up |
-|---|---|---|
-| `mean` | 34 | 19x |
-| `median` | 11 | 21x |
-| `biweight` | 5.0 | 60x |
-| `rspline` | 0.34 | 2.3x |
-| `lowess` | 0.33 | 9.1x |
-| `hspline` | 0.22 | 14x |
-| `cosine` | 0.11 | 1.1x |
-| `cofiam` | 0.037 | 1.6x |
-| `pspline` | 0.0003* | 1.3x |
-
-\* longest Kepler-10 segment (1,925 points)
 
 Example usage
 -------------
@@ -141,6 +117,31 @@ As all scientific work, wōtan is [*standing on the shoulders of giants*](https:
 - Bringing together many methods in one place in a common interface, with sensible defaults
 - Providing documentation, tutorials, and a [paper](https://arxiv.org/abs/1906.00966) which compares and benchmarks the methods
 
+
+What's new in 2.0
+-----------------
+
+- **Bugfixes:** 31 bugs fixed ([#70](https://github.com/hippke/wotan/issues/70)–[#100](https://github.com/hippke/wotan/issues/100)), see [BUGLOG.md](https://github.com/hippke/wotan/blob/master/BUGLOG.md). Highlights: the slider windows now include their last sample, masks work with any flux value, robust clipping is two-sided, `lowess` uses a window in time units, `cosine`/`cofiam` work for any time offset, `pspline` and `rspline` converge properly, and NaN/inf, unsorted time and invalid arguments are handled (with warnings instead of silent NaN trends).
+- **Performance:** all commonly used methods are faster, most of them by an order of magnitude (table below).
+- **Test coverage:** a pytest suite of 563 tests covers all detrending methods, the API, edge cases, a regression test for every fixed bug, checks against independent reference implementations, and the trends of a real Kepler light curve against stored references. Run it with `pytest tests`.
+
+### Speed
+
+Speed in millions of data points per second for the Kepler-10 light curve (all 15 long-cadence quarters, 52k points), `window_length=0.5` d, default parameters, 2 CPU cores (the parallel methods scale with the number of cores). Speed-up: geometric mean over the benchmark datasets, compared to 1.x. Reproduce with `python benchmarks/bench.py --method <name>`; details in [benchmarks/RESULTS.md](https://github.com/hippke/wotan/blob/master/benchmarks/RESULTS.md).
+
+| Method | Speed (million points per sec) | Speed-up |
+|---|---|---|
+| `mean` | 34 | 19x |
+| `median` | 11 | 21x |
+| `biweight` | 5.0 | 60x |
+| `rspline` | 0.34 | 2.3x |
+| `lowess` | 0.33 | 9.1x |
+| `hspline` | 0.22 | 14x |
+| `cosine` | 0.11 | 1.1x |
+| `cofiam` | 0.037 | 1.6x |
+| `pspline` | 0.0003* | 1.3x |
+
+\* longest Kepler-10 segment (1,925 points)
 
 Attribution
 ----------------
