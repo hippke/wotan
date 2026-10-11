@@ -17,8 +17,26 @@ What's new in 2.0
 -----------------
 
 - **Bugfixes:** 31 bugs fixed ([#70](https://github.com/hippke/wotan/issues/70)–[#100](https://github.com/hippke/wotan/issues/100)), see [BUGLOG.md](BUGLOG.md). Highlights: the slider windows now include their last sample, masks work with any flux value, robust clipping is two-sided, `lowess` uses a window in time units, `cosine`/`cofiam` work for any time offset, `pspline` and `rspline` converge properly, and NaN/inf, unsorted time and invalid arguments are handled (with warnings instead of silent NaN trends).
-- **Performance:** the time-windowed sliders (`biweight`, `median`, `welsch`, `andrewsinewave`) keep a sorted sliding window, reach convergence in fewer steps, and run in parallel on all CPU cores. The `biweight` detrends **~1.6 million data points per second** (was ~19,000), **83x faster** than 1.x (best case: 1M points, 0.5 d window at 2-min cadence, 2 CPU cores; Kepler long cadence: 22x). Results agree with 1.x to within 1e-7. Benchmark: `python benchmarks/bench_biweight.py`.
-- **Test coverage:** a pytest suite of 530 tests covers all detrending methods, the API, edge cases, a regression test for every fixed bug, and checks against independent reference implementations. Run it with `pytest tests`.
+- **Performance:** all commonly used methods are faster, most of them by an order of magnitude (table below). The time-windowed sliders keep a sorted sliding window, `mean` uses running sums, and sliders and `lowess` run in parallel on all CPU cores; `hspline` fits a sparse B-spline design matrix. Best case: the `mean` detrends **~32 million data points per second**, the `biweight` **~2.3 million** (1.x: ~19,000, **120x faster**). Results agree with 1.x to 1e-6 (or 1e-3 of the noise, if larger), except `cosine` and `cofiam`, whose least-squares solution was made numerically stable (changes of up to ~1e-4).
+- **Test coverage:** a pytest suite of 563 tests covers all detrending methods, the API, edge cases, a regression test for every fixed bug, checks against independent reference implementations, and the trends of a real Kepler light curve against stored references. Run it with `pytest tests`.
+
+### Speed: millions of data points per second
+
+`window_length=0.5` d, default parameters, 2 CPU cores (the parallel methods scale with the number of cores). *Kepler-10*: all 15 long-cadence quarters, 52k points (~25 points per window). *White noise*: 2-min cadence, no gaps, N points (~360 points per window). Reproduce with `python benchmarks/bench.py --method <name>`; details in [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+
+| Method | Kepler-10, 2.0 | Kepler-10, 1.x | White noise, 2.0 | White noise, 1.x | N (white) | Speed-up (geomean) |
+|---|---|---|---|---|---|---|
+| `mean` | 34 | 2.5 | 32 | 1.1 | 1M | 19x |
+| `median` | 11 | 0.94 | 6.7 | 0.14 | 1M | 21x |
+| `biweight` | 5.0 | 0.12 | 2.3 | 0.019 | 1M | 60x |
+| `hspline` | 0.22 | 0.041 | 0.44 | 0.0082 | 100k | 14x |
+| `rspline` | 0.34 | 0.17 | 0.36 | 0.13 | 1M | 2.3x |
+| `lowess` | 0.33 | 0.037 | 0.18 | 0.020 | 100k | 9.1x |
+| `cosine` | 0.11 | 0.10 | 0.030 | 0.029 | 100k | 1.1x |
+| `cofiam` | 0.037 | 0.050 | 2.5 | 1.7 | 100k | 1.6x |
+| `pspline` | – | – | 0.00076 | 0.00052 | 10k | 1.3x |
+
+`cofiam` stops after a few harmonics on white noise, hence its high rate there; on Kepler-10 the numerically stable solution selects more harmonics than 1.x and is slower. `pspline` takes ~200 s for the Kepler-10 light curve and was benchmarked on its longest segment and 10k points only.
 
 Example usage
 -------------
@@ -103,11 +121,13 @@ To install the released version, type
 which automatically installs `numpy`, `numba` and ``scipy`` if not present. Depending on the algorithm, additional dependencies exist:
 
 - `huber`, `ramsay`, and `hampel` depend on `statsmodels`
-- `hspline` and `gp` depend on `sklearn`
+- `hspline` and `gp` depend on `scikit-learn`
 - `pspline` depends on `pygam`
 - `supersmoother` depends on `supersmoother`
 
-To install all additional dependencies, type ``$ pip install statsmodels sklearn supersmoother pygam``.
+To install all additional dependencies, type ``$ pip install statsmodels scikit-learn supersmoother pygam``.
+
+For development: `pip install -r tests/requirements-test.txt`, then `pytest` runs the test suite ([tests/README.md](tests/README.md)) and `python benchmarks/bench.py --method biweight` the benchmark ([benchmarks/README.md](benchmarks/README.md)). Note that numba's cache (`*.nbi`, `*.nbc` in `__pycache__`) does not track changes across files: after editing a compiled function that another one calls, delete the cache (`find wotan -name "*.nb?" -delete`), or the caller keeps the old code. Installed releases are not affected.
 
 
 Originality

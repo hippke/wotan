@@ -68,6 +68,8 @@ Which we can plot as follows:
    - ``hampelfilt`` 3
    - ``ramsay`` 0.3
    - ``tau``: 4.5
+   - ``hspline`` 1.35 (epsilon of the Huber loss, in units of the fitted scale)
+   - ``lowess`` 6 (bisquare cut-off in units of the median absolute residual, Cleveland 1979)
 
    The ``hampel`` has a 3-part descending function, known also as (a,b,c). Its tuning constant ``cval`` must be given as a tuple of 3 values. Typical values are (1.7, 3.4, 8.5) called "17A"; and (2.5, 4.5, 9.5) called "25A". With values given as multiples of the median absolute deviation, the 25A can be stated equivalently: a' = 1.686, b' = 3.035 c' = 6.408 as multiples of the standard deviation.
 
@@ -239,7 +241,7 @@ which prints something like:
 Lowess / Loess
 --------------
 
-Locally weighted scatterplot smoothing (Cleveland 1979). Offers segmentation (``break_tolerance``), but no edge clipping (``edge_cutoff``). For similar results compared to other spline-based methods or sliders, use a ``window_length`` about twice as long. Example usage:
+Locally weighted scatterplot smoothing (Cleveland 1979). The trend at each point is a weighted linear fit to all points within ``window_length/2`` (in units of ``time``), with tricube weights. Outliers are down-weighted iteratively with bisquare weights; the cut-off is ``cval`` (default 6) times the median absolute residual. Offers segmentation (``break_tolerance``), but no edge clipping (``edge_cutoff``). For similar results compared to other spline-based methods or sliders, use a ``window_length`` about twice as long. Example usage:
 
 ::
 
@@ -256,7 +258,7 @@ Locally weighted scatterplot smoothing (Cleveland 1979). Offers segmentation (``
 CoFiAM
 --------------
 
-Cosine Filtering with Autocorrelation Minimization. Does not provide ``edge_cutoff``, but benefits greatly from using a sensible ``break_tolerance``. Example usage:
+Cosine Filtering with Autocorrelation Minimization (Kipping et al. 2013). Fits 1, 2, ... harmonics and keeps the model before the Durbin-Watson statistic increases (by more than ``COFIAM_DW_TOL = 1e-6``, a tolerance against round-off). Does not provide ``edge_cutoff``, but benefits greatly from using a sensible ``break_tolerance``. Example usage:
 
 ::
 
@@ -273,7 +275,7 @@ Cosine Filtering with Autocorrelation Minimization. Does not provide ``edge_cuto
 Fitting of sines and cosines
 ----------------------------
 
-Fits a sum of sines and cosines, where the highest order is determined by the protected window span ``window_length`` in units of ``time``. A robustification (iterative sigma-clipping of 2-sigma outliers until convergence) is available by setting the parameter ``robust=True``. Example usage:
+Fits a sum of sines and cosines, where the highest order is determined by the protected window span ``window_length`` in units of ``time``. A robustification (iterative sigma-clipping of 2-sigma outliers until convergence) is available by setting the parameter ``robust=True``. The sine/cosine basis is numerically rank deficient; since version 2.0, the least-squares problem is solved with unit-norm columns and a relative singular-value cut-off (``LSTSQ_RCOND = 1e-10``), which makes the trend insensitive to round-off (``cosine`` and ``cofiam`` trends differ from 1.x by up to ~1e-4). Example usage:
 
 ::
 
@@ -281,7 +283,7 @@ Fits a sum of sines and cosines, where the highest order is determined by the pr
         time,                 # Array of time values
         flux,                 # Array of flux values
         method='cosine',
-        robust='True',        # iterative sigma-clipping of 2-sigma outliers until convergence
+        robust=True,          # iterative sigma-clipping of 2-sigma outliers until convergence
         window_length=0.5,    # Protected window span in units of ``time``
         break_tolerance=0.5,  # Split into segments at breaks longer than that
         return_trend=True,    # Return trend and flattened light curve

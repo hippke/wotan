@@ -380,3 +380,18 @@ Notes N-1…N-4 and N-6…N-8 of earlier drafts are now BUG-025…BUG-031.
 ## PR #69 (talensgj): lowess and hspline
 - `lowess`: window is now in time units (searchsorted), tricube radius `window_length/2`, bisquare robustness cut-off `cval` x median |residual| (default 6, Cleveland 1979).
 - `hspline`: `cval` is the Huber epsilon (default 1.35); spline features are standardised, flux is standardised by median/MAD, `max_iter=1000`.
+
+
+## Found during the 2.0 performance work
+
+- `lowess`: on noise-free data (constant, straight line) the robustness scale was the
+  round-off of the residuals; the weights collapsed and the trend became NaN after ~9
+  iterations. The scale is now floored at 1e-12 * max|y|.
+- `cosine`, `cofiam`: the half-range sin/cos basis is numerically rank deficient
+  (condition ~1e17); round-off (solver, BLAS, matrix variant) changed trends by ~1e-4,
+  and cofiam's Durbin-Watson choice of the model could flip. Least squares now uses
+  unit-norm columns with the SVD cut-off `LSTSQ_RCOND = 1e-10`; cofiam stops only if
+  Durbin-Watson increases by more than `COFIAM_DW_TOL = 1e-6`; robust cosine does not
+  clip on a scatter below 1e-9 (round-off). Trends change by up to ~1e-4 vs 1.x.
+- `cleaned_array` (used by rspline, pspline, gp) looped over the data in Python
+  (5 s per 1M points); now vectorised with the same semantics.

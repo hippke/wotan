@@ -48,6 +48,8 @@ kepler_full, ~220 s per run). Correctness: max |trend - master| over all dataset
 | cofiam | 100k | 0.141 s | 0.104 s | 1.36x | 0 | (flatten-level only) |
 | pspline | 10k | 11.05 s | 8.59 s | 1.29x | 0 | cached pygam model matrix |
 
+Current numbers (README table) are from a later run; cosine and cofiam now use the stable least squares (new references).
+
 Timings of BLAS-heavy methods (cosine, cofiam, pspline) vary by ~10-20 % run to run.
 
 Tried and dropped: median shift by binary search + loop (slower); cosine without

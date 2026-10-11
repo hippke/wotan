@@ -1,7 +1,7 @@
 # wotan test suite
 
     pip install -r tests/requirements-test.txt
-    pytest                       # everything (~1 min; first run compiles numba code)
+    pytest                       # everything (~3 min on 2 cores; first run compiles numba code)
     pytest -m "not slow"         # skip statsmodels / pygam / GP / supersmoother based tests
 
 Tests for methods whose optional dependency is missing (`statsmodels`, `scikit-learn`,
@@ -23,6 +23,8 @@ deterministic (all random data use fixed seeds).
 | `test_all_methods_smoke.py` | every method runs and tracks a known trend (low-priority methods) |
 | `test_helpers_t14.py`, `test_slide_clip.py` | `transit_mask`, `cleaned_array`, `t14`, `slide_clip` |
 | `test_bug_regressions.py` | one regression test per `BUGLOG.md` entry (all bugs are fixed) |
+| `test_slider_equivalence.py` | the optimised sliders (sorted sliding window, running sums, parallel chunks) against a plain per-window numpy reference; `flatten` does not modify its inputs |
+| `test_benchmark_references.py` | trends of the Kepler-10 benchmark light curve against the stored references in `benchmarks/ref` (1e-6, or 1e-3 of the noise) |
 | `helpers.py` | synthetic light curves and **independent** reference implementations |
 
 ## How "correct" is decided
@@ -59,3 +61,9 @@ or, as a single command per file:
 
     curl -fLO https://archive.stsci.edu/hlsps/tess-data-alerts/hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits
     curl -fLO https://archive.stsci.edu/hlsps/tess-data-alerts/hlsp_tess-data-alerts_tess_phot_00207081058-s01_tess_v1_lc.fits
+
+## numba cache
+
+numba's on-disk cache does not track changes across files: after editing a compiled
+function that another cached function calls, delete the cache before testing
+(`find wotan -name "*.nb?" -delete`), otherwise the caller runs the old code.

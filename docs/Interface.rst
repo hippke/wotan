@@ -111,7 +111,7 @@ Masking transits during detrending
 
 If transits have already been discovered, it is best practice to mask them while detrending. This way, the in-transit data points can not influence the detrending. 
 
-The current version supports this feature in the ``cosine`` and ``lowess`` methods. It is implemented but experimental in most other methods (give it a try...)
+All methods support the mask (``True`` = excluded from the fit; the trend is still evaluated at these points), except the cadence-based ``savgol`` and ``medfilt``, which ignore it with a warning.
 
 Example:
 
