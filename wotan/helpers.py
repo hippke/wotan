@@ -10,45 +10,16 @@ def transit_mask(time, period, duration, T0):
 
 def cleaned_array(t, y, dy=None):
     """Takes numpy arrays with masks and non-float values.
-    Returns unmasked cleaned arrays."""
+    Returns unmasked cleaned arrays: the points where all values are valid (not
+    None, not NaN, not +inf, not masked)."""
 
-    def isvalid(value):
-        valid = False
-        if value is not None:
-            if not np.isnan(value):
-                if value < np.inf:
-                    valid = True
-        return valid
+    def as_float(values):
+        # None -> NaN, masked entries -> NaN
+        return np.ma.asarray(values).astype(float).filled(np.nan)
 
-    # Start with empty Python lists and convert to numpy arrays later (reason: speed)
-    clean_t = []
-    clean_y = []
-    if dy is not None:
-        clean_dy = []
-
-    # Cleaning numpy arrays with both NaN and None values is not trivial, as the usual
-    # mask/delete filters do not accept their simultanous ocurrence without warnings.
-    # Instead, we iterate over the array once; this is not Pythonic but works reliably.
-    for i in range(len(y)):
-
-        # Case: t, y, dy
-        if dy is not None:
-            if isvalid(y[i]) and isvalid(t[i]) and isvalid(dy[i]):
-                clean_y.append(y[i])
-                clean_t.append(t[i])
-                clean_dy.append(dy[i])
-
-        # Case: only t, y
-        else:
-            if isvalid(y[i]) and isvalid(t[i]):
-                clean_y.append(y[i])
-                clean_t.append(t[i])
-
-    clean_t = np.array(clean_t, dtype=float)
-    clean_y = np.array(clean_y, dtype=float)
-
-    if dy is None:
-        return clean_t, clean_y
-    else:
-        clean_dy = np.array(clean_dy, dtype=float)
-        return clean_t, clean_y, clean_dy
+    arrays = [as_float(t), as_float(y)] + ([as_float(dy)] if dy is not None else [])
+    valid = np.ones(len(arrays[1]), dtype=bool)
+    for values in arrays:
+        valid &= ~np.isnan(values) & (values < np.inf)
+    cleaned = tuple(values[valid] for values in arrays)
+    return cleaned
