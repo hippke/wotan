@@ -1,0 +1,25 @@
+{
+ "kepler_full": {
+  "n": 51973,
+  "seconds": 1.2786146839999901,
+  "runs": 3,
+  "max_abs_diff": 0.0,
+  "ok": true
+ },
+ "kepler_seg": {
+  "n": 1925,
+  "seconds": 0.07350631999997859,
+  "runs": 12,
+  "max_abs_diff": 0.0,
+  "ok": true
+ },
+ "white_100k": {
+  "n": 100000,
+  "seconds": 12.181502125999941,
+  "runs": 2,
+  "max_abs_diff": 0.0,
+  "ok": true
+ },
+ "startup": 1.329530449999993,
+ "geomean": 1.0461366195414488
+}
