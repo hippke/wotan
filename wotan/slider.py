@@ -1,5 +1,4 @@
 from __future__ import print_function, division
-import numba
 from numba import jit, prange
 import numpy as np
 from numpy import mean, median, full, nan
@@ -174,7 +173,9 @@ def running_segment(time, flux, mask, window_length, edge_cutoff, cval, method_c
         max_window = 1
         for i in range(size):
             max_window = max(max_window, idx_end[i] - idx_start[i])
-        n_chunks = min(size, 8 * numba.get_num_threads())
+        # Independent chunks of >= 4 windows (each chunk starts with one full sort);
+        # the count does not depend on the thread count, so results are reproducible
+        n_chunks = max(1, min(256, size // (4 * max_window)))
         for c in prange(n_chunks):
             i0 = c * size // n_chunks
             i1 = (c + 1) * size // n_chunks

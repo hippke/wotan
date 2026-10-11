@@ -129,6 +129,17 @@ def main():
                             ok=bool(diff <= TOL))
         print("%-12s n=%8d  %9.4f s  max|diff|=%.2e  %s  [%s]"
               % (name, len(t), best, diff, "OK" if diff <= TOL else "FAIL", kind))
+    # Start-up: import + first call in a fresh process, with numba's cache already warm
+    # (catches functions that silently stop being cacheable)
+    import subprocess, sys
+    code = ("import time,numpy as np;s=time.perf_counter();from wotan import flatten;"
+            "t=np.linspace(0,10,2000);flatten(t,1+0*t,window_length=0.5);"
+            "print(time.perf_counter()-s)")
+    env = dict(os.environ, PYTHONPATH=ROOT)
+    startup = float(subprocess.run([sys.executable, "-c", code], env=env, check=True,
+                                   capture_output=True, text=True).stdout.split()[-1])
+    print("start-up (import + first call, cached): %.2f s" % startup)
+    report["startup"] = startup
     gm = float(np.exp(np.mean(np.log(times))))
     print("geomean: %.4f s" % gm)
     report["geomean"] = gm
