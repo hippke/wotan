@@ -2,7 +2,18 @@ from __future__ import print_function, division
 import numpy as np
 import wotan.constants as constants
 from wotan.helpers import cleaned_array
-from scipy.interpolate import LSQUnivariateSpline
+from scipy.interpolate import LSQUnivariateSpline, BSpline
+
+
+def _evaluator(spline):
+    """Fast evaluation of a fitted FITPACK spline: the same B-spline (knots,
+    coefficients, degree) evaluated by scipy's BSpline, about twice as fast as
+    FITPACK's splev (both extrapolate the outer polynomial pieces)."""
+    try:
+        t, c, k = spline._eval_args
+        return BSpline(t, c, k, extrapolate=True)
+    except Exception:  # private attribute missing in some scipy version
+        return spline
 
 
 def iter_spline(time, flux, mask, window_length):
@@ -19,7 +30,7 @@ def iter_spline(time, flux, mask, window_length):
             return np.full(len(time), np.nan)
         knots = np.linspace(np.min(newtime), np.max(newtime), no_knots)[1:-1]
         try:
-            trend = LSQUnivariateSpline(newtime, newflux, knots)
+            trend = _evaluator(LSQUnivariateSpline(newtime, newflux, knots))
         except Exception:
             return np.full(len(time), np.nan)
         # Clip outliers on both sides of the trend (dips and flares), using the robust
