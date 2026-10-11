@@ -23,8 +23,16 @@ def detrend_huber_spline(time, flux, mask, knot_distance, cval=1.35):
 
         def transform(self, X):
             features = np.zeros((len(X), len(self.bsplines)))
-            for ispline, spline in enumerate(self.bsplines):
-                features[:, ispline:ispline+1] = scipy.interpolate.splev(X, spline)
+            knots, _, degree = self.bsplines[0]
+            try:
+                # All basis functions at once (same values as one splev per basis
+                # function; the last degree + 1 columns stay zero, as with splev)
+                design = scipy.interpolate.BSpline.design_matrix(
+                    np.ravel(X), knots, degree, extrapolate=True)
+                features[:, :design.shape[1]] = design.toarray()
+            except (AttributeError, TypeError):  # scipy < 1.10
+                for ispline, spline in enumerate(self.bsplines):
+                    features[:, ispline:ispline+1] = scipy.interpolate.splev(X, spline)
             return features
 
         def get_bspline_basis(self, knots):
