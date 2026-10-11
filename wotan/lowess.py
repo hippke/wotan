@@ -20,14 +20,19 @@ def _local_linear_fit(x, y, y_weights, imin, imax, xi, radius):
     w1 = 0.0
     for j in range(n):
         w1 += k[j] / sw * x[imin + j]
+    # w2, and the two sums of the fit sum(w*y) + (xi-w1)/w2 * sum(w*(x-w1)*y), together
     w2 = 0.0
+    swy = 0.0
+    swdy = 0.0
     for j in range(n):
-        w2 += k[j] / sw * (x[imin + j] - w1) ** 2
+        w = k[j] / sw
+        d = x[imin + j] - w1
+        w2 += w * d ** 2
+        swy += w * y[imin + j]
+        swdy += w * d * y[imin + j]
     if w2 == 0:
         return np.nan
-    fit = 0.0
-    for j in range(n):
-        fit += k[j] / sw * ((1 + (xi - w1) * (x[imin + j] - w1) / w2) * y[imin + j])
+    fit = swy + (xi - w1) * swdy / w2
     return fit
 
 
