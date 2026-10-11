@@ -272,9 +272,12 @@ def flatten(
     mask_nans = ~(np.isfinite(time) & np.isfinite(flux))
     if mask_nans.all():
         raise ValueError("time and flux contain no finite values")
-    time_compressed = np.ma.compressed(np.ma.masked_array(time, mask_nans))
-    flux_compressed = np.ma.compressed(np.ma.masked_array(flux, mask_nans))
-    mask_compressed = np.ma.compressed(np.ma.masked_array(mask, mask_nans))
+    if mask_nans.any():
+        valid = ~mask_nans
+        time_compressed, flux_compressed, mask_compressed = (
+            time[valid], flux[valid], mask[valid])
+    else:  # nothing to remove: no copies
+        time_compressed, flux_compressed, mask_compressed = time, flux, mask
 
     # Get the indexes of the gaps
     gaps_indexes = get_gaps_indexes(time_compressed, break_tolerance=break_tolerance)

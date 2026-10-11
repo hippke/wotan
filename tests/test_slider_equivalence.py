@@ -87,3 +87,23 @@ def test_median_mad_of_sorted_array_matches_numpy():
         med, mad = _median_mad_sorted(x)
         assert med == pytest.approx(np.median(x), abs=1e-12)
         assert mad == pytest.approx(np.median(np.abs(x - np.median(x))), abs=1e-12)
+
+
+@pytest.mark.parametrize("method", ["biweight", "median", "mean", "hampelfilt", "tau",
+                                    "cosine", "cofiam", "lowess", "rspline", "hspline",
+                                    "savgol", "medfilt"])
+def test_flatten_does_not_modify_its_inputs(method):
+    """flatten works on views of the input when nothing has to be removed"""
+    rng = np.random.default_rng(3)
+    t = np.linspace(0, 5, 500)
+    f = 1 + rng.normal(0, 1e-3, t.size)
+    f[100:105] -= 0.02
+    mask = np.zeros(t.size, bool)
+    mask[200:220] = True
+    t0, f0, m0 = t.copy(), f.copy(), mask.copy()
+    wl = 51 if method in ("savgol", "medfilt") else 0.5
+    kw = {} if method in ("savgol", "medfilt") else {"mask": mask}
+    flatten(t, f, method=method, window_length=wl, robust=True, **kw)
+    np.testing.assert_array_equal(t, t0)
+    np.testing.assert_array_equal(f, f0)
+    np.testing.assert_array_equal(mask, m0)
