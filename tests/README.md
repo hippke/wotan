@@ -48,3 +48,14 @@ property of the definition (see `BUGLOG.md` BUG-025).
 `test_bug_regressions.py` asserts the *correct* behaviour for each of the 31 bugs in
 `../BUGLOG.md` (GitHub issues #70-#100). The tests were written first as strict `xfail`
 tests that failed on wotan 1.10, and pass after the fixes.
+
+## TESS data (optional)
+
+`wotan/tests.py` (the old regression script) needs two TESS light curves from MAST:
+
+    sh tests/data/download_tess_data.sh
+
+or, as a single command per file:
+
+    curl -fLO https://archive.stsci.edu/hlsps/tess-data-alerts/hlsp_tess-data-alerts_tess_phot_00062483237-s01_tess_v1_lc.fits
+    curl -fLO https://archive.stsci.edu/hlsps/tess-data-alerts/hlsp_tess-data-alerts_tess_phot_00207081058-s01_tess_v1_lc.fits
