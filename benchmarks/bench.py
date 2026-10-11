@@ -11,7 +11,9 @@ Usage
   python benchmarks/bench.py --method median --save-ref   # reference (baseline)
   python benchmarks/bench.py --method median              # time + compare
 Speed: best run after a JIT warm-up (>= 3 runs, or >= 20 s); score: geomean.
-Correctness: max |trend - reference| <= 1e-6 and the same NaN pattern.
+Correctness: max |trend - reference| <= max(1e-6, 1e-3 * noise), same NaN pattern.
+References: wotan 1.x (master 64f77d7), except cosine and cofiam (2.0: stable
+least squares, see constants.LSTSQ_RCOND).
 """
 import argparse
 import glob
@@ -28,7 +30,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 REF_DIR = os.path.join(HERE, "ref")
 WINDOW = 0.5
-TOL = 1e-6
+TOL = 1e-6  # absolute; or 1e-3 of the point-to-point noise, if that is larger
+
+
+def tolerance(flux):
+    """max(1e-6, 1e-3 * noise): the bound on |trend - reference|"""
+    noise = 1.4826 * np.median(np.abs(np.diff(flux))) / np.sqrt(2)
+    return max(TOL, 1e-3 * noise)
 
 # method: (datasets, white size); chosen so that one baseline run takes <~ 15 s
 CONFIG = {
@@ -126,10 +134,11 @@ def main():
                 both = np.isfinite(ref)
                 diff = float(np.max(np.abs(ref[both] - trend[both]))) if both.any() else 0.0
         times.append(best)
+        tol = tolerance(f)
         report[name] = dict(n=len(t), seconds=best, runs=k, max_abs_diff=diff,
-                            ok=bool(diff <= TOL))
-        print("%-8s %-12s n=%8d  %9.4f s  max|diff|=%.2e  %s"
-              % (method, name, len(t), best, diff, "OK" if diff <= TOL else "FAIL"))
+                            tolerance=tol, ok=bool(diff <= tol))
+        print("%-8s %-12s n=%8d  %9.4f s  max|diff|=%.2e  (tol %.1e) %s"
+              % (method, name, len(t), best, diff, tol, "OK" if diff <= tol else "FAIL"))
     code = ("import time,numpy as np;s=time.perf_counter();from wotan import flatten;"
             "t=np.linspace(0,10,2000);flatten(t,1+0.001*np.sin(t),method=%r,"
             "window_length=0.5);print(time.perf_counter()-s)" % method)

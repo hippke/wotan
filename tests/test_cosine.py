@@ -159,3 +159,26 @@ def test_cofiam_runs_and_follows_the_trend(lc):
     trend = flatten(t, f, window_length=3.0, method="cofiam", return_trend=True)[1]
     assert np.isfinite(trend).all()
     assert np.max(np.abs(trend - true)) < 1e-3
+
+
+def test_cosine_and_cofiam_are_insensitive_to_round_off_in_the_design_matrix():
+    """The half-range sin/cos basis is rank deficient. With unit-norm columns and the
+    SVD cut-off LSTSQ_RCOND, round-off level changes of the matrix (exact sin/cos vs
+    the recurrence) must not change the trend (before: ~1e-4)."""
+    import wotan.cofiam as cof
+    rng = np.random.default_rng(5)
+    t = np.sort(rng.uniform(0, 40, 2000))
+    y = 1 + 0.002 * np.sin(t / 3) + rng.normal(0, 1e-3, t.size)
+    for degree in (5, 40, 80):
+        exact = cof.stable_lstsq_trend(cof.matrix_gen(t, degree), y, np.ones(t.size))
+        fast = cof.stable_lstsq_trend(cof.matrix_gen_recurrence(t, degree), y,
+                                      np.ones(t.size))
+        np.testing.assert_allclose(exact, fast, atol=1e-8, rtol=0)
+    a = cof.detrend_cofiam(t, y, 0.5)
+    orig = cof.matrix_gen_recurrence
+    try:
+        cof.matrix_gen_recurrence = cof.matrix_gen
+        b = cof.detrend_cofiam(t, y, 0.5)
+    finally:
+        cof.matrix_gen_recurrence = orig
+    np.testing.assert_allclose(a, b, atol=1e-8, rtol=0)

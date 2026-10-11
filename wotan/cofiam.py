@@ -32,9 +32,7 @@ def matrix_gen_recurrence(t, degree):
 @jit(fastmath=True, nopython=True, cache=True)
 def matrix_gen(t, degree):
     """Design matrix [1, t, sin, cos, ...] with sin and cos evaluated for every
-    element (used by cofiam: it selects the model by the Durbin-Watson statistic, a
-    discontinuous choice, so round-off level changes such as those of
-    ``matrix_gen_recurrence`` can change the selected model)."""
+    element (reference version of ``matrix_gen_recurrence``, which is faster)."""
     dur = 2 * (np.max(t) - np.min(t))
     # Work with time relative to the first point: keeps the design matrix well
     # conditioned for large time offsets (e.g. BJD)
@@ -51,6 +49,18 @@ def matrix_gen(t, degree):
     return matrix
 
 
+def stable_lstsq_trend(matrix, y, mask):
+    """Weighted least-squares fit of y by the columns of ``matrix`` (weights ``mask``),
+    returned as the model at all points. Columns scaled to unit norm, SVD with the
+    relative cut-off ``LSTSQ_RCOND``: a well-defined, round-off insensitive solution
+    of the rank-deficient sin/cos problem."""
+    weighted = matrix * mask[:, np.newaxis]
+    norms = np.sqrt(np.sum(weighted ** 2, axis=0))
+    norms[norms == 0] = 1
+    coef = np.linalg.lstsq(weighted / norms, y * mask, rcond=constants.LSTSQ_RCOND)[0]
+    return np.matmul(matrix, coef / norms)
+
+
 def detrend_cosine(t, y, window_length, robust, mask, verbose=False):
     degree = (int((max(t) - min(t)) / window_length))
 
@@ -64,16 +74,16 @@ def detrend_cosine(t, y, window_length, robust, mask, verbose=False):
     for i in range(constants.PSPLINES_MAXITER):
         # Add weights in order to weight down the masked values
         # Solution from https://stackoverflow.com/questions/27128688/how-to-use-least-squares-with-weight-matrix
-        Aw = matrix * mask[:,np.newaxis]  # if real weights: sqrt
-        Bw = y * mask  # if real weights: sqrt
-        trend = np.matmul(matrix, np.linalg.lstsq(Aw, Bw, rcond=None)[0])
+        # (if real weights: sqrt)
+        trend = stable_lstsq_trend(matrix, y, mask)
         detrended_flux = y / trend
         # Clip outliers on both sides of the trend (transits and flares). The scale is
         # the robust (MAD-based) sigma of the points still in use, so neither the
         # outliers nor the masked points inflate the threshold.
         used = mask > 1e-6
         sigma = 1.4826 * np.median(np.abs(detrended_flux[used] - np.median(detrended_flux[used])))
-        if sigma > 0:
+        # A scatter below 1e-9 (relative) is round-off of a noise-free fit: no clipping
+        if sigma > 1e-9:
             mask_outliers = np.ma.where(
                 np.abs(1 - detrended_flux) > constants.PSPLINES_STDEV_CUT * sigma)
         else:
@@ -101,21 +111,18 @@ def detrend_cofiam(t, y, window_length, mask=None):
     dw_mask = mask > 0
     trend_previous = None
     for k_m in range(1, degree + 1):
-        matrix = matrix_gen(t, k_m)
-        trend = np.matmul(matrix, np.linalg.lstsq(
-            matrix * mask[:, np.newaxis], y * mask, rcond=-1)[0])
+        matrix = matrix_gen_recurrence(t, k_m)
+        trend = stable_lstsq_trend(matrix, y, mask)
 
         # Durbin-Watson autocorrelation statistics
         dw_y = y[dw_mask] / trend[dw_mask] - 1
         dw = np.abs(np.sum((dw_y[1:] - dw_y[:-1]) ** 2) / (np.sum(dw_y ** 2)) - 2)
 
         # If Durbin-Watson *increased* this round: Previous was the best
-        if dw > dw_previous:
+        if dw > dw_previous + constants.COFIAM_DW_TOL:
             return trend_previous
         dw_previous = dw
         trend_previous = trend
     if trend_previous is None:  # degree 0: constant + linear term only
-        matrix = matrix_gen(t, 0)
-        trend_previous = np.matmul(matrix, np.linalg.lstsq(
-            matrix * mask[:, np.newaxis], y * mask, rcond=-1)[0])
+        trend_previous = stable_lstsq_trend(matrix_gen_recurrence(t, 0), y, mask)
     return trend_previous

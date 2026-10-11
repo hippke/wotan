@@ -233,13 +233,13 @@ def test_bug010_cofiam_tries_increasing_numbers_of_harmonics(monkeypatch):
     import wotan.cofiam as cof
 
     seen = []
-    orig = cof.matrix_gen
+    orig = cof.matrix_gen_recurrence
 
     def spy(t, degree):
         seen.append(degree)
         return orig(t, degree)
 
-    monkeypatch.setattr(cof, "matrix_gen", spy)
+    monkeypatch.setattr(cof, "matrix_gen_recurrence", spy)
     t, f, _ = make_lc(n=400, span=20.0)
     cof.detrend_cofiam(t, f, 2.0)
     assert len(set(seen)) > 1

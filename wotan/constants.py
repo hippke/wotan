@@ -74,3 +74,13 @@ PSPLINES_MAX_SPLINES = 50
 # Outliers beyond these threshold are removed in each iteration
 # The threhold is calculated in standard deviations from the mean (after trend fitting)
 PSPLINES_STDEV_CUT = 2  
+
+# cosine and cofiam: least squares with columns scaled to unit norm, solved by SVD with
+# singular values below LSTSQ_RCOND * (the largest) cut off. The half-range sin/cos
+# basis is (numerically) rank deficient; the cut-off makes the solution well defined
+# and insensitive to round-off (without it, round-off changed trends by ~1e-4)
+LSTSQ_RCOND = 1e-10
+
+# cofiam: the Durbin-Watson statistic must increase by more than this to stop adding
+# harmonics (a tolerance, so that round-off cannot flip the choice of the model)
+COFIAM_DW_TOL = 1e-6

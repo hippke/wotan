@@ -1,5 +1,6 @@
 """The trends on the Kepler-10 benchmark light curve must agree with the stored
-references of wotan 1.x (benchmarks/ref, master 64f77d7) to 1e-6."""
+references (benchmarks/ref: wotan 1.x, master 64f77d7; cosine and cofiam: 2.0) to
+max(1e-6, 1e-3 * noise)."""
 import os
 import sys
 import warnings
@@ -34,4 +35,4 @@ def test_trend_matches_the_1x_reference(method, dataset):
     ref = np.load(ref_file)
     np.testing.assert_array_equal(np.isfinite(trend), np.isfinite(ref))
     ok = np.isfinite(ref)
-    assert np.max(np.abs(trend[ok] - ref[ok])) <= 1e-6
+    assert np.max(np.abs(trend[ok] - ref[ok])) <= bench.tolerance(f)
