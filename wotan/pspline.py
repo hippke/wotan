@@ -19,6 +19,22 @@ def pspline(
     except ImportError:
         raise ImportError('Could not import pygam')
 
+    # The grid search refits the GAM for every smoothing parameter on the same
+    # points, and pygam rebuilds the (identical) B-spline model matrix every time.
+    # Cache it per set of points and basis (the smoothing parameter is not part of it).
+    model_matrices = {}
+
+    class CachedLinearGAM(LinearGAM):
+        def _modelmat(self, X, term=-1):
+            X_arr = np.asarray(X)
+            key = (term, X_arr.shape, X_arr.tobytes(), repr(self.edge_knots_),
+                   repr([(t.n_splines, t.spline_order) for t in self.terms
+                         if hasattr(t, "n_splines")]))
+            if key not in model_matrices:
+                model_matrices.clear()  # keep only the current points
+                model_matrices[key] = super()._modelmat(X, term=term)
+            return model_matrices[key].copy()
+
     if mask is None:
         mask = np.ones(len(time))
     # Fit on the unmasked points only; the trend is evaluated at all times
@@ -37,7 +53,7 @@ def pspline(
             newtime, newflux = cleaned_array(
                 newtime[mask_outliers], newflux[mask_outliers]
             )
-        gam = LinearGAM(s(0, n_splines=max_splines))
+        gam = CachedLinearGAM(s(0, n_splines=max_splines))
         search_gam = gam.gridsearch(newtime[:, np.newaxis], newflux, progress=False)
         trend = search_gam.predict(newtime)
         detrended_flux = newflux / trend
@@ -57,7 +73,7 @@ def pspline(
     mask_outliers = np.ma.where(np.abs(1 - detrended_flux) < stdev_cut * stdev)
     if len(mask_outliers[0]) != 0:  # Do not cut if zero points remain
         newtime, newflux = cleaned_array(newtime[mask_outliers], newflux[mask_outliers])
-    gam = LinearGAM(s(0, n_splines=max_splines))
+    gam = CachedLinearGAM(s(0, n_splines=max_splines))
     search_gam = gam.gridsearch(newtime[:, np.newaxis], newflux, progress=False)
     trend = search_gam.predict(all_time)
     time = all_time
