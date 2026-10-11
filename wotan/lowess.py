@@ -41,7 +41,11 @@ def lowess(x, y, mask, window_length, cval=6.0, maxiter=30, ftol=1e-6):
 
     def calc_y_weights(y, mask, trend):
         diff = np.abs(y - trend)
-        diff /= cval * np.nanmedian(diff) + 1e-100  # avoid division by zero if median == 0
+        # Scale: cval * median residual, but not below the round-off level of the
+        # data (noise-free data would otherwise down-weight points by their round-off
+        # residuals, and the weights collapse); this also avoids a division by zero
+        scale = max(cval * np.nanmedian(diff), 1e-12 * np.max(np.abs(y)) + 1e-100)
+        diff /= scale
         diff[diff > 1] = 1
         y_weights = (1 - diff**2)**2
         y_weights[mask == 0] = 0

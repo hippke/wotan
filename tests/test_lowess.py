@@ -118,3 +118,14 @@ def test_window_3_t14_preserves_the_transit(scen):
 def test_window_half_t14_absorbs_the_transit(scen):
     flat = flatten(scen["t"], scen["flux"], window_length=0.5 * scen["t14"], method="lowess")
     assert measured_depth(flat, scen["intransit"]) < 0.2 * scen["depth"]
+
+
+def test_noise_free_data_does_not_collapse_the_robustness_weights():
+    """Exactly constant or linear data: the residuals are round-off; they must not
+    be used as the robust scale (all iterations, all points finite)."""
+    from wotan.lowess import lowess
+    t = np.linspace(0, 10, 400)
+    for y in (np.full(400, 5.0), 1 + 0.02 * t):
+        for maxiter in (1, 10, 30):
+            tr = lowess(t, y, np.ones(400), 2.0, 6.0, maxiter)
+            np.testing.assert_allclose(tr, y, atol=1e-9)
