@@ -38,10 +38,8 @@ def running_segment(time, flux, mask, window_length, edge_cutoff, cval, method_c
     idx_start = 0
     idx_end = 0
 
-    # Make negative mask to filter out masked values from flux array
-    # Use negative (unphysical) flux values because numba doesn't handle NaNs
-    mask[mask==0] = -1
-    masked_flux = flux * mask
+    # ``mask`` holds 1 for usable and 0 for masked samples. It is applied by selecting
+    # (not by manipulating the flux), so any flux value, including <= 0, is valid.
 
     for i in range(size):
         if time[i] >= low_index and time[i] <= hi_index:
@@ -51,13 +49,12 @@ def running_segment(time, flux, mask, window_length, edge_cutoff, cval, method_c
             # But that's too slow (factor 10). Instead, we write:
             while time[idx_start] < time[i] - half_window:
                 idx_start += 1
-            while time[idx_end] < time[i] + half_window and idx_end < size-1:
+            while idx_end < size and time[idx_end] < time[i] + half_window:
                 idx_end += 1
             # Get the location estimate for the segment in question
             # iterative method for: biweight, andrewsinewave, welsch
-            # drop negative values (these were masked)
-            f = masked_flux[idx_start:idx_end]
-            f = f[f>-0.000000000001]
+            # drop the masked values
+            f = flux[idx_start:idx_end][mask[idx_start:idx_end] > 0]
             if len(f)==0:
                 mean_all[i] = np.nan
             else:
@@ -95,7 +92,7 @@ def running_segment_slow(time, flux, mask, window_length, edge_cutoff, cval, met
     """With the import, we can't use numba. Thus this here is separate and slower"""
     try:
         from statsmodels.api import robust, RLM
-    except:
+    except ImportError:
         raise ImportError('Could not import statsmodels')
     size = len(time)
     mean_all = full(size, nan)
@@ -113,9 +110,8 @@ def running_segment_slow(time, flux, mask, window_length, edge_cutoff, cval, met
     idx_start = 0
     idx_end = 0
 
-    # Set masked values to nan. Multiply with flux array. Filter out NaNs later.
-    mask[mask==0] = np.nan
-    masked_flux = (flux * mask)
+    # Set masked values to nan (on a copy). Filter out NaNs later.
+    masked_flux = np.where(mask == 0, np.nan, flux)
 
     for i in range(size):
         if time[i] >= low_index and time[i] <= hi_index:
@@ -125,10 +121,10 @@ def running_segment_slow(time, flux, mask, window_length, edge_cutoff, cval, met
             # But that's too slow (factor 10). Instead, we write:
             while time[idx_start] < time[i] - half_window:
                 idx_start += 1
-            while time[idx_end] < time[i] + half_window and idx_end < size-1:
+            while idx_end < size and time[idx_end] < time[i] + half_window:
                 idx_end += 1
 
-            # drop negative values (these were masked)
+            # drop the masked values
             f = masked_flux[idx_start:idx_end]
             f = f[~np.isnan(f)]
             if len(f) <= 1:
@@ -144,7 +140,7 @@ def running_segment_slow(time, flux, mask, window_length, edge_cutoff, cval, met
                         mean_all[i], error = huber(f)
                     # Huber is not numerically stable
                     # If it does not converge, we fall back to the median
-                    except:
+                    except Exception:
                         mean_all[i] = median(f)
                 elif method == 'hampel':
                     mean_all[i] = RLM(

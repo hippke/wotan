@@ -7,7 +7,8 @@ rule, using the *same* estimator function on the brute-force window, so these
 tests isolate the windowing / masking / edge logic from the estimator maths.
 
 Windows that reach the final sample are excluded from the reference checks
-because of BUG-002 (see ``test_known_bugs.py``).
+(the last sample used to be missing from every window, BUG-002; the check is kept
+for windows away from the end and the end itself is covered in test_bug_regressions.py).
 """
 import numpy as np
 import pytest
@@ -66,8 +67,6 @@ def test_linear_ramp_is_reproduced_in_the_interior(method):
     trend = flatten(t, f, window_length=window, method=method, break_tolerance=0,
                     return_trend=True)[1]
     sel = interior(t, window + 2 * dt)
-    if method == "winsorize":
-        pytest.skip("winsorize is not reflection symmetric, see BUG-005")
     np.testing.assert_allclose(trend[sel], f[sel], rtol=0, atol=3e-6)
 
 
@@ -96,9 +95,9 @@ def test_window_larger_than_data_gives_single_value_for_all_points():
     t = np.linspace(0, 1, 50)
     f = 1 + np.random.default_rng(0).normal(0, 1e-2, 50)
     trend = flatten(t, f, window_length=1e6, method="median", return_trend=True)[1]
-    # Every window covers (all but the last) samples -> one common value
+    # Every window covers all samples -> one common value
     assert np.ptp(trend) == 0.0
-    assert trend[0] == pytest.approx(np.median(f[:-1]))  # last sample dropped: BUG-002
+    assert trend[0] == pytest.approx(np.median(f))
 
 
 # -------------------------------------------------------------- edge cutoff

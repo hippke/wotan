@@ -3,7 +3,6 @@
     pip install -r tests/requirements-test.txt
     pytest                       # everything (~1 min; first run compiles numba code)
     pytest -m "not slow"         # skip statsmodels / pygam / GP / supersmoother based tests
-    pytest tests/test_known_bugs.py --runxfail   # watch the known bugs fail (see ../BUGLOG.md)
 
 Tests for methods whose optional dependency is missing (`statsmodels`, `scikit-learn`,
 `pygam`, `supersmoother`, `astropy`) are skipped, not failed. The suite is offline and
@@ -23,7 +22,7 @@ deterministic (all random data use fixed seeds).
 | `test_flatten_api.py` | return contract, NaN/gap handling, validation, documented defaults |
 | `test_all_methods_smoke.py` | every method runs and tracks a known trend (low-priority methods) |
 | `test_helpers_t14.py`, `test_slide_clip.py` | `transit_mask`, `cleaned_array`, `t14`, `slide_clip` |
-| `test_known_bugs.py` | one strict-`xfail` test per `BUGLOG.md` entry |
+| `test_bug_regressions.py` | one regression test per `BUGLOG.md` entry (all bugs are fixed) |
 | `helpers.py` | synthetic light curves and **independent** reference implementations |
 
 ## How "correct" is decided
@@ -44,10 +43,8 @@ by `sinc(w/P)`, so the allowed trend error is `A(1 - sinc(w/P))` plus the averag
 asserted anywhere: `flatten` divides by the trend, so behaviour near a zero trend is a
 property of the definition (see `BUGLOG.md` BUG-025).
 
-## Known bugs
+## Fixed bugs
 
-`test_known_bugs.py` asserts the *correct* behaviour and is `xfail(strict=True)`. When you fix
-a bug its test starts to pass, strict xfail turns that into a failure, and you delete the
-marker and the `BUGLOG.md` entry. Other test files avoid the known-bad regions on purpose
-(for example windows that touch the last sample, BUG-002, via `helpers.away_from_end`) and
-say so in a comment.
+`test_bug_regressions.py` asserts the *correct* behaviour for each of the 31 bugs in
+`../BUGLOG.md` (GitHub issues #70-#100). The tests were written first as strict `xfail`
+tests that failed on wotan 1.10, and pass after the fixes.

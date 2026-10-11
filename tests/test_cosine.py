@@ -147,11 +147,11 @@ def test_detrend_cosine_direct_call_matches_flatten():
 
 
 def test_time_offset_sensitivity_stays_small():
-    # BJD-like offsets worsen the conditioning (columns 1 and t); see BUGLOG BUG-026
+    # BJD-like offsets used to worsen the conditioning (columns 1 and t): BUG-026
     t, f, _ = make_lc(n=600, span=20.0)
     a = flatten(t, f, window_length=4.0, method="cosine", return_trend=True)[1]
     b = flatten(t + 2457000.0, f, window_length=4.0, method="cosine", return_trend=True)[1]
-    assert np.max(np.abs(a - b)) < 1e-4
+    assert np.max(np.abs(a - b)) < 1e-8
 
 
 def test_cofiam_runs_and_follows_the_trend(lc):

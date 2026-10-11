@@ -212,11 +212,11 @@ def test_gap_smaller_than_break_tolerance_does_not_split():
     assert 1.0 < trend[199] < 3.0
 
 
-def test_segment_of_one_sample_gives_nan_but_does_not_crash():
+def test_segment_of_one_sample_is_its_own_window_and_does_not_crash():
     t = np.array([0.0, 0.01, 0.02, 5.0, 10.0, 10.01, 10.02])
     f = np.ones(7)
     trend = flatten(t, f, window_length=1.0, method="median", return_trend=True)[1]
-    assert np.isnan(trend[3])  # isolated sample: no neighbours
+    assert trend[3] == 1.0  # isolated sample: the window holds the sample itself
     assert np.isfinite(trend[[0, 1, 4, 5]]).all()
 
 

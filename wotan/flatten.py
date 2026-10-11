@@ -3,6 +3,7 @@ from light curves for exoplanet transit detection.
 """
 
 from __future__ import print_function, division
+import warnings
 import numpy as np
 from numpy import array, isnan, float64, append, full, where, nan, ones, inf, median
 from scipy.signal import savgol_filter, medfilt
@@ -19,6 +20,16 @@ from wotan.pspline import pspline
 from wotan.iter_spline import iter_spline
 from wotan.regression import regression
 from wotan.lowess import lowess
+
+
+def _as_1d(values, name):
+    """Convert input to a 1-d float array; accepts column vectors of shape (n, 1)."""
+    values = np.asarray(values, dtype=float64)
+    if values.ndim == 2 and 1 in values.shape:
+        values = values.ravel()
+    if values.ndim != 1:
+        raise ValueError("%s must be one-dimensional" % name)
+    return values
 
 
 def flatten(
@@ -54,10 +65,10 @@ def flatten(
         The length of the filter window in units of ``time`` (usually days), or in
         cadences (for cadence-based sliders ``savgol`` and ``medfilt``).
     method : string, default: ``biweight``
-        Detrending method. Rime-windowed sliders: ``median``, ``biweight``, ``hodges``,
+        Detrending method. Time-windowed sliders: ``median``, ``biweight``, ``hodges``,
         ``tau``, ``welsch``, ``huber``, ``huber_psi``, ``andrewsinewave``, ``mean``,
         ``hampel``, ``ramsay``, ``trim_mean``, ``hampelfilt``, ``winsorize``. Cadence
-        based slider: ``medfilt``. Splines: ``hspline``, ``rspline`, ``pspline``.
+        based slider: ``medfilt``. Splines: ``hspline``, ``rspline``, ``pspline``.
         Locally weighted scatterplot smoothing: ``lowess``. Savitzky-Golay filter:
         ``savgol``. Gaussian processes: ``gp``. Cosine Filtering with Autocorrelation
         Minimization: ``cofiam``.  Cosine fitting: ``cosine``, Friedman's Super-Smoother:
@@ -69,7 +80,7 @@ def flatten(
         days). To disable this feature, set ``break_tolerance`` to 0. If the method is
         ``supersmoother`` and no ``break_tolerance`` is provided, it will be taken as
         `1` in units of ``time``.
-    edge_cutoff : float, default: None
+    edge_cutoff : float, default: 0
         Trends near edges are less robust. Depending on the data, it may be beneficial
         to remove edges. The ``edge_cutoff`` defines the length (in units of time) to be
         cut off each edge. Default: Zero. Cut off is maximally ``window_length``/2, as
@@ -97,7 +108,25 @@ def flatten(
         If `True`, the fitting process will be run iteratively. In each iteration,
         2-sigma outliers from the fitted trend will be  clipped until convergence.
         Supported by the Gaussian Process kernels `squared_exp` and `matern`, as well as
-        `cosine` fitting.
+        `cosine` fitting. Outliers are clipped on both sides of the trend (dips and
+        flares).
+    max_splines : int, default: 100
+        Maximum number of splines for the method ``pspline``. The optimum is searched
+        between 1 and ``max_splines``.
+    stdev_cut : float, default: 2
+        Sigma threshold for the iterative outlier clipping of ``pspline``
+        (``rspline`` and ``cosine`` with ``robust`` use the same default).
+    return_nsplines : bool, default: False
+        If `True`, the number of splines chosen for each segment by ``pspline`` is
+        returned as an additional output (after ``trend_flux`` if ``return_trend`` is
+        also `True`, otherwise directly after ``flatten_flux``).
+    mask : array-like of bool, default: None
+        Boolean array of the same length as ``time``. Points where ``mask`` is `True`
+        are excluded from the trend fit (e.g. known transits); the trend is still
+        evaluated at these points. Honoured by all methods except the cadence-based
+        filters ``savgol`` and ``medfilt``, which emit a warning if a mask is given.
+    verbose : bool, default: False
+        If `True`, print progress information of the iterative methods.
 
     return_trend : bool, default: False
         If `True`, the method will return a tuple of two elements
@@ -109,9 +138,24 @@ def flatten(
         Flattened flux.
     trend_flux : array-like
         Trend in the flux. Only returned if ``return_trend`` is `True`.
+
+    Notes
+    -----
+    The flattened flux is ``flux / trend``. The flux therefore has to be positive and
+    roughly normalised; a warning is issued if the trend is zero or negative. ``time``
+    does not have to be sorted: the output is aligned with the input order. Non-finite
+    values (NaN, inf) in ``time`` or ``flux`` are ignored and receive a NaN trend.
     """
     if method not in constants.methods:
         raise ValueError("Unknown detrending method")
+
+    if window_length is not None:
+        try:
+            valid_window = np.isfinite(window_length) and window_length > 0
+        except TypeError:
+            valid_window = False
+        if not valid_window:
+            raise ValueError("window_length must be a positive, finite number")
 
     # Numba can't handle strings, so we're passing the location estimator as an int:
     if method == "biweight":
@@ -191,14 +235,36 @@ def flatten(
     # Therefore, we make new time-flux arrays with only the floating point values
     # All calculations are done within these arrays
     # Afterwards, the trend is transplanted into the original arrays (with the NaNs)
+    time = _as_1d(time, "time")
+    flux = _as_1d(flux, "flux")
+    if len(time) != len(flux):
+        raise ValueError("time and flux must have the same length")
+    if len(time) == 0:
+        raise ValueError("time and flux must not be empty")
+    mask_given = mask is not None
     if mask is None:
         mask = np.ones(len(time))
     else:
+        mask = np.asarray(mask, dtype=bool)
+        if mask.shape != time.shape:
+            raise ValueError("mask must have the same length as time")
         mask = array(~mask, dtype=float64)  # Invert to stay consistent with TLS
-    time = array(time, dtype=float64)
-    flux = array(flux, dtype=float64)
+    if mask_given and method in ("savgol", "medfilt"):
+        warnings.warn(
+            "The mask is ignored by the cadence-based filter '%s'" % method, UserWarning
+        )
 
-    mask_nans = isnan(time * flux)
+    # The sliders need ascending time. Sort internally, restore the order at the end
+    order = None
+    finite_time = time[np.isfinite(time)]
+    if len(finite_time) > 1 and np.any(np.diff(finite_time) < 0):
+        order = np.argsort(time, kind="stable")
+        time, flux, mask = time[order], flux[order], mask[order]
+
+    # Non-finite values (NaN or inf) in time or flux are invalid
+    mask_nans = ~(np.isfinite(time) & np.isfinite(flux))
+    if mask_nans.all():
+        raise ValueError("time and flux contain no finite values")
     time_compressed = np.ma.compressed(np.ma.masked_array(time, mask_nans))
     flux_compressed = np.ma.compressed(np.ma.masked_array(flux, mask_nans))
     mask_compressed = np.ma.compressed(np.ma.masked_array(mask, mask_nans))
@@ -256,9 +322,10 @@ def flatten(
         elif method == "supersmoother":
             try:
                 from supersmoother import SuperSmoother as supersmoother
-            except:
+            except ImportError:
                 raise ImportError("Could not import supersmoother")
-            win = window_length / (max(time) - min(time))
+            win = window_length / (max(time_view) - min(time_view))
+            use = mask_view > 0  # fit on the unmasked points, predict everywhere
             trend_segment = (
                 supersmoother(
                     alpha=supersmoother_alpha,
@@ -271,16 +338,16 @@ def flatten(
                     final_span=constants.upper_span * win,
                 )
                 .fit(
-                    time_view,
-                    flux_view,
+                    time_view[use],
+                    flux_view[use],
                 )
                 .predict(time_view)
             )
         elif method == "cofiam":
-            trend_segment = detrend_cofiam(time_view, flux_view, window_length)
+            trend_segment = detrend_cofiam(time_view, flux_view, window_length, mask_view)
         elif method == "cosine":
             trend_segment = detrend_cosine(
-                time_view, flux_view, window_length, robust, mask_view
+                time_view, flux_view, window_length, robust, mask_view, verbose
             )
         elif method == "savgol":
             if window_length % 2 == 0:
@@ -297,6 +364,7 @@ def flatten(
                 kernel_size,
                 kernel_period,
                 robust,
+                verbose,
             )
         elif method == "rspline":
             trend_segment = iter_spline(time_view, flux_view, mask_view, window_length)
@@ -311,26 +379,50 @@ def flatten(
                 stdev_cut,
                 return_nsplines,
                 verbose,
+                mask_view,
             )
             nsplines = append(nsplines, nsplines_segment)
         elif method in "ridge lasso elasticnet":
             trend_segment = regression(
-                time_view, flux_view, method, window_length, cval
+                time_view, flux_view, method, window_length, cval, mask_view
             )
 
         trend_flux = append(trend_flux, trend_segment)
 
-    # Insert results of non-NaNs into original data stream
+    # Insert results of valid points into original data stream
+    invalid_input = mask_nans
     trend_lc = full(len(time), nan)
     mask_nans = where(~mask_nans)[0]
     for idx in range(len(mask_nans)):
         trend_lc[mask_nans[idx]] = trend_flux[idx]
+    if np.any(trend_lc <= 0):
+        warnings.warn(
+            "The trend is zero or negative at %d points. flatten divides the flux by "
+            "the trend, so the flux must be positive and roughly normalised "
+            "(e.g. divided by its median); the flattened flux is not meaningful here."
+            % np.sum(trend_lc <= 0),
+            UserWarning,
+        )
+    n_no_trend = int(np.sum(~invalid_input & isnan(trend_lc)))
+    if n_no_trend > 0 and edge_cutoff == 0:
+        warnings.warn(
+            "%d points with valid flux received a NaN trend (their window contains "
+            "no other usable point, e.g. an isolated sample, a fully masked window, "
+            "or window_length too large for the method)." % n_no_trend,
+            UserWarning,
+        )
     trend_lc[trend_lc == 0] = np.nan  # avoid division by zero
     flatten_lc = flux / trend_lc
 
+    if order is not None:  # restore the order of the input
+        inverse = np.empty_like(order)
+        inverse[order] = np.arange(len(order))
+        flatten_lc, trend_lc = flatten_lc[inverse], trend_lc[inverse]
+
     if return_trend and return_nsplines:
         return flatten_lc, trend_lc, nsplines
-    if return_trend and not return_nsplines:
+    if return_trend:
         return flatten_lc, trend_lc
-    if not return_trend and not return_nsplines:
-        return flatten_lc
+    if return_nsplines:
+        return flatten_lc, nsplines
+    return flatten_lc

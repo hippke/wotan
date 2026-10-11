@@ -1,4 +1,5 @@
 from __future__ import print_function, division
+import warnings
 import numpy as np
 import scipy.interpolate
 
@@ -9,7 +10,7 @@ def detrend_huber_spline(time, flux, mask, knot_distance):
         from sklearn.base import TransformerMixin
         from sklearn.pipeline import make_pipeline
         from sklearn.linear_model import HuberRegressor
-    except:
+    except ImportError:
         raise ImportError('Could not import sklearn')
 
     class BSplineFeatures(TransformerMixin):
@@ -44,8 +45,19 @@ def detrend_huber_spline(time, flux, mask, knot_distance):
         knots = np.linspace(np.min(masked_time), np.max(masked_time), no_knots)
 
     if len(knots) < 4:
+        warnings.warn(
+            "hspline: window_length (%g) is too large for a segment of length %g "
+            "(fewer than 4 knots). The trend of this segment is NaN. Use a window "
+            "shorter than a quarter of the segment." % (knot_distance, duration),
+            UserWarning)
         return np.full(len(time), np.nan)
     else:
+        # Standardise the flux: the optimiser tolerance is absolute, so the fit must
+        # not depend on the flux level or unit
+        offset = np.median(masked_flux)
+        scale = 1.4826 * np.median(np.abs(masked_flux - offset))
+        if not scale > 0:
+            scale = 1.0
         pipeline = make_pipeline(BSplineFeatures(knots), HuberRegressor())
-        trend = pipeline.fit(masked_time[:, np.newaxis], masked_flux)
-        return trend.predict(time[:, None])
+        trend = pipeline.fit(masked_time[:, np.newaxis], (masked_flux - offset) / scale)
+        return trend.predict(time[:, None]) * scale + offset

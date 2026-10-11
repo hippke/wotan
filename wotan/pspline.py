@@ -11,18 +11,25 @@ def pspline(
     max_splines, 
     stdev_cut, 
     return_nsplines, 
-    verbose
+    verbose,
+    mask=None
     ):
     try:
         from pygam import LinearGAM, s
-    except:
+    except ImportError:
         raise ImportError('Could not import pygam')
 
-    newflux = flux.copy()
-    newtime = time.copy()
-    detrended_flux = flux.copy() / np.nanmedian(newflux)
+    if mask is None:
+        mask = np.ones(len(time))
+    # Fit on the unmasked points only; the trend is evaluated at all times
+    all_time = time
+    newflux = flux[mask > 0].copy()
+    newtime = time[mask > 0].copy()
+    if len(newtime) == 0:
+        return np.full(len(all_time), np.nan), np.nan
+    detrended_flux = newflux / np.nanmedian(newflux)
 
-    for i in range(stdev_cut):
+    for i in range(constants.PSPLINES_MAXITER):
         mask_outliers = np.ma.where(
             np.abs(1 - detrended_flux) < stdev_cut * np.std(detrended_flux)
         )
@@ -40,10 +47,11 @@ def pspline(
         )
         if verbose:
             print("Iteration:", i + 1, "Rejected outliers:", len(mask_outliers[0]))
-            # Check convergence
-            if len(mask_outliers[0]) == 0:
+        # Check convergence
+        if len(mask_outliers[0]) == 0:
+            if verbose:
                 print("Converged.")
-                break
+            break
 
     # Final iteration, applied to unclipped time series (interpolated over clipped values)
     mask_outliers = np.ma.where(np.abs(1 - detrended_flux) < stdev_cut * stdev)
@@ -51,7 +59,8 @@ def pspline(
         newtime, newflux = cleaned_array(newtime[mask_outliers], newflux[mask_outliers])
     gam = LinearGAM(s(0, n_splines=max_splines))
     search_gam = gam.gridsearch(newtime[:, np.newaxis], newflux, progress=False)
-    trend = search_gam.predict(time)
+    trend = search_gam.predict(all_time)
+    time = all_time
 
     # Cut off edges
     if edge_cutoff > 0:

@@ -81,7 +81,7 @@ def estimate_location(data, norm, maxiter=30, tol=1e-6):
         #print(W)
         new_location = np.sum(W * data) / np.sum(W)
         #print(iter, new_location)
-        if np.alltrue(np.less(np.fabs(location - new_location), tol)):
+        if np.all(np.less(np.fabs(location - new_location), tol)):
             return new_location
         else:
             location = new_location
@@ -100,7 +100,7 @@ def ramsay(data, maxiter=30, tol=1e-6):
         W = np.exp(-a * np.fabs(z))
         new_location = np.sum(W * data) / np.sum(W)
         #print(iter, new_location)
-        if np.alltrue(np.less(np.fabs(location - new_location), tol)):
+        if np.all(np.less(np.fabs(location - new_location), tol)):
             return new_location
         else:
             location = new_location
@@ -123,7 +123,7 @@ def huber(data, maxiter=30, tol=1e-6):
 
         new_location = np.sum(W * data) / np.sum(W)
         #print(iter, new_location)
-        if np.alltrue(np.less(np.fabs(location - new_location), tol)):
+        if np.all(np.less(np.fabs(location - new_location), tol)):
             return new_location
         else:
             location = new_location
@@ -151,7 +151,7 @@ def hampel(data, maxiter=30, tol=1e-6):
 
         new_location = np.sum(W * data) / np.sum(W)
         #print(iter, new_location)
-        if np.alltrue(np.less(np.fabs(location - new_location), tol)):
+        if np.all(np.less(np.fabs(location - new_location), tol)):
             return new_location
         else:
             location = new_location
@@ -160,19 +160,20 @@ def hampel(data, maxiter=30, tol=1e-6):
 
 
 
-data = [0, 1, 2, 3, 11, 11.5]
+if __name__ == '__main__':
+    data = [0, 1, 2, 3, 11, 11.5]
 
-print('ramsay old')
-print(estimate_location(data, norm="ramsay"))
-print('ramsay new')
-print(ramsay(data))
+    print('ramsay old')
+    print(estimate_location(data, norm="ramsay"))
+    print('ramsay new')
+    print(ramsay(data))
 
-print('huber old')
-print(estimate_location(data, norm="huber"))
-print('huber new')
-print(huber(data))
+    print('huber old')
+    print(estimate_location(data, norm="huber"))
+    print('huber new')
+    print(huber(data))
 
-print('hampel old')
-print(estimate_location(data, norm="hampel"))
-print('hampel new')
-print(hampel(data))
+    print('hampel old')
+    print(estimate_location(data, norm="hampel"))
+    print('hampel new')
+    print(hampel(data))

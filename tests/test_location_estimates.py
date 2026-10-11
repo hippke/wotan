@@ -11,7 +11,7 @@ What is "correct" for a location estimator (all must hold unless noted):
 * symmetric data -> centre of symmetry
 * Gaussian data -> unbiased; robust ones resist gross outliers
 
-Known deviations are in ``test_known_bugs.py``.
+Former bugs are covered in ``test_bug_regressions.py``.
 """
 import numpy as np
 import pytest
@@ -69,16 +69,16 @@ def test_translation_equivariance(name, shift):
 
 
 @pytest.mark.parametrize("name", ALL)
-@pytest.mark.parametrize("scale", [2.0, 25.0])
-def test_scale_equivariance_moderate_scales(name, scale):
-    # (for *tiny* scales the absolute FTOL breaks this - see BUG-009)
+@pytest.mark.parametrize("scale", [1e-6, 1e-3, 2.0, 25.0])
+def test_scale_equivariance(name, scale):
+    # (the convergence tolerance is relative to the MAD: BUG-009)
     x = gauss(101, seed=2)
     assert ESTIMATORS[name](x * scale) == pytest.approx(
         ESTIMATORS[name](x) * scale, abs=TOL * scale
     )
 
 
-@pytest.mark.parametrize("name", [n for n in ALL if n != "winsorize"])  # see BUG-005
+@pytest.mark.parametrize("name", ALL)
 def test_reflection_antisymmetry(name):
     x = gauss(101, seed=3) + 0.3 * np.abs(gauss(101, seed=4))  # skewed
     assert ESTIMATORS[name](-x) == pytest.approx(-ESTIMATORS[name](x), abs=TOL)
@@ -91,9 +91,8 @@ def test_permutation_invariance(name):
     assert ESTIMATORS[name](x[rng.permutation(80)]) == pytest.approx(ESTIMATORS[name](x), abs=TOL)
 
 
-@pytest.mark.parametrize("name", [n for n in ALL if n != "winsorize"])
+@pytest.mark.parametrize("name", ALL)
 def test_result_inside_data_range(name):
-    # (winsorize is excluded: for n=1 it reads out of bounds, see BUG-005)
     rng = np.random.default_rng(7)
     for _ in range(40):
         n = int(rng.integers(5, 60))
@@ -102,7 +101,7 @@ def test_result_inside_data_range(name):
         assert x.min() - 1e-9 <= v <= x.max() + 1e-9
 
 
-@pytest.mark.parametrize("name", [n for n in ALL if n != "winsorize"])  # see BUG-005
+@pytest.mark.parametrize("name", ALL)
 def test_symmetric_data_gives_center(name):
     half = np.abs(gauss(60, seed=8)) + 0.01
     x = np.concatenate([half, -half, [0.0]])

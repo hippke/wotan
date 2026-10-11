@@ -5,14 +5,14 @@ def clipit(data, low, high, method, center):
     """Clips data in the current segment"""
 
     # For the center point, take the median (if center_code==0), else the mean
-    if center == 'mad':
+    if center == 'median':
         mid = np.nanmedian(data)
     else:
         mid = np.nanmean(data)
     data = np.nan_to_num(data)
     diff = data - mid
 
-    if method == 'median':
+    if method == 'mad':
         cutoff = np.nanmedian(np.abs(data - mid))
     else:
         cutoff = np.nanstd(data)
@@ -55,6 +55,10 @@ def slide_clip(time, data, window_length, low=3, high=3, method=None, center=Non
         method = 'mad'
     if center is None:
         center = 'median'
+    if method not in ('mad', 'std'):
+        raise ValueError("method must be 'mad' or 'std'")
+    if center not in ('median', 'mean'):
+        raise ValueError("center must be 'median' or 'mean'")
 
     low_index = np.min(time)
     hi_index = np.max(time)
@@ -63,7 +67,7 @@ def slide_clip(time, data, window_length, low=3, high=3, method=None, center=Non
     size = len(time)
     half_window = window_length / 2
     clipped_data = np.full(size, np.nan)
-    for i in range(size-1):
+    for i in range(size):
         if time[i] > low_index and time[i] < hi_index:
             # Nice style would be:
             #   idx_start = numpy.argmax(time > time[i] - window_length/2)
@@ -71,7 +75,7 @@ def slide_clip(time, data, window_length, low=3, high=3, method=None, center=Non
             # But that's too slow (factor 10). Instead, we write:
             while time[idx_start] < time[i] - half_window:
                 idx_start += 1
-            while time[idx_end] < time[i] + half_window and idx_end < size-1:
+            while idx_end < size and time[idx_end] < time[i] + half_window:
                 idx_end += 1
             # Clip the current sliding segment
             clipped_data[idx_start:idx_end] = clipit(

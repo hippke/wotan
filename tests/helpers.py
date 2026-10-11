@@ -40,7 +40,7 @@ def interior(t, window):
 
 
 def away_from_end(t, window):
-    """Samples whose window does not reach the last sample (see BUG-002)."""
+    """Samples whose window does not reach the last sample."""
     return t + window / 2.0 < t.max()
 
 

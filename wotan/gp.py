@@ -5,12 +5,19 @@ from scipy.signal import lombscargle
 from wotan.helpers import cleaned_array
 
 
-def make_gp(time, flux, mask, kernel, kernel_size, kernel_period, robust):
+def make_gp(time, flux, mask, kernel, kernel_size, kernel_period, robust, verbose=False):
     try:
         from sklearn.gaussian_process import GaussianProcessRegressor
         from sklearn.gaussian_process.kernels import RBF, Matern, ExpSineSquared
-    except:
+    except ImportError:
         raise ImportError('Could not import sklearn')
+
+    if kernel is None:
+        kernel = 'squared_exp'  # documented default
+    if kernel not in ('squared_exp', 'matern', 'periodic', 'periodic_auto'):
+        raise ValueError(
+            "Unknown kernel '%s'. Choose squared_exp, matern, periodic or periodic_auto"
+            % str(kernel))
 
     if kernel_size is None:
         raise ValueError('kernel_size must be specified')
@@ -34,14 +41,14 @@ def make_gp(time, flux, mask, kernel, kernel_size, kernel_period, robust):
     kernel_size_bounds = (0.5 * kernel_size, 2 * kernel_size)
     grid = masked_time.reshape(-1, 1)
 
-    if kernel is None or kernel == 'squared_exp':
+    if kernel == 'squared_exp':
         use_kernel = RBF(kernel_size, kernel_size_bounds)
 
     if kernel == 'matern':
         use_kernel = Matern(kernel_size, kernel_size_bounds, nu=3/2)
 
     # non-periodic
-    if kernel == 'matern' or kernel == 'squared_exp' or kernel is None:
+    if kernel == 'matern' or kernel == 'squared_exp':
         if not robust:
             converged = True
         else:
@@ -53,8 +60,9 @@ def make_gp(time, flux, mask, kernel, kernel_size, kernel_period, robust):
             # Flux must be ~1. First round may by ~0. Then correct: 
             if abs(numpy.median(detrended_flux)) < 0.5:
                 detrended_flux += 1
+            # Keep points within the sigma limit on both sides (dips and flares)
             mask_outliers = numpy.ma.where(
-                1-detrended_flux < constants.PSPLINES_STDEV_CUT * numpy.std(
+                numpy.abs(1-detrended_flux) < constants.PSPLINES_STDEV_CUT * numpy.std(
                     detrended_flux))
             newtime, newflux = cleaned_array(
                 newtime[mask_outliers], newflux[mask_outliers])
@@ -63,21 +71,21 @@ def make_gp(time, flux, mask, kernel, kernel_size, kernel_period, robust):
             trend_segment = GP.predict(grid)
             detrended_flux = (newflux + offset) / (trend_segment + offset)
             mask_outliers = numpy.ma.where(
-                1-detrended_flux > constants.PSPLINES_STDEV_CUT * numpy.std(
+                numpy.abs(1-detrended_flux) > constants.PSPLINES_STDEV_CUT * numpy.std(
                     detrended_flux))
             # Check convergence
             if converged or len(mask_outliers[0]) == 0:
-                if robust:
+                if robust and verbose:
                     print('Converged.')
                 break
-            else:
+            elif verbose:
                 print('Iteration:', i + 1, 'Rejected outliers:', len(mask_outliers[0]))
         # Final iteration, applied to unclipped time series 
         # (interpolated over clipped values)
         trend_segment = GP.predict(time.reshape(-1, 1))
 
     # periodic single pass; currently no iterative periodic kernel implemented
-    if 'periodic' in kernel:
+    if kernel in ('periodic', 'periodic_auto'):
         # Determine most significant period
         if kernel == 'periodic_auto':
             time_span = numpy.max(masked_time) - numpy.min(masked_time)

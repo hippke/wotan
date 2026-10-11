@@ -7,7 +7,9 @@ from numba import jit
 def lowess(x, y, mask, window_length, maxiter=30, ftol=1e-6):
 
     def calc_x_weights(x, xi, y_weights):
-        radius = max(xi - x[0], x[-2] - xi)
+        radius = max(xi - x[0], x[-1] - xi)  # farthest window point gets weight 0
+        if radius == 0:
+            radius = 1.0
         x_weights = (1 - (np.abs(x - xi) / radius) ** 3) ** 3  # tricube
         if np.any(y_weights):
             x_weights = x_weights * y_weights
@@ -30,6 +32,8 @@ def lowess(x, y, mask, window_length, maxiter=30, ftol=1e-6):
             return np.sum(weights * ((1 + (xi - w1) * (x - w1) / w2) * y))
 
     points = len(x)
+    # Convergence tolerance relative to the range of the data: scale and offset free
+    ftol = ftol * (np.max(y) - np.min(y))
     y_fit_previous = np.ones(points)
     y_weights = np.zeros(points)
     for iter in range(maxiter):

@@ -9,26 +9,25 @@ def iter_spline(time, flux, mask, window_length):
     masked_flux = flux[mask==1]
     masked_time = time[mask==1]
     no_knots = int((max(time) - min(time)) / window_length)
-    newflux = masked_flux.copy()
-    newtime = masked_time.copy()
-    newtime, newflux = cleaned_array(newtime, newflux)
-    detrended_flux = masked_flux.copy()
+    all_time, all_flux = cleaned_array(masked_time.copy(), masked_flux.copy())
+    keep = np.ones(len(all_time), dtype=bool)
+    trend = None
     for i in range(constants.PSPLINES_MAXITER):
-        outliers = 1 - detrended_flux < constants.PSPLINES_STDEV_CUT * np.nanstd(detrended_flux)
-        mask_outliers = np.ma.where(outliers)
-        newtime, newflux = cleaned_array(newtime[mask_outliers], newflux[mask_outliers])
+        newtime, newflux = all_time[keep], all_flux[keep]
         # knots must not be at the edges, so we take them as [1:-1]
         if len(newtime) < 5:
             return np.full(len(time), np.nan)
         knots = np.linspace(min(newtime), max(newtime), no_knots)[1:-1]
         try:
             trend = LSQUnivariateSpline(newtime, newflux, knots)
-        except:
+        except Exception:
             return np.full(len(time), np.nan)
-        trend_segment = trend(newtime)
-        detrended_flux = newflux / trend_segment
-        outliers = 1 - detrended_flux > constants.PSPLINES_STDEV_CUT * np.nanstd(detrended_flux)
-        mask_outliers = np.ma.where(mask_outliers)
-        if len(mask_outliers[0]) == 0:
-            break
+        # Clip outliers on both sides of the trend (dips and flares), using the robust
+        # (MAD-based) sigma of the residuals of *all* points
+        detrended_flux = all_flux / trend(all_time)
+        sigma = 1.4826 * np.nanmedian(np.abs(detrended_flux - np.nanmedian(detrended_flux)))
+        new_keep = np.abs(1 - detrended_flux) < constants.PSPLINES_STDEV_CUT * sigma
+        if sigma == 0 or np.array_equal(new_keep, keep):
+            break  # converged: the clipped set does not change any more
+        keep = new_keep
     return trend(time)  # Final iteration: apply trend to clipped and masked values

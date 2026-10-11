@@ -1,14 +1,9 @@
-"""Known bugs, one test per BUGLOG.md entry.
+"""Regression tests, one per BUGLOG.md entry (BUG-001 ... BUG-031).
 
-Every test here asserts the *correct* behaviour and is marked
-``xfail(strict=True)``: it fails today, and the moment the bug is fixed it
-XPASSes - which, being strict, turns the run red and tells you to delete the
-marker (and the BUGLOG entry).  Run them as plain tests with::
-
-    pytest tests/test_known_bugs.py --runxfail
-
-"Correct" is defined by the method's definition / the wotan paper /
-documentation, as cited in each test.  BUG numbers match BUGLOG.md.
+Every test asserts the *correct* behaviour that was violated by the bug, as
+defined by the method / the wotan paper / the documentation (cited in each
+test).  They failed before the fixes (as strict ``xfail`` tests) and must keep
+passing now.  ``bug(...)`` only documents the original problem.
 """
 import importlib
 import warnings
@@ -24,7 +19,8 @@ from helpers import make_lc, window_reference
 
 
 def bug(ident, why, strict=True):
-    return pytest.mark.xfail(reason="%s: %s" % (ident, why), strict=strict)
+    """Documentation marker: the original problem (the bug is fixed)."""
+    return lambda func: func
 
 
 # ---------------------------------------------------------------------- BUG-001

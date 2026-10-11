@@ -78,11 +78,6 @@ def test_method_runs_and_tracks_the_trend(case, data):
 
 
 @pytest.mark.parametrize("method", ["ridge", "lasso", "elasticnet"])
-@pytest.mark.xfail(
-    reason="BUG-001: max_iter=1e5 is a float and is rejected by current scikit-learn "
-    "(observed with 1.9.1); .travis.yml pins scikit-learn==0.20, which accepted it",
-    strict=False,
-)
 def test_gaussian_basis_regressions_run(method, data):
     pytest.importorskip("sklearn")
     t, f, true = data

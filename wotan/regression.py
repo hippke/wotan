@@ -2,14 +2,14 @@ from __future__ import division
 import numpy as np
 
 
-def regression(time, flux, method, window_length, cval):
+def regression(time, flux, method, window_length, cval, mask=None):
     """Regressions with scikit-learn"""
 
     try:
         from sklearn.pipeline import make_pipeline
         from sklearn.linear_model import Ridge, Lasso, ElasticNet
         from sklearn.base import BaseEstimator, TransformerMixin
-    except:
+    except ImportError:
         raise ImportError('Could not import sklearn')
 
     class GF(BaseEstimator, TransformerMixin):
@@ -36,7 +36,7 @@ def regression(time, flux, method, window_length, cval):
 
     offset = 1e-6  # lasso and elasticnet are less sensitive than ridge regression
     tol = 1e-6
-    max_iter = 1e5
+    max_iter = int(1e5)
     if method == 'ridge':
         regression_method = Ridge(alpha=cval, max_iter=max_iter, tol=tol)
     elif method == 'lasso':
@@ -47,6 +47,9 @@ def regression(time, flux, method, window_length, cval):
     duration = np.max(time) - np.min(time)
     no_knots = int(duration / window_length)
     X = time[:, np.newaxis]
-    trend = make_pipeline(GF(no_knots), regression_method).fit(X, flux).predict(X)
+    if mask is None:
+        mask = np.ones(len(time))
+    use = mask > 0  # fit on the unmasked points, predict everywhere
+    trend = make_pipeline(GF(no_knots), regression_method).fit(X[use], flux[use]).predict(X)
 
     return trend

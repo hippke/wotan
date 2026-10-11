@@ -28,9 +28,15 @@ def location_iter(data, cval, method_code):
     # one expensive division here, instead of two per loop later
     cmad = 1 / (cval * mad)
 
+    # Convergence tolerance relative to the scale of the data (the MAD), so that the
+    # estimate does not depend on the flux unit or offset
+    tol = constants.FTOL * mad
+    n_iter = 0
+
     # Newton-Raphson iteration, where each result is taken as the initial value of the
     # next iteration. Stops when the difference of a round is below ``FTOL`` threshold
-    while numpy.abs(delta_center) > constants.FTOL:
+    while numpy.abs(delta_center) > tol and n_iter < 1000:
+        n_iter += 1
         distance = data - center
         dmad = distance * cmad
 
@@ -72,16 +78,21 @@ def tau(x, cval):
 
     med = median(x)
     mad = median(numpy.abs(x - med))
-    zscore = 0.675  # Z-score of the 75th percentile of the normal distribution
-    s = zscore * mad
+    if mad == 0:
+        return med
+    zscore = 0.6745  # Z-score of the 75th percentile of the normal distribution
+    s = mad / zscore  # normal-consistent scale
     wnom = 0
     wden = 0
     for i in range(len(x)):
         y = (x[i] - med) / s
-        temp = (1 - (y / cval)**2)**2
-        if abs(temp) <= cval:
+        # Biweight-type weight, zero for outliers beyond ``cval`` scale units
+        if abs(y) < cval:
+            temp = (1 - (y / cval)**2)**2
             wnom += temp * x[i]
             wden += temp
+    if wden == 0:
+        return med
     return wnom / wden
 
 
@@ -90,11 +101,15 @@ def huber_psi(x, cval):
     """One-step M-estimator of location using Huber's psi"""
     med = median(x)
     mad = median(numpy.abs(x - med))
+    if mad == 0:
+        return med
     y = (x - med) / mad
+    b = (numpy.abs(y) <= cval).sum()  # number of unclipped values (before clipping!)
+    if b == 0:
+        return med
     y[y > cval] = cval
     y[y < -cval] = -cval
     a = numpy.sum(y)
-    b = (numpy.abs(y) <= cval).sum()  # how many values in y < cval?
     return med + mad * a / b
 
 
@@ -126,11 +141,11 @@ def trim_mean(data, proportiontocut):
 def winsorize_mean(data, proportiontocut):
     """Mean of array after winsorizing `proportiontocut` from both tails."""
     sorted_data = sort(data)
-    idx = int(proportiontocut * len(data)) + 1
-    if idx < 0:
-        idx = 0
-    sorted_data[:idx] = sorted_data[idx]
-    sorted_data[-idx:] = sorted_data[-idx]
+    n = len(sorted_data)
+    k = int(proportiontocut * n)  # number of values replaced in each tail
+    if k > 0:
+        sorted_data[:k] = sorted_data[k]
+        sorted_data[n - k:] = sorted_data[n - k - 1]
     return mean(sorted_data)
 
 

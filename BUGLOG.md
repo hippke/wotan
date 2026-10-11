@@ -1,11 +1,11 @@
 # wotan BUGLOG
 
-Bugs found while building the first test suite (`tests/`).  Every entry has a
-test in `tests/test_known_bugs.py` (same number) that asserts the *correct*
-behaviour and is marked `xfail(strict=True)`: it fails today, and turns the run
-red the moment the bug is fixed so the marker (and this entry) get removed.
-
-    pytest tests/test_known_bugs.py --runxfail      # see all of them fail
+Bugs found while building the first test suite (`tests/`).  **All 31 are fixed on
+branch `add-test-suite`** (GitHub issues #70-#100 are closed with the fix and an
+"after" figure in `docs/bug_figures/fixed/`).  Every entry has a regression test in
+`tests/test_bug_regressions.py` (same number) that asserts the *correct* behaviour; the
+tests were written first as strict `xfail` tests and failed on wotan 1.10.  The
+entries below describe the bugs as found (wotan 1.10, commit `7752703`).
 
 * **Code under test:** wotan 1.10, commit `7752703` (`master`, "update")
 * **Environment:** Python 3.13.16, numpy 2.5.3, scipy 1.16.3, numba 0.68.0,
@@ -337,6 +337,13 @@ Only NaN is removed. With one `+inf` sample the `biweight` trend is non-finite f
 
 ---
 
+## What the fixes changed (user-visible)
+
+* Slider trends now include the last sample of each segment (BUG-002) and accept non-positive flux (BUG-003); `tau`, `huber_psi`, `winsorize` (BUG-005/014/015), `slide_clip` defaults (BUG-006), `cofiam` (BUG-010) and the *robust* `cosine`/`rspline`/GP (BUG-028, now two-sided with a MAD-based sigma) return different numbers than before. Numbers pinned in `wotan/tests.py` (needs the TESS download) have to be re-pinned.
+* Convergence tolerances are relative (BUG-009); the biweight is about 1.6x slower on a 60 000-point light curve because it iterates to a tighter tolerance.
+* New warnings instead of silent failure: non-positive trend (BUG-025), NaN trend for valid samples (BUG-029), `hspline` window too large (BUG-017), mask given to `savgol`/`medfilt` (BUG-024). `flatten` also accepts unsorted time (BUG-013), `(n, 1)` arrays and list masks (BUG-018), and treats `inf` like NaN (BUG-031).
+* With BUG-002 fixed an isolated one-sample segment is its own window, so its trend is its own flux and not NaN (BUG-029 only warns for the remaining NaN cases).
+
 ## Notes (not bugs)
 
 * **N-5 — existing `wotan/tests.py`.** The repo does have a 519-line script of that name (run by `.travis.yml`), but it is not a pytest suite: it downloads a TESS file from `archive.stsci.edu`, needs astropy, uses hard-coded regression numbers that bake in the bugs above (e.g. the `slide_clip` sum, BUG-006), and CI pins Python 3.6/3.7 and scikit-learn 0.20, so BUG-001 was invisible. The new `tests/` suite is offline, deterministic (fixed seeds) and does not replace those TESS regression numbers.
@@ -350,10 +357,10 @@ Notes N-1…N-4 and N-6…N-8 of earlier drafts are now BUG-025…BUG-031.
 | #6, #19 huber non-convergence | Handled by design (median fallback); bare `except` noted (BUG-030) | `test_huber.py::test_falls_back_to_the_median…` |
 | #18 andrewsinewave ≡ biweight | Fixed: the estimators differ | `test_location_estimates.py` |
 | #30 memory growth | Not reproduced (numba 0.68: 0 MB growth over 60 calls) | `test_flatten_api.py::test_memory_does_not_grow…` |
-| #31 / #35 masking | Works for sliders, lowess, cosine, gp, hspline, rspline; **silently ignored elsewhere → BUG-024** | `test_slider.py`, `test_known_bugs.py` |
+| #31 / #35 masking | Works for sliders, lowess, cosine, gp, hspline, rspline; **silently ignored elsewhere → BUG-024** | `test_slider.py`, `test_bug_regressions.py` |
 | #51 BJD offset | Fixed for sliders/splines; cosine still affected (BUG-026) | `test_slider.py`, `test_cosine.py`, `test_lowess.py` |
-| #54 finance example NaN | Plausibly the `(n, 1)` array → **BUG-018** (could not run the user's data) | `test_known_bugs.py` |
-| #55 `mask` undocumented | Confirmed → **BUG-021** | `test_known_bugs.py` |
+| #54 finance example NaN | Plausibly the `(n, 1)` array → **BUG-018** (could not run the user's data) | `test_bug_regressions.py` |
+| #55 `mask` undocumented | Confirmed → **BUG-021** | `test_bug_regressions.py` |
 | #56 zeros → NaN; vectorise | Zero *trend* → NaN is intended (BUG-025); non-positive flux → **BUG-003** | `test_flatten_api.py` |
 | #57 pspline small gaps | Fixed (regression test passes) | `test_splines.py` |
 | #61 numba/numpy dtype error | Not reproduced (robust cosine + mask runs) | `test_cosine.py` |
