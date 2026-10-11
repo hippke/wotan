@@ -17,7 +17,7 @@ What's new in 2.0
 -----------------
 
 - **Bugfixes:** 31 bugs fixed ([#70](https://github.com/hippke/wotan/issues/70)–[#100](https://github.com/hippke/wotan/issues/100)), see [BUGLOG.md](BUGLOG.md). Highlights: the slider windows now include their last sample, masks work with any flux value, robust clipping is two-sided, `lowess` uses a window in time units, `cosine`/`cofiam` work for any time offset, `pspline` and `rspline` converge properly, and NaN/inf, unsorted time and invalid arguments are handled (with warnings instead of silent NaN trends).
-- **Performance:** the time-windowed sliders (`biweight`, `median`, `welsch`, `andrewsinewave`) keep a sorted sliding window, reach convergence in fewer steps, and run in parallel on all CPU cores. The `biweight` detrends **~1.6 million data points per second** (was ~19,000), **83x faster** than 1.x (best case: 1M points, 0.5 d window at 2-min cadence, 2 CPU cores; Kepler long cadence: 22x). Results are unchanged within 1e-9. Benchmark: `python benchmarks/bench_biweight.py`.
+- **Performance:** the time-windowed sliders (`biweight`, `median`, `welsch`, `andrewsinewave`) keep a sorted sliding window, reach convergence in fewer steps, and run in parallel on all CPU cores. The `biweight` detrends **~1.6 million data points per second** (was ~19,000), **83x faster** than 1.x (best case: 1M points, 0.5 d window at 2-min cadence, 2 CPU cores; Kepler long cadence: 22x). Results agree with 1.x to within 1e-7. Benchmark: `python benchmarks/bench_biweight.py`.
 - **Test coverage:** a pytest suite of 530 tests covers all detrending methods, the API, edge cases, a regression test for every fixed bug, and checks against independent reference implementations. Run it with `pytest tests`.
 
 Example usage
