@@ -1,4 +1,4 @@
-![Logo](logo.png)
+![Logo](https://raw.githubusercontent.com/hippke/wotan/master/logo.png)
 
 [![pip](https://img.shields.io/badge/pip-install%20wotan-blue.svg)](https://pypi.org/project/wotan/)
 [![Documentation](https://img.shields.io/badge/documentation-%E2%9C%93-blue.svg)](https://wotan.readthedocs.io/en/latest/index.html)
@@ -16,13 +16,13 @@ Wōtan...
 What's new in 2.0
 -----------------
 
-- **Bugfixes:** 31 bugs fixed ([#70](https://github.com/hippke/wotan/issues/70)–[#100](https://github.com/hippke/wotan/issues/100)), see [BUGLOG.md](BUGLOG.md). Highlights: the slider windows now include their last sample, masks work with any flux value, robust clipping is two-sided, `lowess` uses a window in time units, `cosine`/`cofiam` work for any time offset, `pspline` and `rspline` converge properly, and NaN/inf, unsorted time and invalid arguments are handled (with warnings instead of silent NaN trends).
+- **Bugfixes:** 31 bugs fixed ([#70](https://github.com/hippke/wotan/issues/70)–[#100](https://github.com/hippke/wotan/issues/100)), see [BUGLOG.md](https://github.com/hippke/wotan/blob/master/BUGLOG.md). Highlights: the slider windows now include their last sample, masks work with any flux value, robust clipping is two-sided, `lowess` uses a window in time units, `cosine`/`cofiam` work for any time offset, `pspline` and `rspline` converge properly, and NaN/inf, unsorted time and invalid arguments are handled (with warnings instead of silent NaN trends).
 - **Performance:** all commonly used methods are faster, most of them by an order of magnitude (table below). The time-windowed sliders keep a sorted sliding window, `mean` uses running sums, and sliders and `lowess` run in parallel on all CPU cores; `hspline` fits a sparse B-spline design matrix. Best case: the `mean` detrends **~32 million data points per second**, the `biweight` **~2.3 million** (1.x: ~19,000, **120x faster**). Results agree with 1.x to 1e-6 (or 1e-3 of the noise, if larger), except `cosine` and `cofiam`, whose least-squares solution was made numerically stable (changes of up to ~1e-4).
 - **Test coverage:** a pytest suite of 563 tests covers all detrending methods, the API, edge cases, a regression test for every fixed bug, checks against independent reference implementations, and the trends of a real Kepler light curve against stored references. Run it with `pytest tests`.
 
 ### Speed: millions of data points per second
 
-`window_length=0.5` d, default parameters, 2 CPU cores (the parallel methods scale with the number of cores). *Kepler-10*: all 15 long-cadence quarters, 52k points (~25 points per window). *White noise*: 2-min cadence, no gaps, N points (~360 points per window). Reproduce with `python benchmarks/bench.py --method <name>`; details in [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+`window_length=0.5` d, default parameters, 2 CPU cores (the parallel methods scale with the number of cores). *Kepler-10*: all 15 long-cadence quarters, 52k points (~25 points per window). *White noise*: 2-min cadence, no gaps, N points (~360 points per window). Reproduce with `python benchmarks/bench.py --method <name>`; details in [benchmarks/RESULTS.md](https://github.com/hippke/wotan/blob/master/benchmarks/RESULTS.md).
 
 | Method | Kepler-10, 2.0 | Kepler-10, 1.x | White noise, 2.0 | White noise, 1.x | N (white) | Speed-up (geomean) |
 |---|---|---|---|---|---|---|
@@ -127,7 +127,7 @@ which automatically installs `numpy`, `numba` and ``scipy`` if not present. Depe
 
 To install all additional dependencies, type ``$ pip install statsmodels scikit-learn supersmoother pygam``.
 
-For development: `pip install -r tests/requirements-test.txt`, then `pytest` runs the test suite ([tests/README.md](tests/README.md)) and `python benchmarks/bench.py --method biweight` the benchmark ([benchmarks/README.md](benchmarks/README.md)). Note that numba's cache (`*.nbi`, `*.nbc` in `__pycache__`) does not track changes across files: after editing a compiled function that another one calls, delete the cache (`find wotan -name "*.nb?" -delete`), or the caller keeps the old code. Installed releases are not affected.
+For development: `pip install -r tests/requirements-test.txt`, then `pytest` runs the test suite ([tests/README.md](https://github.com/hippke/wotan/blob/master/tests/README.md)) and `python benchmarks/bench.py --method biweight` the benchmark ([benchmarks/README.md](https://github.com/hippke/wotan/blob/master/benchmarks/README.md)). Note that numba's cache (`*.nbi`, `*.nbc` in `__pycache__`) does not track changes across files: after editing a compiled function that another one calls, delete the cache (`find wotan -name "*.nb?" -delete`), or the caller keeps the old code. Installed releases are not affected.
 
 
 Originality
