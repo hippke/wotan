@@ -344,6 +344,8 @@ Only NaN is removed. With one `+inf` sample the `biweight` trend is non-finite f
 * New warnings instead of silent failure: non-positive trend (BUG-025), NaN trend for valid samples (BUG-029), `hspline` window too large (BUG-017), mask given to `savgol`/`medfilt` (BUG-024). `flatten` also accepts unsorted time (BUG-013), `(n, 1)` arrays and list masks (BUG-018), and treats `inf` like NaN (BUG-031).
 * With BUG-002 fixed an isolated one-sample segment is its own window, so its trend is its own flux and not NaN (BUG-029 only warns for the remaining NaN cases).
 
+* A non-robust GP (`robust=False`) no longer clips outliers on its first pass (it used to, one-sided, before the fit); only `robust=True` clips. Regression test: `test_gp_without_robust_does_not_clip_any_point`.
+
 ## Notes (not bugs)
 
 * **N-5 — existing `wotan/tests.py`.** The repo does have a 519-line script of that name (run by `.travis.yml`), but it is not a pytest suite: it downloads a TESS file from `archive.stsci.edu`, needs astropy, uses hard-coded regression numbers that bake in the bugs above (e.g. the `slide_clip` sum, BUG-006), and CI pins Python 3.6/3.7 and scikit-learn 0.20, so BUG-001 was invisible. The new `tests/` suite is offline, deterministic (fixed seeds) and does not replace those TESS regression numbers.

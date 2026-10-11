@@ -191,7 +191,7 @@ def main():
         return_trend=True,
     )
     numpy.testing.assert_almost_equal(
-        numpy.nansum(flatten_lc), 1949.0544446609201, decimal=2
+        numpy.nansum(flatten_lc), 1948.9998110118736, decimal=2
     )
 
     print("Detrending 13 (gp squared_exp robust)...")
@@ -218,7 +218,7 @@ def main():
         return_trend=True,
     )
     numpy.testing.assert_almost_equal(
-        numpy.nansum(flatten_lc), 1949.0542620209026, decimal=2
+        numpy.nansum(flatten_lc), 1949.0004104825962, decimal=2
     )
 
     print("Detrending 15 (gp periodic)...")

@@ -60,12 +60,13 @@ def make_gp(time, flux, mask, kernel, kernel_size, kernel_period, robust, verbos
             # Flux must be ~1. First round may by ~0. Then correct: 
             if abs(numpy.median(detrended_flux)) < 0.5:
                 detrended_flux += 1
-            # Keep points within the sigma limit on both sides (dips and flares)
-            mask_outliers = numpy.ma.where(
-                numpy.abs(1-detrended_flux) < constants.PSPLINES_STDEV_CUT * numpy.std(
-                    detrended_flux))
-            newtime, newflux = cleaned_array(
-                newtime[mask_outliers], newflux[mask_outliers])
+            # Only the robust version clips outliers (on both sides: dips and flares)
+            if robust:
+                mask_outliers = numpy.ma.where(
+                    numpy.abs(1-detrended_flux) < constants.PSPLINES_STDEV_CUT * numpy.std(
+                        detrended_flux))
+                newtime, newflux = cleaned_array(
+                    newtime[mask_outliers], newflux[mask_outliers])
             grid = newtime.reshape(-1, 1)
             GP = GaussianProcessRegressor(use_kernel).fit(grid, newflux)
             trend_segment = GP.predict(grid)

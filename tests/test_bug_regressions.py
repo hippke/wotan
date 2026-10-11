@@ -558,3 +558,21 @@ def test_bug031_inf_in_flux_is_treated_like_nan():
     a = flatten(t, with_inf, window_length=1.0, method="biweight", return_trend=True)[1]
     b = flatten(t, with_nan, window_length=1.0, method="biweight", return_trend=True)[1]
     np.testing.assert_allclose(a, b, equal_nan=True)
+
+
+# ---------------------------------------------------------------------- GP clipping
+def test_gp_without_robust_does_not_clip_any_point():
+    """A non-robust GP is a plain fit of all (unmasked) points: no outlier clipping.
+    (Before, the first pass clipped outliers even with robust=False.)"""
+    pytest.importorskip("sklearn")
+    t, f, _ = make_lc(n=300, span=10.0)
+    dip = (t > 4.5) & (t < 5.5)
+    f = f.copy()
+    f[dip] -= 0.02
+    plain = flatten(t, f, method="gp", kernel="squared_exp", kernel_size=3.0, return_trend=True)[1]
+    # reference: the same GP fitted by hand on all points
+    from sklearn.gaussian_process import GaussianProcessRegressor
+    from sklearn.gaussian_process.kernels import RBF
+    off = np.median(f)
+    gp = GaussianProcessRegressor(RBF(3.0, (1.5, 6.0))).fit(t[:, None], f - off)
+    np.testing.assert_allclose(plain, gp.predict(t[:, None]) + off, atol=1e-9)
