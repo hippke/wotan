@@ -1,0 +1,24 @@
+{
+ "kepler_full": {
+  "n": 51973,
+  "kind": "real (15 files)",
+  "seconds": 0.44103996599983475,
+  "max_abs_diff": 0.0,
+  "ok": true
+ },
+ "kepler_seg": {
+  "n": 1925,
+  "kind": "real (15 files)",
+  "seconds": 0.017103712000107407,
+  "max_abs_diff": 0.0,
+  "ok": true
+ },
+ "white_1m": {
+  "n": 1000000,
+  "kind": "synthetic",
+  "seconds": 53.29224278099991,
+  "max_abs_diff": 0.0,
+  "ok": true
+ },
+ "geomean": 0.7380358184972173
+}
