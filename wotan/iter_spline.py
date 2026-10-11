@@ -8,7 +8,7 @@ from scipy.interpolate import LSQUnivariateSpline
 def iter_spline(time, flux, mask, window_length):
     masked_flux = flux[mask==1]
     masked_time = time[mask==1]
-    no_knots = int((max(time) - min(time)) / window_length)
+    no_knots = int((np.max(time) - np.min(time)) / window_length)
     all_time, all_flux = cleaned_array(masked_time.copy(), masked_flux.copy())
     keep = np.ones(len(all_time), dtype=bool)
     trend = None
@@ -17,7 +17,7 @@ def iter_spline(time, flux, mask, window_length):
         # knots must not be at the edges, so we take them as [1:-1]
         if len(newtime) < 5:
             return np.full(len(time), np.nan)
-        knots = np.linspace(min(newtime), max(newtime), no_knots)[1:-1]
+        knots = np.linspace(np.min(newtime), np.max(newtime), no_knots)[1:-1]
         try:
             trend = LSQUnivariateSpline(newtime, newflux, knots)
         except Exception:
