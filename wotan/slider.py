@@ -67,6 +67,22 @@ def _remove(buf, n, value):
 
 
 @jit(fastmath=True, nopython=True, cache=True)
+def _replace(buf, n, old, new):
+    """Replace one occurrence of ``old`` by ``new`` in the sorted ``buf[:n]``, moving
+    only the elements between the two positions"""
+    k = np.searchsorted(buf[:n], old)
+    if new >= old:
+        while k + 1 < n and buf[k + 1] < new:
+            buf[k] = buf[k + 1]
+            k += 1
+    else:
+        while k > 0 and buf[k - 1] > new:
+            buf[k] = buf[k - 1]
+            k -= 1
+    buf[k] = new
+
+
+@jit(fastmath=True, nopython=True, cache=True)
 def _median_mad_sorted(s):
     """Median and median absolute deviation of the sorted array ``s`` in O(n)"""
     n = len(s)
@@ -124,13 +140,26 @@ def _sliding_chunk(time, flux, mask, idx_start, idx_end, i0, i1, low_index, hi_i
                     buf[n] = flux[j]
                     n += 1
             buf[:n].sort()
-        else:  # windows only move forward: drop leaving, add entering values
-            for j in range(cur_lo, lo):
-                if mask[j] > 0:
-                    n = _remove(buf, n, flux[j])
-            for j in range(cur_hi, hi):
-                if mask[j] > 0:
-                    n = _insert(buf, n, flux[j])
+        else:  # windows only move forward: swap leaving for entering values
+            j_out = cur_lo
+            j_in = cur_hi
+            while True:
+                while j_out < lo and mask[j_out] <= 0:
+                    j_out += 1
+                while j_in < hi and mask[j_in] <= 0:
+                    j_in += 1
+                if j_out < lo and j_in < hi:
+                    _replace(buf, n, flux[j_out], flux[j_in])
+                    j_out += 1
+                    j_in += 1
+                elif j_out < lo:
+                    n = _remove(buf, n, flux[j_out])
+                    j_out += 1
+                elif j_in < hi:
+                    n = _insert(buf, n, flux[j_in])
+                    j_in += 1
+                else:
+                    break
         cur_lo = lo
         cur_hi = hi
         if n == 0:
