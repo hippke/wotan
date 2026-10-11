@@ -278,7 +278,7 @@ def flatten(
 
     # Get the indexes of the gaps
     gaps_indexes = get_gaps_indexes(time_compressed, break_tolerance=break_tolerance)
-    trend_flux = array([])
+    trend_parts = []  # trend of each segment, joined once at the end
     trend_segment = array([])
     nsplines = array([])  # Chosen number of splines per segment for method "pspline"
 
@@ -396,12 +396,12 @@ def flatten(
                 time_view, flux_view, method, window_length, cval, mask_view
             )
 
-        trend_flux = append(trend_flux, trend_segment)
+        trend_parts.append(np.asarray(trend_segment, dtype=float64).ravel())
 
     # Insert results of valid points into original data stream
     invalid_input = mask_nans
     trend_lc = full(len(time), nan)
-    trend_lc[~mask_nans] = trend_flux
+    trend_lc[~mask_nans] = np.concatenate(trend_parts)
     if np.any(trend_lc <= 0):
         warnings.warn(
             "The trend is zero or negative at %d points. flatten divides the flux by "
