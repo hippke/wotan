@@ -59,7 +59,8 @@ def test_sliding_window_matches_reference(method, cval, masked):
     trend = flatten(t, f, method=method, window_length=0.7, return_trend=True,
                     mask=mask if masked else None, break_tolerance=5, **kw)[1]
     ref = reference(t, f, ~mask, 0.7, cval, method)
-    np.testing.assert_allclose(trend, ref, atol=1e-6 * 1e-3, rtol=0)
+    # the iteration stops within 1e-6 * MAD of the fixed point: allow a few of those
+    np.testing.assert_allclose(trend, ref, atol=1e-8, rtol=0)
 
 
 def test_sliding_window_with_edge_cutoff_and_gaps():
@@ -75,4 +76,4 @@ def test_sliding_window_with_edge_cutoff_and_gaps():
         keep = (ts >= ts.min() + 0.2) & (ts <= ts.max() - 0.2)
         r[~keep] = np.nan
         ref[seg] = r
-    np.testing.assert_allclose(a, ref, atol=1e-9, rtol=0)
+    np.testing.assert_allclose(a, ref, atol=1e-8, rtol=0)

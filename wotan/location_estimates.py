@@ -24,8 +24,7 @@ def location_iter(data, cval, method_code):
 def location_iter_core(data, median_data, mad, cval, method_code):
     """Iteration of ``location_iter`` for a given median and MAD of ``data``"""
     # Initial estimate for the central location
-    delta_center = inf
-    center = center_old = median_data
+    center = median_data
 
     # Neglecting this case was a bug in scikit-learn
     if mad == 0:
@@ -39,42 +38,63 @@ def location_iter_core(data, median_data, mad, cval, method_code):
     tol = constants.FTOL * mad
     n_iter = 0
 
-    # Newton-Raphson iteration, where each result is taken as the initial value of the
-    # next iteration. Stops when the difference of a round is below ``FTOL`` threshold
-    # One fused pass per iteration (no temporary arrays): accumulate sum(d*w) and sum(w)
-    n = len(data)
-    while numpy.abs(delta_center) > tol and n_iter < 1000:
+    # Fixed-point iteration center <- g(center) (iteratively reweighted mean), which
+    # stops when a step moves the center by less than ``tol``. For the biweight, every
+    # second step is followed by an Aitken extrapolation (Steffensen's method), which converges to
+    # the same fixed point in fewer steps. The result is always a plain step g(c)
+    # with |g(c) - c| <= tol, as without the extrapolation.
+    while n_iter < 1000:
+        c1 = _irls_step(data, center, cmad, method_code)
         n_iter += 1
-        sum_dw = 0.0
-        sum_w = 0.0
-        for j in range(n):
-            distance = data[j] - center
-            dmad = distance * cmad
-            # biweight
-            if method_code == 1:
-                if numpy.abs(dmad) >= 1:
-                    continue
-                weight = (1 - dmad ** 2) ** 2
-            # andrewsinewave
-            elif method_code == 2:
-                if dmad == 0:
-                    dmad = 1e-10  # avoid division by zero
-                if numpy.abs(dmad) >= pi:
-                    continue
-                weight = sin(dmad) / dmad
-            # welsch
-            else:
-                if numpy.abs(dmad) >= 1:
-                    continue
-                weight = exp(-(dmad ** 2) / 2)
-            sum_dw += distance * weight
-            sum_w += weight
-        center += sum_dw / sum_w
-
-        # Calculate how much center moved to check convergence threshold
-        delta_center = center_old - center
-        center_old = center
+        if numpy.abs(c1 - center) <= tol or n_iter >= 1000:
+            return c1
+        c2 = _irls_step(data, c1, cmad, method_code)
+        n_iter += 1
+        if numpy.abs(c2 - c1) <= tol:
+            return c2
+        # Extrapolate only for a steady, monotone approach (0 < rate < 0.9), where
+        # the Aitken limit lies just ahead on the same path; otherwise plain steps
+        # Biweight only: its weights fall smoothly to zero at the cut-off. Welsch's
+        # weights jump at the cut-off, so it can have several nearby fixed points,
+        # and an extrapolated step may land on a different one.
+        step1 = c1 - center
+        step2 = c2 - c1
+        center = c2
+        if method_code == 1 and step1 != 0:
+            rate = step2 / step1
+            if 0 < rate < 0.9:
+                center = c2 + step2 * rate / (1 - rate)
     return center
+
+
+@jit(fastmath=True, nopython=True, cache=True)
+def _irls_step(data, center, cmad, method_code):
+    """One reweighting step: center + sum(d*w) / sum(w), fused into one loop"""
+    sum_dw = 0.0
+    sum_w = 0.0
+    for j in range(len(data)):
+        distance = data[j] - center
+        dmad = distance * cmad
+        # biweight
+        if method_code == 1:
+            if numpy.abs(dmad) >= 1:
+                continue
+            weight = (1 - dmad ** 2) ** 2
+        # andrewsinewave
+        elif method_code == 2:
+            if dmad == 0:
+                dmad = 1e-10  # avoid division by zero
+            if numpy.abs(dmad) >= pi:
+                continue
+            weight = sin(dmad) / dmad
+        # welsch
+        else:
+            if numpy.abs(dmad) >= 1:
+                continue
+            weight = exp(-(dmad ** 2) / 2)
+        sum_dw += distance * weight
+        sum_w += weight
+    return center + sum_dw / sum_w
 
 
 @jit(fastmath=True, nopython=True, cache=True)
