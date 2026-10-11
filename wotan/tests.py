@@ -309,7 +309,7 @@ def main():
         time, flux, method="lowess", window_length=1, return_trend=True
     )
     numpy.testing.assert_almost_equal(
-        numpy.nansum(flatten_lc), 18123.039744125545, decimal=2
+        numpy.nansum(flatten_lc), 18122.967517711928, decimal=2
     )
 
     print("Detrending 23 (huber_psi)...")

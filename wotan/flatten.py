@@ -90,7 +90,10 @@ def flatten(
         Larger values for make the estimate more efficient but less robust. For the
         super-smoother, cval determines the bass enhancement (smoothness) and can be
         `None` or in the range 0 < ``cval`` < 10. For the ``savgol``, ``cval``
-        determines the (integer) polynomial order (default: 2).
+        determines the (integer) polynomial order (default: 2). For ``hspline``, ``cval``
+        is the epsilon of the Huber regressor (default: 1.35). For ``lowess``, ``cval``
+        is the cut-off of the bisquare robustness weights in units of the median
+        absolute residual (default: 6, Cleveland 1979).
     proportiontocut : float, default: 0.1
         Fraction to cut off (or filled) of both tails of the distribution using methods
         ``trim_mean`` (or ``winsorize``)
@@ -211,6 +214,10 @@ def flatten(
             cval = 0.3
         elif method == "savgol":  # polyorder
             cval = 2  # int
+        elif method == "hspline":  # epsilon of the Huber regressor
+            cval = 1.35
+        elif method == "lowess":  # bisquare cut-off in units of the median abs. residual
+            cval = 6.0
         elif method in "ridge lasso elasticnet":
             cval = 1
         else:
@@ -314,10 +321,12 @@ def flatten(
                 method,
             )
         elif method == "lowess":
-            trend_segment = lowess(time_view, flux_view, mask_view, window_length)
+            trend_segment = lowess(
+                time_view, flux_view, mask_view, window_length, float(cval)
+            )
         elif method == "hspline":
             trend_segment = detrend_huber_spline(
-                time_view, flux_view, mask_view, knot_distance=window_length
+                time_view, flux_view, mask_view, knot_distance=window_length, cval=cval
             )
         elif method == "supersmoother":
             try:

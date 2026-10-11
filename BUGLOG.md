@@ -376,3 +376,7 @@ Notes N-1…N-4 and N-6…N-8 of earlier drafts are now BUG-025…BUG-031.
 * Numerical values of the GP kernels beyond "tracks the trend" (scikit-learn optimiser dependent).
 * The `supersmoother` package's own algorithm (only wotan's wrapper).
 * Performance claims (README speed statements, issue #56 benchmark).
+
+## PR #69 (talensgj): lowess and hspline
+- `lowess`: window is now in time units (searchsorted), tricube radius `window_length/2`, bisquare robustness cut-off `cval` x median |residual| (default 6, Cleveland 1979).
+- `hspline`: `cval` is the Huber epsilon (default 1.35); spline features are standardised, flux is standardised by median/MAD, `max_iter=1000`.

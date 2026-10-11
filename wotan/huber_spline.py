@@ -4,12 +4,13 @@ import numpy as np
 import scipy.interpolate
 
 
-def detrend_huber_spline(time, flux, mask, knot_distance):
+def detrend_huber_spline(time, flux, mask, knot_distance, cval=1.35):
     """Robust B-Spline regression with scikit-learn"""
     try:
         from sklearn.base import TransformerMixin
         from sklearn.pipeline import make_pipeline
         from sklearn.linear_model import HuberRegressor
+        from sklearn.preprocessing import StandardScaler
     except ImportError:
         raise ImportError('Could not import sklearn')
 
@@ -58,6 +59,10 @@ def detrend_huber_spline(time, flux, mask, knot_distance):
         scale = 1.4826 * np.median(np.abs(masked_flux - offset))
         if not scale > 0:
             scale = 1.0
-        pipeline = make_pipeline(BSplineFeatures(knots), HuberRegressor())
+        # StandardScaler on the spline features and max_iter=1000 improve convergence;
+        # ``cval`` is the epsilon of the HuberRegressor (default 1.35)
+        pipeline = make_pipeline(
+            BSplineFeatures(knots), StandardScaler(), HuberRegressor(max_iter=1000, epsilon=cval)
+        )
         trend = pipeline.fit(masked_time[:, np.newaxis], (masked_flux - offset) / scale)
         return trend.predict(time[:, None]) * scale + offset

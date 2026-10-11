@@ -576,3 +576,31 @@ def test_gp_without_robust_does_not_clip_any_point():
     off = np.median(f)
     gp = GaussianProcessRegressor(RBF(3.0, (1.5, 6.0))).fit(t[:, None], f - off)
     np.testing.assert_allclose(plain, gp.predict(t[:, None]) + off, atol=1e-9)
+
+
+# ---------------------------------------------------------------------- PR #69
+def test_lowess_window_is_in_time_units_on_irregular_sampling():
+    """Window is in time units (tricube radius window_length/2), also for gappy data."""
+    rng = np.random.default_rng(3)
+    t = np.sort(np.concatenate([rng.uniform(0, 3, 150), rng.uniform(5, 8, 60)]))
+    f = 1 + 0.01 * np.sin(t) + rng.normal(0, 0.002, t.size)
+    w = 1.5
+    got = flatten(t, f, window_length=w, method="lowess", return_trend=True, cval=1e9)[1]
+    ref = np.empty_like(f)
+    for i, xi in enumerate(t):
+        sel = np.abs(t - xi) < w / 2
+        wt = (1 - (np.abs(t[sel] - xi) / (w / 2)) ** 3) ** 3
+        X = np.vstack([np.ones(sel.sum()), t[sel] - xi]).T
+        W = np.diag(wt)
+        beta = np.linalg.lstsq(X.T @ W @ X, X.T @ W @ f[sel], rcond=None)[0]
+        ref[i] = beta[0]
+    np.testing.assert_allclose(got, ref, atol=1e-4)
+
+
+def test_hspline_cval_changes_the_huber_epsilon():
+    t, f, _ = make_lc(n=400, span=10.0)
+    f = f.copy()
+    f[200:205] -= 0.05
+    a = flatten(t, f, window_length=1.5, method="hspline", cval=1.35, return_trend=True)[1]
+    b = flatten(t, f, window_length=1.5, method="hspline", cval=50.0, return_trend=True)[1]
+    assert np.nanmax(np.abs(a - b)) > 1e-6
