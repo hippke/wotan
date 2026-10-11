@@ -1,0 +1,14 @@
+# Core (required by wotan itself)
+numpy
+scipy
+numba
+
+# Test runner
+pytest
+
+# Optional: tests for the methods that need these are skipped when missing
+statsmodels      # huber, hampel, ramsay, and the lowess cross-check
+scikit-learn     # hspline, gp, ridge, lasso, elasticnet
+pygam            # pspline
+supersmoother    # supersmoother
+astropy          # cross-check of the biweight location
