@@ -1,4 +1,4 @@
-![Logo](https://raw.githubusercontent.com/hippke/wotan/master/logo.png)
+![Logo](logo.png)
 
 [![pip](https://img.shields.io/badge/pip-install%20wotan-blue.svg)](https://pypi.org/project/wotan/)
 [![Documentation](https://img.shields.io/badge/documentation-%E2%9C%93-blue.svg)](https://wotan.readthedocs.io/en/latest/index.html)
@@ -12,6 +12,13 @@ Wōtan...
 ...offers free and open source algorithms to automagically remove trends from time-series data.
 
 > In Germanic mythology, Odin (/ˈoːðinː/ Old High German: Wōtan) is a widely revered god. He gave one of his eyes to Mimir in return for wisdom. Thus, in order to achieve a goal, one sometimes has to turn a blind eye. In Richard Wagner's "Der Ring des Nibelungen", Wotan is the King of the Gods (god of light, air, and wind) and a bass-baritone. According to Wagner, he is the "pinnacle of intelligence".
+
+What's new in 2.0
+-----------------
+
+- **Bugfixes:** 31 bugs fixed ([#70](https://github.com/hippke/wotan/issues/70)–[#100](https://github.com/hippke/wotan/issues/100)), see [BUGLOG.md](BUGLOG.md). Highlights: the slider windows now include their last sample, masks work with any flux value, robust clipping is two-sided, `lowess` uses a window in time units, `cosine`/`cofiam` work for any time offset, `pspline` and `rspline` converge properly, and NaN/inf, unsorted time and invalid arguments are handled (with warnings instead of silent NaN trends).
+- **Performance:** the time-windowed sliders (`biweight`, `median`, `welsch`, `andrewsinewave`) keep a sorted sliding window, reach convergence in fewer steps, and run in parallel on all CPU cores. The `biweight` detrends **~1.6 million data points per second** (was ~19,000), **83x faster** than 1.x (best case: 1M points, 0.5 d window at 2-min cadence, 2 CPU cores; Kepler long cadence: 22x). Results are unchanged within 1e-9. Benchmark: `python benchmarks/bench_biweight.py`.
+- **Test coverage:** a pytest suite of 530 tests covers all detrending methods, the API, edge cases, a regression test for every fixed bug, and checks against independent reference implementations. Run it with `pytest tests`.
 
 Example usage
 -------------

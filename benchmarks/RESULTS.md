@@ -22,3 +22,9 @@ the parallel part scales with the core count.
 Tried and dropped (< 5% or no gain): numba error_model="numpy" (3%), all segments
 in one numba call (0%), branch-free biweight weights (0%), warm start from the
 previous window (0%). Mask fast path: obsolete (no per-point copy any more).
+
+Idea M (biweight iteration on running power sums of the sorted window, O(log n)
+per step): implemented and dropped. Correct (2e-16 vs the plain iteration), but
+slower: geomean 0.0284 s vs 0.0201 s. After the Aitken step only ~3.5 steps
+remain, and the plain step is a vectorised (AVX-512) pass over a cache-resident
+window; one power-sum pass costs about as much, plus scalar bookkeeping per step.
