@@ -143,6 +143,10 @@ Speed in millions of data points per second for the Kepler-10 light curve (all 1
 
 \* longest Kepler-10 segment (1,925 points)
 
+Contributing
+----------------
+All my repositories embrace collaboration between humans and AI. Contributions are welcome, whether they are written by you, by an AI assistant, or by both together, and they will be handled promptly. Please open an [issue](https://github.com/hippke/wotan/issues) or a pull request.
+
 Attribution
 ----------------
 Please cite [Hippke et al. (2019, AJ, 158, 143)](https://ui.adsabs.harvard.edu/abs/2019AJ....158..143H/abstract) if you find this code useful in your research. The BibTeX entry for the paper is:
