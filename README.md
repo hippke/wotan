@@ -23,6 +23,7 @@ flatten_lc, trend_lc = flatten(time, flux, window_length=0.5, method='biweight',
 
 For more details, have a look at the [interactive playground](https://colab.research.google.com/github/hippke/wotan/blob/master/tutorials/interactive.ipynb#scrollTo=spnftwRjefhQ), the [documentation](https://wotan.readthedocs.io).
 We also have examples and tutorials available, such as the [📑Example: Basic wotan functionality](https://github.com/hippke/wotan/blob/master/tutorials/01%20Basic%20functionality.ipynb)
+and the [📑Grand Tour](https://github.com/hippke/wotan/blob/master/tutorials/05%20The%20Grand%20Tour%20-%20from%20download%20to%20posterior.ipynb), from a raw TESS light curve to a planet's posterior: download with lightkurve, detrending with wotan, the search with [TLS](https://github.com/hippke/tls), and the fit with [pizzetti](https://github.com/hippke/pizzetti).
 
 Available detrending algorithms
 ---------------------------------
