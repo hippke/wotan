@@ -76,6 +76,7 @@ Available features
 - ``edge_cutoff`` Trends near edges are less robust. Depending on the data, it may be beneficial to remove edges.
 - ``cval`` Tuning parameter for the robust estimators (see [documentation](https://wotan.readthedocs.io/en/latest/index.html))
 - ``return_trend`` If `True`, the method will return a tuple of two elements (``flattened_flux``, ``trend_flux``) where ``trend_flux`` is the removed trend. Otherwise, it will only return ``flattened_flux``.
+- ``step`` Evaluate the trend only at points this far apart and interpolate between them, for ``biweight``, ``andrewsinewave``, ``welsch`` and ``median``. On long light curves at short cadence, ``window_length / 72`` is 4-6x faster with almost the same trend (see [documentation](https://wotan.readthedocs.io/en/latest/Usage.html#faster-trends-on-long-light-curves)). Default: every point.
 - ``transit_mask`` Mask known transits during detrending [(📑Example)](https://github.com/hippke/wotan/blob/master/examples/transit%20mask.ipynb)
 
 

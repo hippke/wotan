@@ -74,6 +74,41 @@ Which we can plot as follows:
    The ``hampel`` has a 3-part descending function, known also as (a,b,c). Its tuning constant ``cval`` must be given as a tuple of 3 values. Typical values are (1.7, 3.4, 8.5) called "17A"; and (2.5, 4.5, 9.5) called "25A". With values given as multiples of the median absolute deviation, the 25A can be stated equivalently: a' = 1.686, b' = 3.035 c' = 6.408 as multiples of the standard deviation.
 
 
+Faster trends on long light curves
+----------------------------------
+
+A window much longer than the cadence changes little from one point to the next. With ``step``, the sliding window methods ``biweight``, ``andrewsinewave``, ``welsch`` and ``median`` evaluate the trend only at points about ``step`` apart (in units of ``time``) and interpolate linearly between them:
+
+::
+
+    flatten_lc, trend_lc = flatten(
+        time,
+        flux,
+        method='biweight',
+        window_length=0.5,
+        return_trend=True,
+        step=0.5 / 72         # about every 10 min, here
+        )
+
+The trend is also evaluated on both sides of a gap, so the interpolation does not reach across one, and ``edge_cutoff`` and ``mask`` work as usual. The default is every point. A ``step`` up to the cadence gives exactly the result of every point, so it costs nothing on sparse data, and other methods raise a ``ValueError``.
+
+``window_length / 72`` is a good choice. On 60 synthetic light curves at 25 s cadence (100-300 d, flares, half of them with injected transits, a 0.5 d biweight, then a transit search with TLS):
+
+=========================  ============  ==========  ===========  ===========
+\                           every point    5 min       10 min       20 min
+=========================  ============  ==========  ===========  ===========
+Detrending, total          92.6 s        24.7 s      16.0 s       11.0 s
+Trend difference, rms      \              0.011       0.017        0.031
+Trend difference, largest  \              0.20        0.29         0.40
+SDE difference, median     \              0.005       0.018        0.023
+SDE difference, largest    \              0.06        0.09         0.15
+Planets found, of 30       17            17          17           17
+=========================  ============  ==========  ===========  ===========
+
+Trend differences are in units of the noise per point, and the largest ones are next to flares. Two years at 25 s (2.5 million points) take 1.0 s instead of 4.0 s on one core. Light curves that are short, or have a cadence close to ``step``, gain little: on real TESS data the differences in SDE were at most 0.005 at 2 and 3.3 min cadence, and zero at 10 and 30 min.
+
+
+
 Trimmed methods
 ---------------
 
