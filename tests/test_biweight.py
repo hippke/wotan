@@ -164,3 +164,54 @@ def test_flattened_transit_floor_is_at_one_minus_depth(scen):
     flat = flatten(scen["t"], scen["flux"], window_length=3 * scen["t14"], method="biweight")
     assert np.nanmedian(flat[scen["intransit"]]) == pytest.approx(1 - scen["depth"], abs=2e-4)
     assert np.nanmedian(flat[~scen["intransit"]]) == pytest.approx(1.0, abs=1e-4)
+
+
+def _thin_lc(seed=3):
+    r = np.random.default_rng(seed)
+    t = np.arange(0.0, 30.0, 25 / 86400)
+    keep = (t < 7.0) | (t > 7.02)  # a short gap, inside a segment
+    keep &= (t < 15.0) | (t > 18.0)  # a long one, between segments
+    keep &= r.uniform(size=len(t)) > 0.01
+    t = t[keep]
+    return t, 1 + 0.01 * np.sin(2 * np.pi * t / 5.0) + r.normal(0, 1e-3, len(t))
+
+
+@pytest.mark.parametrize("method", ["biweight", "welsch", "andrewsinewave", "median"])
+def test_step_up_to_the_cadence_is_every_point(method):
+    t, f = _thin_lc()
+    t, f = t[:6000], f[:6000]
+    ref = flatten(t, f, window_length=0.5, method=method, return_trend=True)[1]
+    new = flatten(t, f, window_length=0.5, method=method, return_trend=True, step=1e-6)[1]
+    np.testing.assert_array_equal(new, ref)
+
+
+@pytest.mark.parametrize("edge_cutoff", [0.0, 0.1])
+def test_step_follows_every_point(edge_cutoff):
+    t, f = _thin_lc()
+    ref = flatten(t, f, window_length=0.5, return_trend=True, edge_cutoff=edge_cutoff)[1]
+    new = flatten(t, f, window_length=0.5, return_trend=True, edge_cutoff=edge_cutoff, step=0.5 / 72)[1]
+    np.testing.assert_array_equal(np.isnan(new), np.isnan(ref))
+    ok = np.isfinite(ref)
+    assert np.sqrt(np.mean((new[ok] - ref[ok]) ** 2)) < 0.02 * 1e-3
+    assert np.max(np.abs(new[ok] - ref[ok])) < 0.1 * 1e-3
+
+
+def test_step_with_mask_and_nan():
+    t, f = _thin_lc()
+    f = f.copy()
+    f[100:110] = np.nan
+    mask = np.zeros(len(t), bool)
+    mask[3000:3400] = True  # known transits: not fitted, but still evaluated
+    ref = flatten(t, f, window_length=0.5, return_trend=True, mask=mask)[1]
+    new = flatten(t, f, window_length=0.5, return_trend=True, mask=mask, step=0.5 / 72)[1]
+    np.testing.assert_array_equal(np.isnan(new), np.isnan(ref))
+    ok = np.isfinite(ref)
+    assert np.max(np.abs(new[ok] - ref[ok])) < 0.2 * 1e-3
+
+
+def test_step_on_other_methods_is_an_error():
+    t, f = _thin_lc()
+    with pytest.raises(ValueError):
+        flatten(t, f, window_length=0.5, method="mean", step=0.01)
+    with pytest.raises(ValueError):
+        flatten(t, f, window_length=0.5, step=0.0)

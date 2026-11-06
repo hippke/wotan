@@ -199,6 +199,124 @@ def _sliding_chunk(time, flux, mask, idx_start, idx_end, i0, i1, low_index, hi_i
             out[i] = location_iter_core(buf[:n], med, mad, cval, method_code)
 
 
+@jit(fastmath=True, nopython=True, cache=True)
+def _thin_points(time, step, low_index, hi_index):
+    """Indexes of the points to evaluate: the first of each bin of width ``step``, and
+    the points on both sides of a longer time step, so that the interpolation
+    between them never crosses a gap with a value from far before it"""
+    size = len(time)
+    keep = np.zeros(size, dtype=np.bool_)
+    last_bin = -1
+    last = -1  # the last point in the evaluated range
+    for i in range(size):
+        if time[i] < low_index or time[i] > hi_index:
+            continue
+        b = int((time[i] - low_index) / step)
+        long_step = last >= 0 and time[i] - time[last] > step
+        if b != last_bin or long_step:
+            keep[i] = True
+            last_bin = b
+        if long_step:
+            keep[last] = True
+        last = i
+    if last >= 0:
+        keep[last] = True
+    return np.flatnonzero(keep)
+
+
+@jit(fastmath=True, nopython=True, cache=True)
+def _thin_chunk(flux, mask, idx_start, idx_end, points, p0, p1, cval, method_code, buf, tmp, out):
+    """_sliding_chunk at some points only: between two of them, the sorted window changes
+    in one merge pass, so a point costs O(window + moved points log moved points)"""
+    n = 0
+    cur_lo = -1
+    cur_hi = -1
+    for p in range(p0, p1):
+        i = points[p]
+        lo = idx_start[i]
+        hi = idx_end[i]
+        if cur_lo < 0 or lo >= cur_hi:  # (re)build the buffer from scratch
+            n = 0
+            for j in range(lo, hi):
+                if mask[j] > 0:
+                    buf[n] = flux[j]
+                    n += 1
+            buf[:n].sort()
+        else:  # windows only move forward
+            leave = np.sort(flux[cur_lo:lo][mask[cur_lo:lo] > 0])
+            enter = np.sort(flux[cur_hi:hi][mask[cur_hi:hi] > 0])
+            a = 0
+            k = 0
+            il = 0
+            ie = 0
+            while a < n or ie < len(enter):
+                if a < n and il < len(leave) and buf[a] == leave[il]:
+                    a += 1
+                    il += 1
+                elif ie < len(enter) and (a >= n or enter[ie] <= buf[a]):
+                    tmp[k] = enter[ie]
+                    ie += 1
+                    k += 1
+                else:
+                    tmp[k] = buf[a]
+                    a += 1
+                    k += 1
+            n = k
+            buf, tmp = tmp, buf
+        cur_lo = lo
+        cur_hi = hi
+        if n == 0:
+            continue  # stays NaN
+        if method_code == 5:
+            if n % 2 == 1:
+                out[i] = buf[n // 2]
+            else:
+                out[i] = (buf[n // 2 - 1] + buf[n // 2]) / 2
+            continue
+        med, mad = _median_mad_sorted(buf[:n])
+        if mad == 0:
+            out[i] = med
+        else:
+            out[i] = location_iter_core(buf[:n], med, mad, cval, method_code)
+
+
+@jit(fastmath=True, nopython=True, cache=True, parallel=True)
+def running_segment_thin(time, flux, mask, window_length, edge_cutoff, cval, method_code, step):
+    """running_segment for the sliding sorted window methods, evaluated at points about
+    ``step`` apart and linearly interpolated in time between them. A window much longer
+    than the cadence changes little from one point to the next. Points between two
+    evaluated ones get NaN if either of those is NaN (no usable point in its window)."""
+    size = len(time)
+    mean_all = full(size, nan)
+    half_window = window_length / 2
+    if edge_cutoff > half_window:
+        edge_cutoff = half_window
+    low_index = np.min(time) + edge_cutoff
+    hi_index = np.max(time) - edge_cutoff
+    points = _thin_points(time, step, low_index, hi_index)
+    npts = len(points)
+    if npts == 0:
+        return mean_all
+    idx_start, idx_end = _window_bounds(time, half_window)
+    max_window = 1
+    for p in range(npts):
+        max_window = max(max_window, idx_end[points[p]] - idx_start[points[p]])
+    n_chunks = max(1, min(256, npts // 16))
+    for c in prange(n_chunks):
+        p0 = c * npts // n_chunks
+        p1 = (c + 1) * npts // n_chunks
+        _thin_chunk(flux, mask, idx_start, idx_end, points, p0, p1, cval, method_code,
+                    np.empty(max_window), np.empty(max_window), mean_all)
+    for p in range(npts - 1):
+        i0 = points[p]
+        i1 = points[p + 1]
+        if i1 > i0 + 1 and mean_all[i0] == mean_all[i0] and mean_all[i1] == mean_all[i1]:
+            slope = (mean_all[i1] - mean_all[i0]) / (time[i1] - time[i0])
+            for i in range(i0 + 1, i1):
+                mean_all[i] = mean_all[i0] + slope * (time[i] - time[i0])
+    return mean_all
+
+
 @jit(fastmath=True, nopython=True, cache=True, parallel=True)
 def running_segment(time, flux, mask, window_length, edge_cutoff, cval, method_code):
     """Iterator for a single time-series segment using time-series window sliders.
