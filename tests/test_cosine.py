@@ -173,7 +173,8 @@ def test_cosine_and_cofiam_are_insensitive_to_round_off_in_the_design_matrix():
         exact = cof.stable_lstsq_trend(cof.matrix_gen(t, degree), y, np.ones(t.size))
         fast = cof.stable_lstsq_trend(cof.matrix_gen_recurrence(t, degree), y,
                                       np.ones(t.size))
-        np.testing.assert_allclose(exact, fast, atol=1e-8, rtol=0)
+        # 1e-7: BLAS dependent round-off reaches ~1e-8 (numpy 2.5), the bug was 1e-4
+        np.testing.assert_allclose(exact, fast, atol=1e-7, rtol=0)
     a = cof.detrend_cofiam(t, y, 0.5)
     orig = cof.matrix_gen_recurrence
     try:

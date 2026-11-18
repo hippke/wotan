@@ -165,7 +165,9 @@ def test_mask_follows_the_TLS_convention_true_means_excluded():
     f[(t > 4.5) & (t < 5.5)] = 0.5
     mask = (t > 4.5) & (t < 5.5)
     kept = flatten(t, f, window_length=3.0, mask=mask, method="mean", return_trend=True)[1]
-    inverted = flatten(t, f, window_length=3.0, mask=~mask, method="mean", return_trend=True)[1]
+    with pytest.warns(UserWarning, match="received a NaN trend"):  # only the dip is kept, most windows are empty
+        inverted = flatten(t, f, window_length=3.0, mask=~mask, method="mean",
+                           return_trend=True)[1]
     assert np.nanmax(np.abs(kept - 1.0)) < 1e-9
     assert np.nanmax(np.abs(inverted - 1.0)) > 0.1
 
@@ -174,8 +176,9 @@ def test_mask_follows_the_TLS_convention_true_means_excluded():
 def test_everything_masked_gives_nan_not_a_crash(method):
     t = np.linspace(0, 10, 100)
     f = np.ones_like(t)
-    trend = flatten(t, f, window_length=1.0, method=method, mask=np.ones(100, bool),
-                    return_trend=True)[1]
+    with pytest.warns(UserWarning, match="received a NaN trend"):
+        trend = flatten(t, f, window_length=1.0, method=method, mask=np.ones(100, bool),
+                        return_trend=True)[1]
     assert np.isnan(trend).all()
 
 

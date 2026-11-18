@@ -155,7 +155,8 @@ def test_transit_mask_rescues_a_short_window(scen):
     t, f, intr = scen["t"], scen["flux"], scen["intransit"]
     w = 1.0 * scen["t14"]
     unmasked = flatten(t, f, window_length=w, method="biweight")
-    masked = flatten(t, f, window_length=w, method="biweight", mask=intr)
+    with pytest.warns(UserWarning, match="received a NaN trend"):  # windows inside the transit are fully masked
+        masked = flatten(t, f, window_length=w, method="biweight", mask=intr)
     assert measured_depth(unmasked, intr) < 0.3 * scen["depth"]
     assert measured_depth(masked, intr) == pytest.approx(scen["depth"], rel=0.05)
 

@@ -57,7 +57,8 @@ def test_nan_positions_do_not_change_values_elsewhere(lc):
 
 def test_zero_trend_becomes_nan_not_inf():
     t = np.linspace(0, 10, 100)
-    flat, trend = flatten(t, np.zeros(100), window_length=1.0, return_trend=True)
+    with pytest.warns(UserWarning, match="zero or negative"):
+        flat, trend = flatten(t, np.zeros(100), window_length=1.0, return_trend=True)
     assert np.isnan(trend).all() and np.isnan(flat).all()  # documented in the source
     assert not np.isinf(flat).any()
 

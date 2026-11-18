@@ -99,8 +99,9 @@ def test_falls_back_to_the_median_when_the_iteration_fails(irregular, monkeypatc
 def test_window_with_a_single_point_gives_nan():
     t = np.array([0.0, 0.1, 0.2, 5.0, 9.8, 9.9, 10.0, 10.1])
     f = np.ones(8) + np.arange(8) * 1e-3
-    trend = flatten(t, f, window_length=0.5, method="huber", break_tolerance=0,
-                    return_trend=True)[1]
+    with pytest.warns(UserWarning, match="received a NaN trend"):
+        trend = flatten(t, f, window_length=0.5, method="huber", break_tolerance=0,
+                        return_trend=True)[1]
     assert np.isnan(trend[3])  # alone in its window
 
 

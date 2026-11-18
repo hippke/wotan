@@ -10,6 +10,8 @@ Definition-based facts used here:
 * all three are robust to short dips: a transit shorter than the knot spacing
   survives the flattening
 """
+import contextlib
+
 import numpy as np
 import pytest
 
@@ -77,7 +79,8 @@ def test_rspline_mask_is_equivalent_to_dropping_the_points():
 
 def test_rspline_too_few_points_gives_nan_not_an_exception():
     t = np.linspace(0, 1, 4)
-    tr = flatten(t, np.ones(4), window_length=0.2, method="rspline", return_trend=True)[1]
+    with pytest.warns(UserWarning, match="received a NaN trend"):
+        tr = flatten(t, np.ones(4), window_length=0.2, method="rspline", return_trend=True)[1]
     assert np.isnan(tr).all()
 
 
@@ -98,8 +101,12 @@ def test_hspline_trend_is_not_forced_to_zero_issue_64():
     # (An offset >> signal, e.g. +1000 on a 0.01 signal, loses precision: BUGLOG BUG-027.)
     t, f, true = make_lc(n=1500, span=30.0, level=1.0)
     for offset in (0.0, 5.0):
-        tr = flatten(t, f - 1.0 + offset, window_length=1.0, method="hspline",
-                     return_trend=True)[1]
+        # flux around 0: flatten warns about the division, as it should
+        warns = (pytest.warns(UserWarning, match="zero or negative") if offset == 0.0
+                 else contextlib.nullcontext())
+        with warns:
+            tr = flatten(t, f - 1.0 + offset, window_length=1.0, method="hspline",
+                         return_trend=True)[1]
         np.testing.assert_allclose(tr, true - 1.0 + offset, atol=6e-4)
 
 
