@@ -71,8 +71,9 @@ def test_bug002_huber_slider_includes_the_last_sample():
                 "every value <= 0, so non-positive flux is silently discarded")
 def test_bug003_constant_negative_flux_gives_that_constant():
     t = np.linspace(0, 10, 100)
-    trend = flatten(t, np.full(100, -5.0), window_length=2.0, method="median",
-                    break_tolerance=0, return_trend=True)[1]
+    with pytest.warns(UserWarning, match="zero or negative"):
+        trend = flatten(t, np.full(100, -5.0), window_length=2.0, method="median",
+                        break_tolerance=0, return_trend=True)[1]
     ok = t + 1.0 < t.max()
     np.testing.assert_allclose(trend[ok], -5.0)
 
@@ -81,8 +82,9 @@ def test_bug003_constant_negative_flux_gives_that_constant():
 def test_bug003_zero_mean_flux_has_a_complete_trend():
     t = np.linspace(0, 10, 400)
     f = 0.01 * np.sin(t)  # symmetric around 0
-    trend = flatten(t, f, window_length=1.0, method="median", break_tolerance=0,
-                    return_trend=True)[1]
+    with pytest.warns(UserWarning, match="zero or negative"):
+        trend = flatten(t, f, window_length=1.0, method="median", break_tolerance=0,
+                        return_trend=True)[1]
     assert np.isnan(trend[t + 0.5 < t.max()]).sum() == 0
 
 
@@ -93,8 +95,9 @@ def test_bug003_masked_negative_flux_does_not_leak():
     f[8:12] = -100.0
     mask = np.zeros(20, bool)
     mask[8:12] = True
-    trend = flatten(t, f, window_length=6.0, method="median", mask=mask,
-                    break_tolerance=0, return_trend=True)[1]
+    with pytest.warns(UserWarning, match="zero or negative"):
+        trend = flatten(t, f, window_length=6.0, method="median", mask=mask,
+                        break_tolerance=0, return_trend=True)[1]
     np.testing.assert_allclose(trend[8:12], -5.0)
 
 
@@ -419,6 +422,7 @@ def test_bug022_lowess_edge_point_matches_statsmodels():
     f = np.ones(200)
     f[k - 1] += 1.0  # spike on the *last* member of the first window (zero tricube weight)
     ours = flatten(t, f, window_length=0.5, method="lowess", return_trend=True)[1]
+    assert not np.isnan(ours).any()  # the rejected spike must not leave NaN behind
     ref = sm.lowess(f, t, frac=k / 200.0, it=0, return_sorted=False)
     assert ours[0] == pytest.approx(ref[0], abs=1e-3)
 
@@ -604,3 +608,25 @@ def test_hspline_cval_changes_the_huber_epsilon():
     a = flatten(t, f, window_length=1.5, method="hspline", cval=1.35, return_trend=True)[1]
     b = flatten(t, f, window_length=1.5, method="hspline", cval=50.0, return_trend=True)[1]
     assert np.nanmax(np.abs(a - b)) > 1e-6
+
+
+# ---------------------------------------------------- 2.1: lowess NaN spreading
+@pytest.mark.parametrize("threads", ["one", "all"])
+def test_lowess_deep_transit_gives_a_finite_trend(threads):
+    """A transit deeper than the noise and longer than ~0.4 window rejects every point
+    of the central windows: 0/0 there. Since the parallel loop (f5e5d76) the NaN
+    became a robustness weight and spread until the whole trend was NaN, depending
+    on the number of numba threads (1-8 threads vs 16 also differed for a spike)."""
+    import numba
+    rng = np.random.default_rng(1)
+    t = np.arange(0, 20, 0.02)
+    f = 1 + 1e-4 * rng.standard_normal(t.size)
+    f[np.abs(t - 10) < 0.1] -= 0.01
+    old = numba.get_num_threads()
+    numba.set_num_threads(1 if threads == "one" else numba.config.NUMBA_NUM_THREADS)
+    try:
+        trend = flatten(t, f, window_length=0.5, method="lowess", return_trend=True)[1]
+    finally:
+        numba.set_num_threads(old)
+    assert not np.isnan(trend).any()
+    assert np.max(np.abs(trend - 1)) < 1e-3  # the transit is not in the trend

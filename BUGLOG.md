@@ -395,3 +395,18 @@ Notes N-1…N-4 and N-6…N-8 of earlier drafts are now BUG-025…BUG-031.
   clip on a scatter below 1e-9 (round-off). Trends change by up to ~1e-4 vs 1.x.
 - `cleaned_array` (used by rspline, pspline, gp) looped over the data in Python
   (5 s per 1M points); now vectorised with the same semantics.
+
+
+## Found after 2.1 (user report, 2026-11-18)
+
+- `lowess`: when the robustness weights rejected every point of a window (a transit
+  deeper than ~6x the scatter and longer than ~0.4 window, or a spike on noise-free
+  data), the local fit was 0/0, and a window with one point of round-off weight gave
+  a fit of ~1e15. Since the parallel loop (f5e5d76, 2.0) the NaN residual became a
+  NaN robustness weight and spread by two windows per iteration; the convergence test
+  `max(NaN) < ftol` never passed, so after 30 iterations the whole trend was NaN.
+  Whether it happened depended on the number of numba threads (fastmath + NaN).
+  Now: an empty window returns NaN explicitly, w2 below (1e-6 radius)^2 counts as no
+  spread, points without a trend get weight 0, the convergence test uses nanmax, and
+  the outer function is compiled without fastmath.
+  Test: `test_lowess_deep_transit_gives_a_finite_trend`.

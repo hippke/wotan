@@ -17,6 +17,8 @@ def _local_linear_fit(x, y, y_weights, imin, imax, xi, radius):
     for j in range(n):
         k[j] = y_weights[imin + j] * (1 - (np.abs(x[imin + j] - xi) / radius) ** 3) ** 3
         sw += k[j]
+    if sw <= 0:  # no usable point: all masked or rejected by the robustness weights
+        return np.nan
     w1 = 0.0
     for j in range(n):
         w1 += k[j] / sw * x[imin + j]
@@ -30,13 +32,17 @@ def _local_linear_fit(x, y, y_weights, imin, imax, xi, radius):
         w2 += w * d ** 2
         swy += w * y[imin + j]
         swdy += w * d * y[imin + j]
-    if w2 == 0:
+    # No spread in x (one effective point): no slope. A tolerance, not w2 == 0: a
+    # point with a round-off weight next to rejected ones gives w2 ~ 1e-30 and a
+    # fit of 1e15
+    if w2 <= (1e-6 * radius) ** 2:
         return np.nan
     fit = swy + (xi - w1) * swdy / w2
     return fit
 
 
-@jit(fastmath=True, nopython=True, cache=True, parallel=True)
+# No fastmath here: the NaN checks below must not be optimised away
+@jit(nopython=True, cache=True, parallel=True)
 def lowess(x, y, mask, window_length, cval=6.0, maxiter=30, ftol=1e-6):
     """Locally weighted linear regression (Cleveland 1979) with a window in units of
     ``x``: the trend at ``x[i]`` uses all points with ``|x - x[i]| < window_length/2``,
@@ -54,6 +60,9 @@ def lowess(x, y, mask, window_length, cval=6.0, maxiter=30, ftol=1e-6):
         diff[diff > 1] = 1
         y_weights = (1 - diff**2)**2
         y_weights[mask == 0] = 0
+        # A point without a trend (its window had no usable point) is no data point
+        # for the next fit: weight 0, not NaN, or the NaN spreads to every window
+        y_weights[np.isnan(trend)] = 0
         return y_weights  # bisquare
 
     points = len(x)
@@ -76,7 +85,7 @@ def lowess(x, y, mask, window_length, cval=6.0, maxiter=30, ftol=1e-6):
             trend[i] = _local_linear_fit(
                 x, y, y_weights, indices_l[i], indices_r[i], x[i], radius)
         y_weights = calc_y_weights(y, mask, trend)
-        if np.max(np.abs(y_fit_previous - trend)) < ftol:  # Check convergence
+        if np.nanmax(np.abs(y_fit_previous - trend)) < ftol:  # Check convergence
             break
         y_fit_previous = trend
     return trend
